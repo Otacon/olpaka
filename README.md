@@ -9,22 +9,22 @@ Below you'll find a rough plan of action. This list of feature is subject to cha
 in time for whatever reason.
 
 ### v1.0 - Getting started
-- [] Connect to local Ollama instance
-- [] Implement basic chat
+- [ ] Connect to local Ollama instance
+- [ ] Implement basic chat
 
 ### v1.1 - Models galore
-- [] Manage models (list, pull, remove)
+- [ ] Manage models (list, pull, remove)
 
 ### v1.2 - Makeup time!
-- [] Customize model parameters
+- [ ] Customize model parameters
 
 ### v1.3 - You're not alone
-- [] Connect to remote Ollama instances
+- [ ] Connect to remote Ollama instances
 
 ### v1.4 - Stats for nerds
-- [] Show performance
+- [ ] Show performance
 
 ### Future development
-- [] Support Desktop
-- [] Support Mobile
-- [] Add more locales
+- [ ] Support Desktop
+- [ ] Support Mobile
+- [ ] Add more locales
