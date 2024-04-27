@@ -1,7 +1,9 @@
 
-import 'package:get_it/get_it.dart';
+
+import 'package:olpaka/chat/di.dart';
+import 'package:olpaka/ollama/di.dart';
 
 void registerModules() {
-  var l = GetIt.instance;
-
+  registerOllama();
+  registerChat();
 }
