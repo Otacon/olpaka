@@ -45,7 +45,7 @@ jobs:
           flutter pub global run intl_utils:generate
 
       - name: Build artifact
-        run: flutter build web
+        run: flutter build web --base-href "/olpaka/"
 
       - name: Upload static content
         uses: actions/upload-pages-artifact@v3
