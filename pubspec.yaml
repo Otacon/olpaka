@@ -1,0 +1,52 @@
+name: olpaka
+description: "A Flutter frontend app for Ollama"
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.4 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Markdown
+  markdown_widget: ^2.3.2+6
+
+  # Dependency Injection
+  get_it: ^7.6.7
+
+  # Navigation
+  go_router: ^14.0.1
+
+  # Google Fonts
+  google_fonts: ^6.2.1
+
+  # HTTP Client
+  dio: ^5.4.1
+
+  # MVVM
+  stacked: ^3.4.2
+
+  # Localization
+  intl: ^0.19.0
+
+  # iOS Icons?! Do we need these?
+  cupertino_icons: ^1.0.6
+
+
+flutter_localizations:
+  sdk: flutter
+  intl_utils: ^2.8.7
+
+flutter_intl:
+  enabled: true
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
