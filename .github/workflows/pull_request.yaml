@@ -32,5 +32,8 @@ jobs:
           flutter pub global activate intl_utils
           flutter pub global run intl_utils:generate
 
-      - name: Build Bundle
+      - name: Run Tests
+        run: flutter test
+
+      - name: Build app
         run: flutter build web
