@@ -1,0 +1,36 @@
+name: Pull Request
+run-name: Pull Request
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-app:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Update dependencies (pub get)
+        run: flutter pub get
+
+      - name: Generate translations
+        run: |
+          flutter pub global activate intl_utils
+          flutter pub global run intl_utils:generate
+
+      - name: Build Bundle
+        run: flutter build web
