@@ -1,0 +1,57 @@
+name: Create release
+run-name: Crete release
+
+on:
+  push:
+    branches:
+      - main
+      - first_commit
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Update dependencies (pub get)
+        run: flutter pub get
+
+      - name: Generate translations
+        run: |
+          flutter pub global activate intl_utils
+          flutter pub global run intl_utils:generate
+
+      - name: Build artifact
+        run: flutter build web
+
+      - name: Upload static content
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './build/web/'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
