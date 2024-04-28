@@ -12,14 +12,14 @@ class OlpakaApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
+          seedColor: Colors.cyan,
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
+          seedColor: Colors.cyan,
           brightness: Brightness.dark,
         ),
         useMaterial3: true,

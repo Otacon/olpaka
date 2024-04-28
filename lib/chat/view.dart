@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:olpaka/chat/view_model.dart';
@@ -27,6 +25,8 @@ class ChatScreen extends StatelessWidget {
               messages: state.messages,
               models: state.models,
               selectedModel: state.selectedModel,
+              onModelSelected: (model) => {viewModel.onModelChanged(model)},
+              onSendMessage: (message) => {viewModel.onSendMessage(message)},
             ));
       },
     );
@@ -34,15 +34,20 @@ class ChatScreen extends StatelessWidget {
 }
 
 class _Content extends StatelessWidget {
-  const _Content({
+  _Content({
     required this.messages,
     required this.models,
+    required this.onSendMessage,
+    required this.onModelSelected,
     this.selectedModel,
   });
 
   final List<ChatMessage> messages;
   final List<String> models;
   final String? selectedModel;
+  final Function(String) onSendMessage;
+  final Function(String?) onModelSelected;
+  final TextEditingController _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -55,17 +60,21 @@ class _Content extends StatelessWidget {
               final message = messages[index];
               final double paddingStart;
               final double paddingEnd;
+              final Color? bubbleColor;
               if (message.isUser) {
-                paddingStart = 48;
+                paddingStart = 96;
                 paddingEnd = 16;
+                bubbleColor = Theme.of(context).colorScheme.inversePrimary;
               } else {
                 paddingStart = 16;
-                paddingEnd = 48;
+                paddingEnd = 96;
+                bubbleColor = null;
               }
               return Padding(
                 padding: EdgeInsets.only(
                     left: paddingStart, right: paddingEnd, top: 16.0),
                 child: Card.filled(
+                  color: bubbleColor,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 8.0,
@@ -88,9 +97,11 @@ class _Content extends StatelessWidget {
             children: [
               Expanded(
                 child: TextField(
+                  controller: _controller,
+                  onSubmitted: (message) => {onSendMessage(message)},
                   decoration: InputDecoration(
                     suffixIcon: IconButton(
-                      onPressed: () => {},
+                      onPressed: () => {onSendMessage(_controller.value.text)},
                       icon: const Icon(Icons.send),
                     ),
                     border: const OutlineInputBorder(),
@@ -100,7 +111,8 @@ class _Content extends StatelessWidget {
               ),
               const SizedBox(width: 16.0),
               DropdownMenu<String>(
-                width: 200,
+                width: 250,
+                onSelected: (model) => { onModelSelected(model) },
                 label: const Text("Model"),
                 initialSelection: selectedModel,
                 dropdownMenuEntries: models
@@ -124,22 +136,19 @@ class _Message extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Text sender;
-    final CrossAxisAlignment alignment;
     if (isOwn) {
-      alignment = CrossAxisAlignment.start;
       sender = Text(
         "You",
         style: Theme.of(context).textTheme.titleLarge,
       );
     } else {
-      alignment = CrossAxisAlignment.end;
       sender = Text(
         "Assistant",
         style: Theme.of(context).textTheme.titleLarge,
       );
     }
     return Column(
-      crossAxisAlignment: alignment,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         sender,
         MarkdownBlock(

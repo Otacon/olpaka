@@ -26,22 +26,40 @@ class ChatViewModel with ChangeNotifier {
       messages: List.empty(),
     );
     notifyListeners();
-    const prompt = "Could you please generate a message with all the formattings of markdown?!";
-    final ownMessage = ChatMessage(true, prompt);
+  }
+
+  onModelChanged(String? model) async {
+    if (model == null) {
+      return;
+    }
     state = ChatState(
       isLoading: false,
-      selectedModel: selectedModel,
-      models: models,
-      messages: [ownMessage],
+      selectedModel: model,
+      models: state.models,
+      messages: state.messages,
     );
     notifyListeners();
-    final answer = await _repository.generate(selectedModel!, prompt);
-    final reply = ChatMessage(false,answer);
+  }
+
+  onSendMessage(String message) async {
+    final ownMessage = ChatMessage(true, message);
+    final newMessages = List<ChatMessage>.from(state.messages, growable: true);
+    newMessages.add(ownMessage);
     state = ChatState(
       isLoading: false,
-      selectedModel: selectedModel,
-      models: models,
-      messages: [ownMessage, reply],
+      selectedModel: state.selectedModel,
+      models: state.models,
+      messages: newMessages,
+    );
+    notifyListeners();
+    final answer = await _repository.generate(state.selectedModel!, message);
+    final reply = ChatMessage(false, answer);
+    newMessages.add(reply);
+    state = ChatState(
+      isLoading: false,
+      selectedModel: state.selectedModel,
+      models: state.models,
+      messages: newMessages,
     );
     notifyListeners();
   }
