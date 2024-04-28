@@ -42,19 +42,24 @@ class ChatViewModel with ChangeNotifier {
   }
 
   onSendMessage(String message) async {
-    final ownMessage = ChatMessage(true, message);
     final newMessages = List<ChatMessage>.from(state.messages, growable: true);
-    newMessages.add(ownMessage);
+    newMessages.add(ChatMessage(isUser: true, message: message));
+    var assistantMessage = ChatMessage(isUser: false, isLoading: true);
+    newMessages.add(assistantMessage);
     state = ChatState(
-      isLoading: false,
+      isLoading: true,
       selectedModel: state.selectedModel,
       models: state.models,
       messages: newMessages,
     );
     notifyListeners();
     final answer = await _repository.generate(state.selectedModel!, message);
-    final reply = ChatMessage(false, answer);
-    newMessages.add(reply);
+    newMessages.remove(assistantMessage);
+    newMessages.add(ChatMessage(
+      isUser: false,
+      message: answer,
+      isLoading: false,
+    ));
     state = ChatState(
       isLoading: false,
       selectedModel: state.selectedModel,
@@ -82,6 +87,11 @@ class ChatState {
 class ChatMessage {
   final bool isUser;
   final String message;
+  final bool isLoading;
 
-  ChatMessage(this.isUser, this.message);
+  ChatMessage({
+    required this.isUser,
+    this.message = "",
+    this.isLoading = false,
+  });
 }
