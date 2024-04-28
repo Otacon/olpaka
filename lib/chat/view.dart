@@ -19,7 +19,7 @@ class ChatScreen extends StatelessWidget {
         return Scaffold(
             appBar: AppBar(
               title: const Text("Olpaka"),
-              backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             ),
             body: _Content(
               messages: state.messages,
@@ -73,11 +73,11 @@ class _Content extends StatelessWidget {
               if (message.isUser) {
                 paddingStart = 96;
                 paddingEnd = 16;
-                bubbleColor = Theme.of(context).colorScheme.inversePrimary;
+                bubbleColor = Theme.of(context).colorScheme.secondaryContainer;
               } else {
                 paddingStart = 16;
                 paddingEnd = 96;
-                bubbleColor = null;
+                bubbleColor = Theme.of(context).colorScheme.tertiaryContainer;
               }
               return Padding(
                 padding: EdgeInsets.only(
@@ -100,36 +100,39 @@ class _Content extends StatelessWidget {
             },
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  enabled: isEnabled,
-                  onSubmitted: (message) => {onSendMessage(message)},
-                  decoration: InputDecoration(
-                    suffixIcon: IconButton(
-                      onPressed: () => {onSendMessage(_controller.value.text)},
-                      icon: const Icon(Icons.send),
+        Container(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    enabled: isEnabled,
+                    onSubmitted: (message) => {onSendMessage(message)},
+                    decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        onPressed: () => {onSendMessage(_controller.value.text)},
+                        icon: const Icon(Icons.send),
+                      ),
+                      border: const OutlineInputBorder(),
+                      hintText: "Message Olpaka",
                     ),
-                    border: const OutlineInputBorder(),
-                    hintText: "Message Olpaka",
                   ),
                 ),
-              ),
-              const SizedBox(width: 16.0),
-              DropdownButton<String>(
-                hint: const Text("Selected model"),
-                onChanged: dropdownCallback,
-                value: selectedModel,
-                items: models
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-              ),
-            ],
+                const SizedBox(width: 16.0),
+                DropdownButton<String>(
+                  hint: const Text("Selected model"),
+                  onChanged: dropdownCallback,
+                  value: selectedModel,
+                  items: models
+                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                      .toList(),
+                ),
+              ],
+            ),
           ),
         )
       ],
