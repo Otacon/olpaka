@@ -1,55 +1,49 @@
 import 'dart:convert';
 import 'dart:core';
-import 'package:dio/dio.dart';
+import 'package:olpaka/app/HttpClient.dart';
+import 'package:olpaka/app/logger.dart';
 import 'package:olpaka/ollama/model.dart';
 
 //TODO add error handling
 class OllamaRepository {
-  final Dio _client;
-  final String _path = "http://localhost:11434/api";
+  final HttpClient _client;
 
   OllamaRepository(this._client);
 
   Future<List<Model>> listModels() async {
-
-    final Response<String> response = await _client.get("$_path/tags");
-
-    final statusCode = response.statusCode;
-    final body = response.data;
-    if (statusCode == null || body == null) {
-      return List.empty();
-    }
-
-    if (statusCode >= 200 && statusCode <= 299) {
-      final json = jsonDecode(body);
-      final models =
-          List<Model>.from(json["models"].map((model) => _parseModel(model)));
-      return models;
-    } else {
-      return List.empty();
+    logger.i("Loading models...");
+    final response = await _client.get("/tags");
+    switch (response) {
+      case HttpResponseSuccess():
+        final json = jsonDecode(response.body)["models"];
+        final models =
+            List<Model>.from(json.map((model) => _parseModel(model)));
+        return models;
+      case HttpResponseError():
+        return List.empty();
+      case HttpResponseOllamaNotFound():
+        return List.empty();
     }
   }
 
   Future<String> generate(String model, String prompt) async {
-    final Response<String> response = await _client.post(
-      "$_path/generate",
+    logger.i("Generating answer...");
+    final response = await _client.post(
+      "/generate",
       data: {
         "model": model,
         "prompt": prompt,
-        "stream": false
+        "stream": false,
       },
     );
-    final statusCode = response.statusCode;
-    final body = response.data;
-    if (statusCode == null || body == null) {
-      return "Error";
-    }
-
-    if (statusCode >= 200 && statusCode <= 299) {
-      final json = jsonDecode(body);
-      return json["response"];
-    } else {
-      return "";
+    switch (response) {
+      case HttpResponseSuccess():
+        final json = jsonDecode(response.body);
+        return json["response"];
+      case HttpResponseError():
+        return "Error";
+      case HttpResponseOllamaNotFound():
+        return "Error";
     }
   }
 

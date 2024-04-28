@@ -24,6 +24,11 @@ dependencies:
 
   # HTTP Client
   dio: ^5.4.1
+  # HTTP Logger
+  pretty_dio_logger: ^1.3.1
+
+  # Logging
+  logger: ^2.2.0
 
   # MVVM
   stacked: ^3.4.2
