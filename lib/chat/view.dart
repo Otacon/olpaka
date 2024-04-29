@@ -18,8 +18,13 @@ class ChatScreen extends StatelessWidget {
         final state = viewModel.state;
         return Scaffold(
             appBar: AppBar(
-              title: const Text("Olpaka"),
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              title: Text(
+                "Olpaka",
+                style: Theme
+                    .of(context)
+                    .textTheme
+                    .headlineMedium,
+              ),
             ),
             body: _Content(
               messages: state.messages,
@@ -28,14 +33,15 @@ class ChatScreen extends StatelessWidget {
               isEnabled: !state.isLoading,
               onModelSelected: (model) => {viewModel.onModelChanged(model)},
               onSendMessage: (message) => {viewModel.onSendMessage(message)},
-            ));
+            ),
+        );
       },
     );
   }
 }
 
 class _Content extends StatelessWidget {
-  _Content({
+  const _Content({
     required this.messages,
     required this.models,
     required this.onSendMessage,
@@ -50,6 +56,154 @@ class _Content extends StatelessWidget {
   final bool isEnabled;
   final Function(String) onSendMessage;
   final Function(String?) onModelSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            itemCount: messages.length,
+            itemBuilder: (context, index) {
+              final message = messages[index];
+              if (message.isUser) {
+                return _OwnMessage(text: message.message);
+              } else {
+                return _AssistantMessage(text: message.message, isLoading: message.isLoading,);
+              }
+            }
+          ),
+        ),
+        _BottomBar(
+          isEnabled: isEnabled,
+          onSendMessage: onSendMessage,
+          onModelSelected: onModelSelected,
+          selectedModel: selectedModel,
+          models: models,
+        ),
+      ],
+    );
+  }
+}
+
+class _OwnMessage extends StatelessWidget {
+
+  const _OwnMessage({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding: const EdgeInsets.only(
+          left: 16.0,
+          right: 64.0,
+          top: 16.0,
+        ),
+        child: Card.filled(
+          color: Theme
+              .of(context)
+              .colorScheme
+              .surfaceVariant,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 8.0,
+              horizontal: 16.0,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "You",
+                  style: Theme
+                      .of(context)
+                      .textTheme
+                      .titleLarge,
+                ),
+                const SizedBox(width: 16.0),
+                MarkdownBlock(
+                  config: MarkdownConfig.darkConfig,
+                  data: text,
+                  selectable: true,
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+  }
+
+}
+
+class _AssistantMessage extends StatelessWidget {
+
+  const _AssistantMessage({required this.text,
+    required this.isLoading,
+  });
+
+  final String text;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 64.0,
+        right: 16.0,
+        top: 16.0,
+      ),
+      child: Card.outlined(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 8.0,
+            horizontal: 16.0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text("Assistant", style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(width: 16.0),
+                  if (isLoading)
+                    const SizedBox(
+                      width: 16.0,
+                      height: 16.0,
+                      child: CircularProgressIndicator(),
+                    )
+                ],
+              ),
+              MarkdownBlock(
+                config: MarkdownConfig.darkConfig,
+                data: text,
+                selectable: true,
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+}
+
+
+class _BottomBar extends StatelessWidget {
+  _BottomBar({
+    required this.isEnabled,
+    required this.onSendMessage,
+    required this.onModelSelected,
+    required this.models,
+    this.selectedModel,
+  });
+
+  final bool isEnabled;
+  final Function(String) onSendMessage;
+  final Function(String?) onModelSelected;
+  final String? selectedModel;
+  final List<String> models;
+
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -60,132 +214,38 @@ class _Content extends StatelessWidget {
     } else {
       dropdownCallback = null;
     }
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: messages.length,
-            itemBuilder: (context, index) {
-              final message = messages[index];
-              final double paddingStart;
-              final double paddingEnd;
-              final Color? bubbleColor;
-              if (message.isUser) {
-                paddingStart = 96;
-                paddingEnd = 16;
-                bubbleColor = Theme.of(context).colorScheme.secondaryContainer;
-              } else {
-                paddingStart = 16;
-                paddingEnd = 96;
-                bubbleColor = Theme.of(context).colorScheme.tertiaryContainer;
-              }
-              return Padding(
-                padding: EdgeInsets.only(
-                    left: paddingStart, right: paddingEnd, top: 16.0),
-                child: Card.filled(
-                  color: bubbleColor,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8.0,
-                      horizontal: 16.0,
-                    ),
-                    child: _Message(
-                      isOwn: message.isUser,
-                      text: message.message,
-                      isLoading: message.isLoading,
-                    ),
-                  ),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              enabled: isEnabled,
+              onSubmitted: (message) => {onSendMessage(message)},
+              decoration: InputDecoration(
+                suffixIcon: IconButton(
+                  onPressed: () =>
+                  {onSendMessage(_controller.value.text)},
+                  icon: const Icon(Icons.send),
                 ),
-              );
-            },
-          ),
-        ),
-        Container(
-          color: Theme.of(context).colorScheme.primaryContainer,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    enabled: isEnabled,
-                    onSubmitted: (message) => {onSendMessage(message)},
-                    decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        onPressed: () => {onSendMessage(_controller.value.text)},
-                        icon: const Icon(Icons.send),
-                      ),
-                      border: const OutlineInputBorder(),
-                      hintText: "Message Olpaka",
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16.0),
-                DropdownButton<String>(
-                  hint: const Text("Selected model"),
-                  onChanged: dropdownCallback,
-                  value: selectedModel,
-                  items: models
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                      .toList(),
-                ),
-              ],
+                border: const OutlineInputBorder(),
+                hintText: "Message Olpaka",
+              ),
             ),
           ),
-        )
-      ],
-    );
-  }
-}
-
-class _Message extends StatelessWidget {
-  const _Message({
-    required this.isOwn,
-    required this.isLoading,
-    required this.text,
-  });
-
-  final bool isOwn;
-  final bool isLoading;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final Text sender;
-    if (isOwn) {
-      sender = Text(
-        "You",
-        style: Theme.of(context).textTheme.titleLarge,
-      );
-    } else {
-      sender = Text(
-        "Assistant",
-        style: Theme.of(context).textTheme.titleLarge,
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            sender,
-            const SizedBox(width: 16.0),
-            if (isLoading)
-              const SizedBox(
-                width: 16.0,
-                height: 16.0,
-                child: CircularProgressIndicator(),
-              )
-          ],
-        ),
-        MarkdownBlock(
-          config: MarkdownConfig.darkConfig,
-          data: text,
-          selectable: true,
-        )
-      ],
+          const SizedBox(width: 16.0),
+          DropdownButton<String>(
+            hint: const Text("Selected model"),
+            onChanged: dropdownCallback,
+            value: selectedModel,
+            items: models
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
+          ),
+        ],
+      ),
     );
   }
 }
