@@ -36,8 +36,8 @@ dependencies:
   # Localization
   intl: ^0.19.0
 
-  # iOS Icons?! Do we need these?
-  cupertino_icons: ^1.0.6
+  # Url launcher
+  url_launcher: ^6.2.6
 
 
 flutter_localizations:

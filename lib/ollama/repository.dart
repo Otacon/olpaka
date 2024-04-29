@@ -1,32 +1,31 @@
 import 'dart:convert';
 import 'dart:core';
-import 'package:olpaka/app/HttpClient.dart';
+import 'package:olpaka/app/http_client.dart';
 import 'package:olpaka/app/logger.dart';
 import 'package:olpaka/ollama/model.dart';
 
-//TODO add error handling
 class OllamaRepository {
   final HttpClient _client;
 
   OllamaRepository(this._client);
 
-  Future<List<Model>> listModels() async {
+  Future<ListModelsResult> listModels() async {
     logger.i("Loading models...");
     final response = await _client.get("/tags");
     switch (response) {
       case HttpResponseSuccess():
         final json = jsonDecode(response.body)["models"];
-        final models =
-            List<Model>.from(json.map((model) => _parseModel(model)));
-        return models;
+        final models = List<Model>.from(json.map((model) => _parseModel(model)));
+        return ListModelsResultSuccess(models);
       case HttpResponseError():
-        return List.empty();
-      case HttpResponseOllamaNotFound():
-        return List.empty();
+      case HttpResponseUnknownError():
+        return ListModelResultError();
+      case HttpResponseConnectionError():
+        return ListModelResultConnectionError();
     }
   }
 
-  Future<String> generate(String model, String prompt) async {
+  Future<GenerateResult> generate(String model, String prompt) async {
     logger.i("Generating answer...");
     final response = await _client.post(
       "/generate",
@@ -39,11 +38,11 @@ class OllamaRepository {
     switch (response) {
       case HttpResponseSuccess():
         final json = jsonDecode(response.body);
-        return json["response"];
+        return GenerateResultSuccess(json["response"]);
       case HttpResponseError():
-        return "Error";
-      case HttpResponseOllamaNotFound():
-        return "Error";
+      case HttpResponseConnectionError():
+      case HttpResponseUnknownError():
+        return GenerateResultError();
     }
   }
 
@@ -63,3 +62,29 @@ class OllamaRepository {
     );
   }
 }
+
+sealed class ListModelsResult {}
+
+class ListModelsResultSuccess extends ListModelsResult{
+  final List<Model> models;
+
+  ListModelsResultSuccess(this.models);
+
+}
+
+class ListModelResultConnectionError extends ListModelsResult{}
+
+class ListModelResultError extends ListModelsResult{}
+
+
+
+sealed class GenerateResult {}
+
+class GenerateResultSuccess extends GenerateResult{
+  final String answer;
+
+  GenerateResultSuccess(this.answer);
+
+}
+
+class GenerateResultError extends GenerateResult{}

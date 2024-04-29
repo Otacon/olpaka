@@ -28,11 +28,12 @@ class HttpClient {
   HttpResponse _handleResponse(Response<String> response) {
     final int? statusCode = response.statusCode;
     final String? data = response.data;
+    final String? message = response.statusMessage;
     if (statusCode == null || data == null) {
-      return HttpResponseError();
+      return HttpResponseUnknownError();
     }
     if (statusCode < 200 && statusCode > 299) {
-      return HttpResponseError();
+      return HttpResponseError(statusCode, message);
     }
     return HttpResponseSuccess(data);
   }
@@ -43,11 +44,11 @@ class HttpClient {
       var isLocalhost =
           baseUrl.contains("localhost") || baseUrl.contains("127.0.0.1");
       if (isLocalhost) {
-        return HttpResponseOllamaNotFound();
+        return HttpResponseConnectionError();
       }
-      return HttpResponseError();
+      return HttpResponseUnknownError();
     } else {
-      return HttpResponseError();
+      return HttpResponseUnknownError();
     }
   }
 }
@@ -60,6 +61,15 @@ class HttpResponseSuccess extends HttpResponse {
   HttpResponseSuccess(this.body);
 }
 
-class HttpResponseOllamaNotFound extends HttpResponse {}
+class HttpResponseConnectionError extends HttpResponse {}
 
-class HttpResponseError extends HttpResponse {}
+class HttpResponseUnknownError extends HttpResponse {}
+
+class HttpResponseError extends HttpResponse {
+  final int code;
+  final String? message;
+
+  HttpResponseError(this.code, this.message);
+
+}
+

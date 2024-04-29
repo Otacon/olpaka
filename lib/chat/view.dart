@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:olpaka/chat/view_model.dart';
 import 'package:stacked/stacked.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
@@ -12,32 +13,65 @@ class ChatScreen extends StatelessWidget {
     return ViewModelBuilder<ChatViewModel>.reactive(
       viewModelBuilder: () => GetIt.I.get(),
       onViewModelReady: (viewModel) {
+        viewModel.events.listen((event) {
+          switch (event) {
+            case ShowError():
+              showErrorDialog(
+                  context: context,
+                  title: event.title,
+                  message: event.message,
+                  positive: event.positive,
+                  positiveAction: () => {launchUrlString('https://ollama.com/download')}
+              );
+          }
+        });
         viewModel.onCreate();
       },
       builder: (context, viewModel, child) {
         final state = viewModel.state;
         return Scaffold(
-            appBar: AppBar(
-              title: Text(
-                "Olpaka",
-                style: Theme
-                    .of(context)
-                    .textTheme
-                    .headlineMedium,
-              ),
+          appBar: AppBar(
+            elevation: 4,
+            shadowColor: Theme.of(context).shadowColor,
+            centerTitle: true,
+            title: Text(
+              "Olpaka",
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-            body: _Content(
-              messages: state.messages,
-              models: state.models,
-              selectedModel: state.selectedModel,
-              isEnabled: !state.isLoading,
-              onModelSelected: (model) => {viewModel.onModelChanged(model)},
-              onSendMessage: (message) => {viewModel.onSendMessage(message)},
-            ),
+          ),
+          body: _Content(
+            messages: state.messages,
+            models: state.models,
+            selectedModel: state.selectedModel,
+            isEnabled: !state.isLoading,
+            onModelSelected: viewModel.onModelChanged,
+            onSendMessage: viewModel.onSendMessage,
+          ),
         );
       },
     );
   }
+}
+
+showErrorDialog(
+    {required BuildContext context,
+    required String title,
+    required String message,
+    required String positive,
+    required Function() positiveAction,
+    String? negative,
+    Function()? negativeAction}) {
+  showDialog(
+    barrierDismissible: false,
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [TextButton(onPressed: positiveAction, child: Text(positive))],
+      );
+    },
+  );
 }
 
 class _Content extends StatelessWidget {
@@ -63,16 +97,18 @@ class _Content extends StatelessWidget {
       children: [
         Expanded(
           child: ListView.builder(
-            itemCount: messages.length,
-            itemBuilder: (context, index) {
-              final message = messages[index];
-              if (message.isUser) {
-                return _OwnMessage(text: message.message);
-              } else {
-                return _AssistantMessage(text: message.message, isLoading: message.isLoading,);
-              }
-            }
-          ),
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final message = messages[index];
+                if (message.isUser) {
+                  return _OwnMessage(text: message.message);
+                } else {
+                  return _AssistantMessage(
+                    text: message.message,
+                    isLoading: message.isLoading,
+                  );
+                }
+              }),
         ),
         _BottomBar(
           isEnabled: isEnabled,
@@ -87,7 +123,6 @@ class _Content extends StatelessWidget {
 }
 
 class _OwnMessage extends StatelessWidget {
-
   const _OwnMessage({required this.text});
 
   final String text;
@@ -95,50 +130,44 @@ class _OwnMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.only(
-          left: 16.0,
-          right: 64.0,
-          top: 16.0,
-        ),
-        child: Card.filled(
-          color: Theme
-              .of(context)
-              .colorScheme
-              .surfaceVariant,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8.0,
-              horizontal: 16.0,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "You",
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .titleLarge,
-                ),
-                const SizedBox(width: 16.0),
-                MarkdownBlock(
-                  config: MarkdownConfig.darkConfig,
-                  data: text,
-                  selectable: true,
-                )
-              ],
-            ),
+      padding: const EdgeInsets.only(
+        left: 16.0,
+        right: 64.0,
+        top: 16.0,
+      ),
+      child: Card.filled(
+        elevation: 4,
+        color: Theme.of(context).colorScheme.surfaceVariant,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 8.0,
+            horizontal: 16.0,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "You",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(width: 16.0),
+              MarkdownBlock(
+                config: MarkdownConfig.darkConfig,
+                data: text,
+                selectable: true,
+              )
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
-
 }
 
 class _AssistantMessage extends StatelessWidget {
-
-  const _AssistantMessage({required this.text,
+  const _AssistantMessage({
+    required this.text,
     required this.isLoading,
   });
 
@@ -154,6 +183,7 @@ class _AssistantMessage extends StatelessWidget {
         top: 16.0,
       ),
       child: Card.outlined(
+        elevation: 4,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: 8.0,
@@ -164,7 +194,8 @@ class _AssistantMessage extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text("Assistant", style: Theme.of(context).textTheme.titleLarge),
+                  Text("Assistant",
+                      style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(width: 16.0),
                   if (isLoading)
                     const SizedBox(
@@ -185,9 +216,7 @@ class _AssistantMessage extends StatelessWidget {
       ),
     );
   }
-
 }
-
 
 class _BottomBar extends StatelessWidget {
   _BottomBar({
@@ -223,11 +252,10 @@ class _BottomBar extends StatelessWidget {
             child: TextField(
               controller: _controller,
               enabled: isEnabled,
-              onSubmitted: (message) => {onSendMessage(message)},
+              onSubmitted: onSendMessage,
               decoration: InputDecoration(
                 suffixIcon: IconButton(
-                  onPressed: () =>
-                  {onSendMessage(_controller.value.text)},
+                  onPressed: () => {onSendMessage(_controller.value.text)},
                   icon: const Icon(Icons.send),
                 ),
                 border: const OutlineInputBorder(),

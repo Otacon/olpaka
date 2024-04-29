@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:olpaka/ollama/repository.dart';
 
@@ -11,20 +13,54 @@ class ChatViewModel with ChangeNotifier {
     messages: List.empty(),
   );
 
+  final _events = StreamController<ChatEvent>.broadcast();
+  Stream<ChatEvent> get events => _events.stream.map((val) => val);
+
   ChatViewModel(this._repository);
 
   onCreate() async {
-    final models =
-        (await _repository.listModels()).map((model) => model.name).toList();
-
-    final selectedModel = models.firstOrNull;
-
-    state = ChatState(
-      isLoading: false,
-      selectedModel: selectedModel,
-      models: models,
-      messages: List.empty(),
-    );
+    final response = await _repository.listModels();
+    switch (response) {
+      case ListModelsResultSuccess():
+        final modelNames = response.models.map((model) => model.name).toList();
+        //TODO handle no models
+        final selectedModel = modelNames.firstOrNull;
+        state = ChatState(
+          isLoading: false,
+          selectedModel: selectedModel,
+          models: modelNames,
+          messages: List.empty(),
+        );
+      case ListModelResultConnectionError():
+        state = ChatState(
+          isLoading: false,
+          selectedModel: state.selectedModel,
+          models: state.models,
+          messages: List.empty(),
+        );
+        _events.add(
+          ShowError(
+            "Ollama not found",
+            "Looks like Ollama is not installed. Please install it and then reopen Olpaka.",
+            "Install Ollama",
+            negative: "Cancel",
+          ),
+        );
+      case ListModelResultError():
+        state = ChatState(
+          isLoading: false,
+          selectedModel: state.selectedModel,
+          models: state.models,
+          messages: List.empty(),
+        );
+        _events.add(
+          ShowError(
+            "Error",
+            "Looks like something went wrong...Maybe try to restart Olpaka.",
+            "Ok",
+          ),
+        );
+    }
     notifyListeners();
   }
 
@@ -53,13 +89,24 @@ class ChatViewModel with ChangeNotifier {
       messages: newMessages,
     );
     notifyListeners();
-    final answer = await _repository.generate(state.selectedModel!, message);
+    final result = await _repository.generate(state.selectedModel!, message);
     newMessages.remove(assistantMessage);
-    newMessages.add(ChatMessage(
-      isUser: false,
-      message: answer,
-      isLoading: false,
-    ));
+    switch(result){
+      case GenerateResultSuccess():
+        newMessages.add(ChatMessage(
+          isUser: false,
+          message: result.answer,
+          isLoading: false,
+        ));
+      case GenerateResultError():
+        _events.add(
+          ShowError(
+            "Error",
+            "Looks like something went wrong...Maybe try to restart Olpaka.",
+            "Ok",
+          ),
+        );
+    }
     state = ChatState(
       isLoading: false,
       selectedModel: state.selectedModel,
@@ -94,4 +141,15 @@ class ChatMessage {
     this.message = "",
     this.isLoading = false,
   });
+}
+
+sealed class ChatEvent {}
+
+class ShowError extends ChatEvent {
+  final String title;
+  final String message;
+  final String positive;
+  final String? negative;
+
+  ShowError(this.title, this.message, this.positive,{this.negative});
 }
