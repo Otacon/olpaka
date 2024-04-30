@@ -9,7 +9,7 @@ registerOllama() {
 
   l.registerFactory(() {
     final client = Dio();
-    client.options.baseUrl = "http://localhost:11435/api";
+    client.options.baseUrl = "http://localhost:11434/api";
     client.interceptors.add(
       PrettyDioLogger(
           requestHeader: true,

@@ -14,54 +14,17 @@ class ChatViewModel with ChangeNotifier {
   );
 
   final _events = StreamController<ChatEvent>.broadcast();
+
   Stream<ChatEvent> get events => _events.stream.map((val) => val);
 
   ChatViewModel(this._repository);
 
   onCreate() async {
-    final response = await _repository.listModels();
-    switch (response) {
-      case ListModelsResultSuccess():
-        final modelNames = response.models.map((model) => model.name).toList();
-        //TODO handle no models
-        final selectedModel = modelNames.firstOrNull;
-        state = ChatState(
-          isLoading: false,
-          selectedModel: selectedModel,
-          models: modelNames,
-          messages: List.empty(),
-        );
-      case ListModelResultConnectionError():
-        state = ChatState(
-          isLoading: false,
-          selectedModel: state.selectedModel,
-          models: state.models,
-          messages: List.empty(),
-        );
-        _events.add(
-          ShowError(
-            "Ollama not found",
-            "Looks like Ollama is not installed. Please install it and then reopen Olpaka.",
-            "Install Ollama",
-            negative: "Cancel",
-          ),
-        );
-      case ListModelResultError():
-        state = ChatState(
-          isLoading: false,
-          selectedModel: state.selectedModel,
-          models: state.models,
-          messages: List.empty(),
-        );
-        _events.add(
-          ShowError(
-            "Error",
-            "Looks like something went wrong...Maybe try to restart Olpaka.",
-            "Ok",
-          ),
-        );
-    }
-    notifyListeners();
+    await _load();
+  }
+
+  onRefresh() async {
+    await _load();
   }
 
   onModelChanged(String? model) async {
@@ -91,7 +54,7 @@ class ChatViewModel with ChangeNotifier {
     notifyListeners();
     final result = await _repository.generate(state.selectedModel!, message);
     newMessages.remove(assistantMessage);
-    switch(result){
+    switch (result) {
       case GenerateResultSuccess():
         newMessages.add(ChatMessage(
           isUser: false,
@@ -100,10 +63,9 @@ class ChatViewModel with ChangeNotifier {
         ));
       case GenerateResultError():
         _events.add(
-          ShowError(
+          GenericError(
             "Error",
             "Looks like something went wrong...Maybe try to restart Olpaka.",
-            "Ok",
           ),
         );
     }
@@ -113,6 +75,58 @@ class ChatViewModel with ChangeNotifier {
       models: state.models,
       messages: newMessages,
     );
+    notifyListeners();
+  }
+
+  _load() async {
+    final response = await _repository.listModels();
+    switch (response) {
+      case ListModelsResultSuccess():
+        final modelNames = response.models.map((model) => model.name).toList();
+        if (modelNames.isEmpty) {
+          _events.add(
+            ModelNotFound(
+              "Missing Models",
+              "You've got no AI models installed.\nDownload a model by running `ollama run llama3`. Visit https://ollama.com/library to find more.",
+              "Done",
+            ),
+          );
+        }
+        final selectedModel = modelNames.firstOrNull;
+        state = ChatState(
+          isLoading: false,
+          selectedModel: selectedModel,
+          models: modelNames,
+          messages: List.empty(),
+        );
+      case ListModelResultConnectionError():
+        state = ChatState(
+          isLoading: false,
+          selectedModel: state.selectedModel,
+          models: state.models,
+          messages: List.empty(),
+        );
+        _events.add(
+          OllamaNotFound(
+            "Ollama not found",
+            "Looks like Ollama is not installed. Visit https://ollama.com/download to install it and try again.",
+            "Done",
+          ),
+        );
+      case ListModelResultError():
+        state = ChatState(
+          isLoading: false,
+          selectedModel: state.selectedModel,
+          models: state.models,
+          messages: List.empty(),
+        );
+        _events.add(
+          GenericError(
+            "Error",
+            "Looks like something went wrong...Maybe try to restart Olpaka.",
+          ),
+        );
+    }
     notifyListeners();
   }
 }
@@ -145,11 +159,25 @@ class ChatMessage {
 
 sealed class ChatEvent {}
 
-class ShowError extends ChatEvent {
+class GenericError extends ChatEvent {
+  final String title;
+  final String message;
+
+  GenericError(this.title, this.message);
+}
+
+class OllamaNotFound extends ChatEvent {
   final String title;
   final String message;
   final String positive;
-  final String? negative;
 
-  ShowError(this.title, this.message, this.positive,{this.negative});
+  OllamaNotFound(this.title, this.message, this.positive);
+}
+
+class ModelNotFound extends ChatEvent {
+  final String title;
+  final String message;
+  final String positive;
+
+  ModelNotFound(this.title, this.message, this.positive);
 }

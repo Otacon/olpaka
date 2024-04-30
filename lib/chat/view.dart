@@ -3,7 +3,6 @@ import 'package:get_it/get_it.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'package:olpaka/chat/view_model.dart';
 import 'package:stacked/stacked.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
@@ -15,14 +14,27 @@ class ChatScreen extends StatelessWidget {
       onViewModelReady: (viewModel) {
         viewModel.events.listen((event) {
           switch (event) {
-            case ShowError():
+            case GenericError():
+              showErrorDialog(
+                  context: context,
+                  title: event.title,
+                  message: event.message,
+                  positive: "OK",
+                  positiveAction: () => {});
+            case OllamaNotFound():
               showErrorDialog(
                   context: context,
                   title: event.title,
                   message: event.message,
                   positive: event.positive,
-                  positiveAction: () => {launchUrlString('https://ollama.com/download')}
-              );
+                  positiveAction: () => {viewModel.onRefresh()});
+            case ModelNotFound():
+              showErrorDialog(
+                  context: context,
+                  title: event.title,
+                  message: event.message,
+                  positive: event.positive,
+                  positiveAction: () => {viewModel.onRefresh()});
           }
         });
         viewModel.onCreate();
@@ -68,7 +80,12 @@ showErrorDialog(
       return AlertDialog(
         title: Text(title),
         content: Text(message),
-        actions: [TextButton(onPressed: positiveAction, child: Text(positive))],
+        actions: [
+          TextButton(
+              onPressed: () =>
+                  {Navigator.of(context).pop(false), positiveAction()},
+              child: Text(positive))
+        ],
       );
     },
   );
