@@ -6,6 +6,8 @@ import 'package:olpaka/ollama/repository.dart';
 class ChatViewModel with ChangeNotifier {
   final OllamaRepository _repository;
 
+  ChatViewModel(this._repository);
+
   ChatState state = ChatState(
     isLoading: true,
     selectedModel: null,
@@ -16,8 +18,6 @@ class ChatViewModel with ChangeNotifier {
   final _events = StreamController<ChatEvent>.broadcast();
 
   Stream<ChatEvent> get events => _events.stream.map((val) => val);
-
-  ChatViewModel(this._repository);
 
   onCreate() async {
     await _load();
@@ -113,6 +113,7 @@ class ChatViewModel with ChangeNotifier {
             "Done",
           ),
         );
+      case ListModelResultCorsError():
       case ListModelResultError():
         state = ChatState(
           isLoading: false,
