@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:olpaka/app/router.dart';
+import 'package:olpaka/generated/l10n.dart';
 
 class OlpakaApp extends StatelessWidget {
   const OlpakaApp({super.key});
@@ -8,8 +9,8 @@ class OlpakaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Olpaka',
-      themeMode: ThemeMode.light,
+      title: S.current.app_name,
+      themeMode: ThemeMode.system,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,

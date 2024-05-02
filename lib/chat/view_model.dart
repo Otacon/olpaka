@@ -1,10 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/ollama/repository.dart';
 
 class ChatViewModel with ChangeNotifier {
   final OllamaRepository _repository;
+  final S _s;
+
+  ChatViewModel(this._repository, this._s);
 
   ChatState state = ChatState(
     isLoading: true,
@@ -16,8 +20,6 @@ class ChatViewModel with ChangeNotifier {
   final _events = StreamController<ChatEvent>.broadcast();
 
   Stream<ChatEvent> get events => _events.stream.map((val) => val);
-
-  ChatViewModel(this._repository);
 
   onCreate() async {
     await _load();
@@ -64,8 +66,8 @@ class ChatViewModel with ChangeNotifier {
       case GenerateResultError():
         _events.add(
           GenericError(
-            "Error",
-            "Looks like something went wrong...Maybe try to restart Olpaka.",
+            _s.error_generic_title,
+            _s.error_generic_message,
           ),
         );
     }
@@ -86,9 +88,9 @@ class ChatViewModel with ChangeNotifier {
         if (modelNames.isEmpty) {
           _events.add(
             ModelNotFound(
-              "Missing Models",
-              "You've got no AI models installed.\nDownload a model by running `ollama run llama3`. Visit https://ollama.com/library to find more.",
-              "Done",
+              _s.chat_missing_model_dialog_title,
+              _s.chat_missing_model_dialog_message,
+              _s.chat_missing_model_dialog_positive,
             ),
           );
         }
@@ -108,11 +110,12 @@ class ChatViewModel with ChangeNotifier {
         );
         _events.add(
           OllamaNotFound(
-            "Ollama not found",
-            "Looks like Ollama is not installed. Visit https://ollama.com/download to install it and try again.",
-            "Done",
+            _s.chat_missing_ollama_dialog_title,
+            _s.chat_missing_ollama_dialog_message,
+            _s.chat_missing_ollama_dialog_positive,
           ),
         );
+      case ListModelResultCorsError():
       case ListModelResultError():
         state = ChatState(
           isLoading: false,
@@ -122,8 +125,8 @@ class ChatViewModel with ChangeNotifier {
         );
         _events.add(
           GenericError(
-            "Error",
-            "Looks like something went wrong...Maybe try to restart Olpaka.",
+            _s.error_generic_title,
+            _s.error_generic_message,
           ),
         );
     }

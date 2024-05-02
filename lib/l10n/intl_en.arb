@@ -1,1 +1,45 @@
-{}
+{
+  "app_name": "Olpaka",
+
+  "chat_text_input_hint": "Message Olpaka",
+  "chat_model_dropdown_hint": "Selected model",
+
+  "chat_assistant_name" : "Assistant",
+  "chat_you_name" : "You",
+
+  "chat_missing_model_dialog_title" : "Missing Model",
+  "chat_missing_model_dialog_message" : "You've got no AI models installed.\nDownload a model by running `ollama run llama3`. Visit https://ollama.com/library to find more.",
+  "chat_missing_model_dialog_positive" : "Done",
+
+  "chat_missing_ollama_dialog_title" : "Ollama not found",
+  "chat_missing_ollama_dialog_message" : "Looks like Ollama is not installed. Visit https://ollama.com/download to install it and try again.",
+  "chat_missing_ollama_dialog_positive" : "Done",
+
+  "onboarding_title": "Get Started with Olpaka!",
+  "onboarding_loading": "Loading...",
+  "onboarding_action_next": "Done",
+
+  "onboarding_install_ollama_title": "Install Ollama",
+  "onboarding_install_ollama_subtitle": "Get the Backbone Ready",
+  "onboarding_install_ollama_intro": "To kickstart your journey with Olpaka, you'll need to install Ollama, the powerful backend that fuels this app.\n\nDon't worry, Ollama is completely free and open-source, ensuring transparency and flexibility.\nClick here to download and install Ollama on your system.",
+  "onboarding_install_ollama_action": "Install Ollama",
+  "onboarding_install_ollama_outro": "Once installed, ensure that the Ollama service is running on its default port (11434).\n\nThis step is crucial for seamless integration with Olpaka.",
+
+  "onboarding_configure_cors_title": "Setup CORS",
+  "onboarding_configure_cors_subtitle": "Enable Local Access",
+  "onboarding_configure_cors_intro": "Now that Ollama is up and running on your local machine, it's time to ensure seamless communication between Olpaka and Ollama.\n\nYou might have encountered the term \"CORS\" (Cross-Origin Resource Sharing) before.\nEssentially, CORS is a security feature implemented by web browsers to restrict resources (e.g., data or services) from being requested from another domain.\n\nSince this is hosted on GitHub Pages is a different domain from your local machine, CORS needs to be configured to allow communication between them.",
+  "onboarding_configure_cors_action": "Configure CORS",
+  "onboarding_configure_cors_outro": "By setting up CORS correctly, you'll allow Olpaka to seamlessly interact with Ollama running on your local machine.\n\nLet's ensure a smooth sailing for your AI journey!",
+
+  "onboarding_install_model_title": "Install Model",
+  "onboarding_install_model_subtitle": "Power Up with AI",
+  "onboarding_install_model_intro": "Now, it's time to infuse your life with the magic of AI by installing a model of your choice into Ollama.\n\nWith Ollama, you have access to a diverse range of AI models provided by renowned entities like Meta, Google, Microsoft, OpenAI, and more.\nEach model boasts unique capabilities, skills, and characteristics, allowing you to tailor your AI experience to your preferences and needs.\n\nTo get started, pick a model from the ollama models library",
+  "onboarding_install_model_action": "Featured Models",
+  "onboarding_install_model_outro_1": "Once you've chosen a model that resonates with you, simply open your shell or command prompt and run the following command:",
+  "onboarding_install_model_outro_command": "ollama pull <model_name>",
+  "onboarding_install_model_outro_2": "Not sure which one to choose? Just use llama3!",
+
+  "error_generic_title": "Error",
+  "error_generic_message": "Whoops...Something didn't work. Maybe try to restart Olpaka.",
+  "error_generic_positive": "OK"
+}

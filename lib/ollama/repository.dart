@@ -22,6 +22,8 @@ class OllamaRepository {
         return ListModelResultError();
       case HttpResponseConnectionError():
         return ListModelResultConnectionError();
+      case HttpResponseCorsError():
+        return ListModelResultCorsError();
     }
   }
 
@@ -42,6 +44,7 @@ class OllamaRepository {
       case HttpResponseError():
       case HttpResponseConnectionError():
       case HttpResponseUnknownError():
+      case HttpResponseCorsError():
         return GenerateResultError();
     }
   }
@@ -73,6 +76,8 @@ class ListModelsResultSuccess extends ListModelsResult{
 }
 
 class ListModelResultConnectionError extends ListModelsResult{}
+
+class ListModelResultCorsError extends ListModelsResult{}
 
 class ListModelResultError extends ListModelsResult{}
 

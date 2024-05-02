@@ -32,10 +32,13 @@ class HttpClient {
     if (statusCode == null || data == null) {
       return HttpResponseUnknownError();
     }
-    if (statusCode < 200 && statusCode > 299) {
-      return HttpResponseError(statusCode, message);
+    if (statusCode >= 200 && statusCode <= 299) {
+      return HttpResponseSuccess(data);
+    } else if(statusCode == 403){
+      return HttpResponseCorsError();
     }
-    return HttpResponseSuccess(data);
+
+    return HttpResponseError(statusCode, message);
   }
 
   HttpResponse _handleException(DioException exception) {
@@ -62,6 +65,8 @@ class HttpResponseSuccess extends HttpResponse {
 }
 
 class HttpResponseConnectionError extends HttpResponse {}
+
+class HttpResponseCorsError extends HttpResponse {}
 
 class HttpResponseUnknownError extends HttpResponse {}
 
