@@ -20,7 +20,7 @@ class HttpClient {
   Future<HttpResponse> get(String endpoint) async {
     Response<String> response;
     try {
-      logger.i("Performing GET @ $endpoint...");
+      print("Performing GET @ $endpoint...");
       response = await _client.get(endpoint);
     } on DioException catch (e) {
       return _handleException(e);
@@ -46,9 +46,9 @@ class HttpClient {
 
   HttpResponse _handleException(DioException exception) {
     if (exception.type == DioExceptionType.connectionError) {
-      logger.i("Exception connectionError");
-      logger.i("Exception ${exception.message}");
-      logger.i("Exception ${exception.response?.statusCode}");
+      print("Exception connectionError");
+      print("Exception ${exception.message}");
+      print("Exception ${exception.response?.statusCode}");
       var baseUrl = _client.options.baseUrl;
       var isLocalhost =
           baseUrl.contains("localhost") || baseUrl.contains("127.0.0.1");
