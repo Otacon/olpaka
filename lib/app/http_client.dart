@@ -20,6 +20,7 @@ class HttpClient {
   Future<HttpResponse> get(String endpoint) async {
     Response<String> response;
     try {
+      logger.i("Performing GET @ $endpoint...");
       response = await _client.get(endpoint);
     } on DioException catch (e) {
       return _handleException(e);

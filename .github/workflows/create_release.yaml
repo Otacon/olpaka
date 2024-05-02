@@ -1,5 +1,5 @@
 name: Create release
-run-name: Crete release
+run-name: Create release
 
 on:
   push:
