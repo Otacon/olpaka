@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import 'logger.dart';
+
 class HttpClient {
   final Dio _client;
 
@@ -43,6 +45,9 @@ class HttpClient {
 
   HttpResponse _handleException(DioException exception) {
     if (exception.type == DioExceptionType.connectionError) {
+      logger.i("Exception connectionError");
+      logger.i("Exception ${exception.message}");
+      logger.i("Exception ${exception.response?.statusCode}");
       var baseUrl = _client.options.baseUrl;
       var isLocalhost =
           baseUrl.contains("localhost") || baseUrl.contains("127.0.0.1");
