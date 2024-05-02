@@ -13,31 +13,13 @@ class OnboardingViewModel extends ChangeNotifier {
   final _events = StreamController<OnboardingEvent>.broadcast();
 
   Stream<OnboardingEvent> get events => _events.stream.map((val) => val);
-  int _state = 0;
 
   onCreate() async {
-    await _refreshStateCounter();
+    await _refreshState();
   }
 
   onDoneClicked() async {
-    await _refreshStateCounter();
-  }
-
-  _refreshStateCounter() async {
-    if(_state > 2){
-      _state = 0;
-    }
-    switch(_state){
-      case 0:
-        state = OnboardingStateInstallOllama();
-      case 1:
-        state = OnboardingStateSetupCors();
-      case 2:
-        state = OnboardingStateInstallModel();
-      default:
-    }
-    _state++;
-    notifyListeners();
+    await _refreshState();
   }
 
   _refreshState() async {

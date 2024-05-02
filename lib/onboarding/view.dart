@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/onboarding/view_model.dart';
 import 'package:stacked/stacked.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -29,7 +30,7 @@ class OnboardingScreen extends StatelessWidget {
             shadowColor: Theme.of(context).shadowColor,
             centerTitle: true,
             title: Text(
-              "Olpaka",
+              S.current.onboarding_title,
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ),
@@ -57,13 +58,13 @@ class OnboardingScreen extends StatelessWidget {
 class _Loading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text("Loading..."),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(S.current.onboarding_loading),
         ],
       ),
     );
@@ -101,25 +102,38 @@ class _Loaded extends StatelessWidget {
     }
 
     return Stepper(
-      type: StepperType.horizontal,
+      type: StepperType.vertical,
       currentStep: currentStep,
-      onStepContinue: onNextClicked,
+      controlsBuilder: (context, details) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 16.0),
+          child: Align(
+              alignment: Alignment.topLeft,
+              child: FilledButton(
+                onPressed: onNextClicked,
+                child: Text(S.current.onboarding_action_next),
+              )),
+        );
+      },
       steps: [
         Step(
-          title: const Text("Install Ollama"),
+          title: Text(S.current.onboarding_install_ollama_title),
+          subtitle: Text(S.current.onboarding_install_ollama_subtitle),
           content: _StepInstallOllama(),
           state: installOllamaState,
           isActive: currentStep >= 0,
         ),
         Step(
-          title: const Text("Setup CORS"),
-          content: const Text("Cors!"),
+          title: Text(S.current.onboarding_configure_cors_title),
+          subtitle: Text(S.current.onboarding_configure_cors_subtitle),
+          content: _StepConfigureCors(),
           state: setupCorsState,
           isActive: currentStep >= 1,
         ),
         Step(
-          title: const Text("Install Model"),
-          content: const Text("Model!"),
+          title: Text(S.current.onboarding_install_model_title),
+          subtitle: Text(S.current.onboarding_install_model_subtitle),
+          content: _StepInstallModel(),
           state: installModelState,
           isActive: currentStep >= 2,
         ),
@@ -131,20 +145,67 @@ class _Loaded extends StatelessWidget {
 class _StepInstallOllama extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return Align(
+      alignment: Alignment.topLeft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("In order to get started, you should install Ollama."),
-          const SizedBox(height: 16),
-          const Text("You can get Ollama from the official website. "),
+          Text(S.current.onboarding_install_ollama_intro),
           const SizedBox(height: 16),
           ElevatedButton(
               onPressed: () => launchUrlString("https://ollama.com/download"),
-              child: const Text("Install Ollama")),
+              child: Text(S.current.onboarding_install_ollama_action)),
           const SizedBox(height: 16),
-          const Text(
-              "Once you've installed the software, make sure the service is running and click on continue"),
+          Text(S.current.onboarding_install_ollama_outro),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepConfigureCors extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(S.current.onboarding_configure_cors_intro),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => launchUrlString(
+                "https://github.com/Otacon/olpaka/blob/main/docs/setup_cors.md"),
+            child: Text(S.current.onboarding_configure_cors_action),
+          ),
+          const SizedBox(height: 16),
+          Text(S.current.onboarding_configure_cors_outro),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepInstallModel extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(S.current.onboarding_install_model_intro),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => launchUrlString("https://ollama.com/library"),
+            child: Text(S.current.onboarding_install_model_action),
+          ),
+          const SizedBox(height: 16),
+          Text(S.current.onboarding_install_model_outro_1),
+          const SizedBox(height: 16),
+          Text(S.current.onboarding_install_model_outro_command),
+          const SizedBox(height: 16),
+          Text(S.current.onboarding_install_model_outro_2),
         ],
       ),
     );
