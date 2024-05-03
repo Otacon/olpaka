@@ -15,14 +15,6 @@ class OnboardingViewModel extends ChangeNotifier {
   Stream<OnboardingEvent> get events => _events.stream.map((val) => val);
 
   onCreate() async {
-    await _refreshState();
-  }
-
-  onDoneClicked() async {
-    await _refreshState();
-  }
-
-  _refreshState() async {
     final result = await _repository.listModels();
     switch (result) {
       case ListModelsResultSuccess():
@@ -34,12 +26,47 @@ class OnboardingViewModel extends ChangeNotifier {
       case ListModelResultError():
       case ListModelResultConnectionError():
         state = OnboardingStateInstallOllama();
-
-      case ListModelResultCorsError():
-        state = OnboardingStateSetupCors();
     }
     notifyListeners();
   }
+
+  onCompleteInstallOllamaClicked() async {
+    state = OnboardingStateSetupCors();
+    notifyListeners();
+  }
+
+  onBackInstallCorsClicked() async {
+    state = OnboardingStateInstallOllama();
+    notifyListeners();
+  }
+
+  onCompleteSetupCorsClicked() async {
+    final result = await _repository.listModels();
+    switch (result) {
+      case ListModelsResultSuccess():
+        if (result.models.isEmpty) {
+          state = OnboardingStateInstallModel();
+          notifyListeners();
+        } else {
+          _events.add(OnboardingEventNavigateToChat());
+        }
+      case ListModelResultError():
+      case ListModelResultConnectionError():
+    }
+  }
+
+  onCompleteInstallModelClicked() async {
+    final result = await _repository.listModels();
+    switch (result) {
+      case ListModelsResultSuccess():
+        if (result.models.isNotEmpty) {
+          _events.add(OnboardingEventNavigateToChat());
+        }
+      case ListModelResultError():
+      case ListModelResultConnectionError():
+    }
+  }
+
 }
 
 sealed class OnboardingEvent {}

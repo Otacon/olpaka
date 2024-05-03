@@ -115,7 +115,6 @@ class ChatViewModel with ChangeNotifier {
             _s.chat_missing_ollama_dialog_positive,
           ),
         );
-      case ListModelResultCorsError():
       case ListModelResultError():
         state = ChatState(
           isLoading: false,

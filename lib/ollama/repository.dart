@@ -22,8 +22,6 @@ class OllamaRepository {
         return ListModelResultError();
       case HttpResponseConnectionError():
         return ListModelResultConnectionError();
-      case HttpResponseCorsError():
-        return ListModelResultCorsError();
     }
   }
 
@@ -44,14 +42,13 @@ class OllamaRepository {
       case HttpResponseError():
       case HttpResponseConnectionError():
       case HttpResponseUnknownError():
-      case HttpResponseCorsError():
         return GenerateResultError();
     }
   }
 
   Model _parseModel(dynamic json) {
     return Model(
-      name: json["name"],
+      name: json["name"].split(':')[0],
       model: json["model"],
       modifiedAt: json["modified_at"],
       size: json["size"],
@@ -77,11 +74,7 @@ class ListModelsResultSuccess extends ListModelsResult{
 
 class ListModelResultConnectionError extends ListModelsResult{}
 
-class ListModelResultCorsError extends ListModelsResult{}
-
 class ListModelResultError extends ListModelsResult{}
-
-
 
 sealed class GenerateResult {}
 
