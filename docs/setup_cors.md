@@ -26,7 +26,7 @@ On MacOS, if you’re running Ollama as an application, setting environment vari
 
 To allow Olpaka to access your Ollama local instance run:
 ```bash
-launchctl setenv OLLAMA_ORIGINS "https://cyanotic.github.io"
+launchctl setenv OLLAMA_ORIGINS "https://otacon.github.io"
 ```
 
 After setting the desired environment variables, restart the Ollama application to apply the 
@@ -41,7 +41,7 @@ For Linux users running OLLAMA as a systemd service, the systemctl command is us
 To allow Olpaka to access your Ollama service run:
 ```
 [Service]
-Environment="OLLAMA_ORIGINS=https://cyanotic.github.io"
+Environment="OLLAMA_ORIGINS=https://otacon.github.io"
 ```
 
 Save your changes, then reload systemd and restart Ollama with:
@@ -61,7 +61,7 @@ On Windows, Ollama uses the environment variables set for the user or the system
 To allow Olpaka to access your Ollama service set:
 
 ```
-OLLAMA_ORIGINS=https://cyanotic.github.io
+OLLAMA_ORIGINS=https://otacon.github.io
 ```
 
 Apply the changes and close the control panel. Run OLLAMA from a new terminal window to ensure it 
