@@ -1,7 +1,6 @@
 ---
-layout: post
-title:  "Olpaka is born"
-date:   2024-05-04 12:01:00 +0100
+title:      "Olpaka is born"
+date:       2024-04-27 12:01:00 +0100
 ---
 Hello everyone and welcome to the first blog post about my new project... Olpaka!
 
