@@ -1,10 +1,11 @@
 name: Create release
-run-name: Crete release
+run-name: Create release
 
 on:
   push:
     branches:
       - main
+      - fix_cors
 
   workflow_dispatch:
 

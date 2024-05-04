@@ -36,7 +36,6 @@
   "onboarding_install_model_intro": "Now, it's time to infuse your life with the magic of AI by installing a model of your choice into Ollama.\n\nWith Ollama, you have access to a diverse range of AI models provided by renowned entities like Meta, Google, Microsoft, OpenAI, and more.\nEach model boasts unique capabilities, skills, and characteristics, allowing you to tailor your AI experience to your preferences and needs.\n\nTo get started, pick a model from the ollama models library",
   "onboarding_install_model_action": "Featured Models",
   "onboarding_install_model_outro_1": "Once you've chosen a model that resonates with you, simply open your shell or command prompt and run the following command:",
-  "onboarding_install_model_outro_command": "ollama pull <model_name>",
   "onboarding_install_model_outro_2": "Not sure which one to choose? Just use llama3!",
 
   "error_generic_title": "Error",

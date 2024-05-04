@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:markdown_widget/markdown_widget.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/onboarding/view_model.dart';
 import 'package:stacked/stacked.dart';
@@ -38,15 +39,15 @@ class OnboardingScreen extends StatelessWidget {
             OnboardingStateLoading() => _Loading(),
             OnboardingStateInstallOllama() => _Loaded(
                 step: _Step.installOllama,
-                onNextClicked: viewModel.onDoneClicked,
+                onNextClicked: viewModel.onCompleteInstallOllamaClicked,
               ),
             OnboardingStateSetupCors() => _Loaded(
                 step: _Step.setupCors,
-                onNextClicked: viewModel.onDoneClicked,
+                onNextClicked: viewModel.onCompleteSetupCorsClicked,
               ),
             OnboardingStateInstallModel() => _Loaded(
                 step: _Step.installModel,
-                onNextClicked: viewModel.onDoneClicked,
+                onNextClicked: viewModel.onCompleteInstallModelClicked,
               ),
           },
         );
@@ -203,13 +204,22 @@ class _StepInstallModel extends StatelessWidget {
           const SizedBox(height: 16),
           Text(S.current.onboarding_install_model_outro_1),
           const SizedBox(height: 16),
-          Text(S.current.onboarding_install_model_outro_command),
+          MarkdownBlock(
+            config: _markdownConfig(context),
+            data: "```bash\nollama pull <model_name>\n```",
+            selectable: true,
+          ),
           const SizedBox(height: 16),
           Text(S.current.onboarding_install_model_outro_2),
         ],
       ),
     );
   }
+}
+
+_markdownConfig(BuildContext context) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+  return isDark ? MarkdownConfig.darkConfig : MarkdownConfig.defaultConfig;
 }
 
 enum _Step {

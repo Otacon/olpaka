@@ -34,8 +34,6 @@ class HttpClient {
     }
     if (statusCode >= 200 && statusCode <= 299) {
       return HttpResponseSuccess(data);
-    } else if(statusCode == 403){
-      return HttpResponseCorsError();
     }
 
     return HttpResponseError(statusCode, message);
@@ -65,8 +63,6 @@ class HttpResponseSuccess extends HttpResponse {
 }
 
 class HttpResponseConnectionError extends HttpResponse {}
-
-class HttpResponseCorsError extends HttpResponse {}
 
 class HttpResponseUnknownError extends HttpResponse {}
 
