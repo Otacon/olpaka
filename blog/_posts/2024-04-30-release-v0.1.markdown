@@ -1,5 +1,14 @@
 ---
 title:      "Olpaka 0.1: Getting Started"
 date:       2024-04-30 12:01:00 +0100
-published:  false
 ---
+As per initial roadmap, this version of the app introduces the capability for users to send 
+queries to Ollama. However, there's a slight twist - currently, it's utilizing the `/api/generate`
+endpoint (oops, wrong one! 😅).
+
+But fear not! In the next iteration, I'll be implementing the API call using the streaming mode for 
+a smoother experience. Consider this just the beginning! 😉
+
+Stay tuned for more updates and enjoy exploring the app!
+
+![Chat with the assistant]({{ site.baseurl }}/assets/images/0.1_chat.webp){: width="640" }
