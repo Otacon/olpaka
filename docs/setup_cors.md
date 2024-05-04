@@ -66,7 +66,7 @@ Select "Environment variables..."
 
 Choose to edit or create a new variable named `OLLAMA_ORIGINS`.
 
-![Environment Variables](images/windows_tutorial_2.png)
+![Environment Variables](images/windows_tutorial_3.png)
 
 Set the variable value to:
 
