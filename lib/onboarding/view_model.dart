@@ -31,7 +31,18 @@ class OnboardingViewModel extends ChangeNotifier {
   }
 
   onCompleteInstallOllamaClicked() async {
-    state = OnboardingStateSetupCors();
+    final result = await _repository.listModels();
+    switch (result) {
+      case ListModelsResultSuccess():
+        if (result.models.isEmpty) {
+          state = OnboardingStateInstallModel();
+        } else {
+          _events.add(OnboardingEventNavigateToChat());
+        }
+      case ListModelResultError():
+      case ListModelResultConnectionError():
+        state = OnboardingStateSetupCors();
+    }
     notifyListeners();
   }
 
@@ -46,13 +57,14 @@ class OnboardingViewModel extends ChangeNotifier {
       case ListModelsResultSuccess():
         if (result.models.isEmpty) {
           state = OnboardingStateInstallModel();
-          notifyListeners();
         } else {
           _events.add(OnboardingEventNavigateToChat());
         }
       case ListModelResultError():
       case ListModelResultConnectionError():
+        state = OnboardingStateSetupCors();
     }
+    notifyListeners();
   }
 
   onCompleteInstallModelClicked() async {
@@ -79,6 +91,14 @@ class OnboardingStateLoading extends OnboardingState {}
 
 class OnboardingStateInstallOllama extends OnboardingState {}
 
-class OnboardingStateSetupCors extends OnboardingState {}
+class OnboardingStateSetupCors extends OnboardingState {
+  final String? error;
 
-class OnboardingStateInstallModel extends OnboardingState {}
+  OnboardingStateSetupCors({this.error});
+}
+
+class OnboardingStateInstallModel extends OnboardingState {
+  final String? error;
+
+  OnboardingStateInstallModel({this.error});
+}

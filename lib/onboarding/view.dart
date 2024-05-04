@@ -39,14 +39,17 @@ class OnboardingScreen extends StatelessWidget {
             OnboardingStateLoading() => _Loading(),
             OnboardingStateInstallOllama() => _Loaded(
                 step: _Step.installOllama,
+                error: null,
                 onNextClicked: viewModel.onCompleteInstallOllamaClicked,
               ),
             OnboardingStateSetupCors() => _Loaded(
                 step: _Step.setupCors,
+                error: state.error,
                 onNextClicked: viewModel.onCompleteSetupCorsClicked,
               ),
             OnboardingStateInstallModel() => _Loaded(
                 step: _Step.installModel,
+                error: state.error,
                 onNextClicked: viewModel.onCompleteInstallModelClicked,
               ),
           },
@@ -74,9 +77,10 @@ class _Loading extends StatelessWidget {
 
 class _Loaded extends StatelessWidget {
   final _Step step;
+  final String? error;
   final Function() onNextClicked;
 
-  const _Loaded({required this.step, required this.onNextClicked});
+  const _Loaded({required this.step, required this.onNextClicked, this.error});
 
   @override
   Widget build(BuildContext context) {
@@ -127,14 +131,14 @@ class _Loaded extends StatelessWidget {
         Step(
           title: Text(S.current.onboarding_configure_cors_title),
           subtitle: Text(S.current.onboarding_configure_cors_subtitle),
-          content: _StepConfigureCors(),
+          content: _StepConfigureCors(error: error),
           state: setupCorsState,
           isActive: currentStep >= 1,
         ),
         Step(
           title: Text(S.current.onboarding_install_model_title),
           subtitle: Text(S.current.onboarding_install_model_subtitle),
-          content: _StepInstallModel(),
+          content: _StepInstallModel(error: error),
           state: installModelState,
           isActive: currentStep >= 2,
         ),
@@ -165,8 +169,13 @@ class _StepInstallOllama extends StatelessWidget {
 }
 
 class _StepConfigureCors extends StatelessWidget {
+  final String? error;
+
+  const _StepConfigureCors({this.error});
+
   @override
   Widget build(BuildContext context) {
+    final errorMessage = error;
     return Align(
       alignment: Alignment.topLeft,
       child: Column(
@@ -181,6 +190,16 @@ class _StepConfigureCors extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(S.current.onboarding_configure_cors_outro),
+          if (errorMessage != null)
+            Card.filled(
+                color: Theme.of(context).colorScheme.errorContainer,
+                child: Text(
+                  errorMessage,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: Theme.of(context).colorScheme.onError),
+                ))
         ],
       ),
     );
@@ -188,8 +207,13 @@ class _StepConfigureCors extends StatelessWidget {
 }
 
 class _StepInstallModel extends StatelessWidget {
+  final String? error;
+
+  const _StepInstallModel({this.error});
+
   @override
   Widget build(BuildContext context) {
+    final errorMessage = error;
     return Align(
       alignment: Alignment.topLeft,
       child: Column(
@@ -211,6 +235,16 @@ class _StepInstallModel extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(S.current.onboarding_install_model_outro_2),
+          if (errorMessage != null)
+          Card.filled(
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: Text(
+                errorMessage,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Theme.of(context).colorScheme.onError),
+              ))
         ],
       ),
     );
