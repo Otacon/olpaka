@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/ollama/repository.dart';
 
 class OnboardingViewModel extends ChangeNotifier {
@@ -46,11 +47,6 @@ class OnboardingViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  onBackInstallCorsClicked() async {
-    state = OnboardingStateInstallOllama();
-    notifyListeners();
-  }
-
   onCompleteSetupCorsClicked() async {
     final result = await _repository.listModels();
     switch (result) {
@@ -62,7 +58,7 @@ class OnboardingViewModel extends ChangeNotifier {
         }
       case ListModelResultError():
       case ListModelResultConnectionError():
-        state = OnboardingStateSetupCors();
+        state = OnboardingStateSetupCors(error: S.current.onboarding_configure_cors_error);
     }
     notifyListeners();
   }
@@ -71,12 +67,15 @@ class OnboardingViewModel extends ChangeNotifier {
     final result = await _repository.listModels();
     switch (result) {
       case ListModelsResultSuccess():
-        if (result.models.isNotEmpty) {
+        if (result.models.isEmpty) {
+          state = OnboardingStateInstallModel(error: S.current.onboarding_install_model_error);
+        } else {
           _events.add(OnboardingEventNavigateToChat());
         }
       case ListModelResultError():
       case ListModelResultConnectionError():
     }
+    notifyListeners();
   }
 
 }

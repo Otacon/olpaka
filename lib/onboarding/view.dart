@@ -193,12 +193,9 @@ class _StepConfigureCors extends StatelessWidget {
           if (errorMessage != null)
             Card.filled(
                 color: Theme.of(context).colorScheme.errorContainer,
-                child: Text(
-                  errorMessage,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: Theme.of(context).colorScheme.onError),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(errorMessage),
                 ))
         ],
       ),
@@ -238,12 +235,9 @@ class _StepInstallModel extends StatelessWidget {
           if (errorMessage != null)
           Card.filled(
               color: Theme.of(context).colorScheme.errorContainer,
-              child: Text(
-                errorMessage,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: Theme.of(context).colorScheme.onError),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(errorMessage),
               ))
         ],
       ),
