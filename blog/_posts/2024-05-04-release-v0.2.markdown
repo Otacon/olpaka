@@ -1,0 +1,28 @@
+---
+layout: post
+title:  "Olpaka 0.2: Onboarding"
+date:   2024-05-04 12:01:00 +0100
+---
+Exciting news! I'm thrilled to announce the release of the second version of Olpaka, codenamed 
+"Onboarding".
+
+This release marks a significant milestone for our project: the introduction of onboarding.
+
+During the onboarding process, the user, will be guided through a series of instructions and 
+configurations to ensure that Ollama and Olpaka are seamlessly working together to deliver the best 
+experience possible.
+
+This is just the beginning! The onboarding process is in its initial iteration, and I anticipate it 
+evolving over time. Who knows? It might even undergo some significant enhancements or, potentially, 
+fade away altogether.
+
+With the basic configuration out of the way, it's time to dive into Model management. Exciting times 
+ahead!
+
+![Download Ollama]({{ site.baseurl }}/assets/images/0.2_onboarding_1.webp){: width="640" }
+
+![Setup CORS]({{ site.baseurl }}/assets/images/0.2_onboarding_2.webp){: width="640" }
+
+![Download model]({{ site.baseurl }}/assets/images/0.2_onboarding_3.webp){: width="640" }
+
+Stay tuned for more updates!

@@ -1,0 +1,25 @@
+title: Olpaka blog
+description: >-
+  Welcome to the Olpaka Blog! Dive into our updates, releases, and adventures in the world of AI 
+  experimentation. Stay tuned for the latest features, tips, and stories about Ollama and Olpaka. 
+  Let's make AI fun and accessible together!
+
+baseurl: "/olpaka/blog"
+url: "https://otacon.github.io/"
+
+github_username: otacon
+
+author: Orfeo Ciano
+
+show_excerpts: true
+
+header_pages:
+  - app.md
+  - about.md
+
+theme: minima
+minima:
+  skin: auto
+
+plugins:
+  - jekyll-feed

@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - fix_cors
+      - add_blog
 
   workflow_dispatch:
 
@@ -44,8 +44,13 @@ jobs:
           flutter pub global activate intl_utils
           flutter pub global run intl_utils:generate
 
-      - name: Build artifact
+      - name: Build web app
         run: flutter build web --release --base-href "/olpaka/"
+
+      - name: Create Blog
+        uses: actions/jekyll-build-pages@v1
+        with:
+          destination: "./web/blog"
 
       - name: Upload static content
         uses: actions/upload-pages-artifact@v3
@@ -53,5 +58,5 @@ jobs:
           path: './build/web/'
 
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
+        id: deployment
