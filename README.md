@@ -7,15 +7,16 @@ Checkout the [latest WebAssembly version](https://otacon.github.io/olpaka/) of t
 ## Roadmap
 Below you'll find a rough plan of action. This list of feature is subject to change at any point
 in time for whatever reason.
+
 ### V0.1 - Getting started
 - [x] Connect to local Ollama instance
 - [x] Implement basic chat
 
 ### v0.2 - Onboarding
-- [ ] Create onboarding screen
-- [ ] Check Ollama install
-- [ ] Check Models
-- [ ] Check CORS
+- [x] Create onboarding screen
+- [x] Check Ollama install
+- [x] Check Models
+- [x] Check CORS
 
 ### v1.0 - Models galore
 - [ ] Manage models (list, pull, remove)

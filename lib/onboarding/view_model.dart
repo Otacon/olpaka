@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/ollama/repository.dart';
 
 class OnboardingViewModel extends ChangeNotifier {
@@ -31,12 +32,18 @@ class OnboardingViewModel extends ChangeNotifier {
   }
 
   onCompleteInstallOllamaClicked() async {
-    state = OnboardingStateSetupCors();
-    notifyListeners();
-  }
-
-  onBackInstallCorsClicked() async {
-    state = OnboardingStateInstallOllama();
+    final result = await _repository.listModels();
+    switch (result) {
+      case ListModelsResultSuccess():
+        if (result.models.isEmpty) {
+          state = OnboardingStateInstallModel();
+        } else {
+          _events.add(OnboardingEventNavigateToChat());
+        }
+      case ListModelResultError():
+      case ListModelResultConnectionError():
+        state = OnboardingStateSetupCors();
+    }
     notifyListeners();
   }
 
@@ -46,25 +53,29 @@ class OnboardingViewModel extends ChangeNotifier {
       case ListModelsResultSuccess():
         if (result.models.isEmpty) {
           state = OnboardingStateInstallModel();
-          notifyListeners();
         } else {
           _events.add(OnboardingEventNavigateToChat());
         }
       case ListModelResultError():
       case ListModelResultConnectionError():
+        state = OnboardingStateSetupCors(error: S.current.onboarding_configure_cors_error);
     }
+    notifyListeners();
   }
 
   onCompleteInstallModelClicked() async {
     final result = await _repository.listModels();
     switch (result) {
       case ListModelsResultSuccess():
-        if (result.models.isNotEmpty) {
+        if (result.models.isEmpty) {
+          state = OnboardingStateInstallModel(error: S.current.onboarding_install_model_error);
+        } else {
           _events.add(OnboardingEventNavigateToChat());
         }
       case ListModelResultError():
       case ListModelResultConnectionError():
     }
+    notifyListeners();
   }
 
 }
@@ -79,6 +90,14 @@ class OnboardingStateLoading extends OnboardingState {}
 
 class OnboardingStateInstallOllama extends OnboardingState {}
 
-class OnboardingStateSetupCors extends OnboardingState {}
+class OnboardingStateSetupCors extends OnboardingState {
+  final String? error;
 
-class OnboardingStateInstallModel extends OnboardingState {}
+  OnboardingStateSetupCors({this.error});
+}
+
+class OnboardingStateInstallModel extends OnboardingState {
+  final String? error;
+
+  OnboardingStateInstallModel({this.error});
+}

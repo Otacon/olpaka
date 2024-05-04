@@ -54,15 +54,28 @@ systemctl restart ollama
 ### Windows
 On Windows, Ollama uses the environment variables set for the user or the system:
 
-- Ensure Ollama is not running by quitting the application from the taskbar.
-- Open the Control Panel and navigate to “Edit system environment variables.”
-- Choose to edit or create a new variable named `OLLAMA_ORIGINS`. 
+Ensure Ollama is not running by quitting the application from the taskbar.
 
-To allow Olpaka to access your Ollama service set:
+![Control Panel](images/windows_tutorial_1.png)
 
-```
-OLLAMA_ORIGINS=https://otacon.github.io
-```
+Open the Control Panel and navigate to "Edit system environment variables.".
 
-Apply the changes and close the control panel. Run OLLAMA from a new terminal window to ensure it 
-picks up the updated environment variables.
+Alternatively search for "environment variables" in the Windows search bar and select
+"Edit system environment variables".
+
+![Environment Variables](images/windows_tutorial_2.png)
+
+Select "Environment variables..."
+
+![Environment Variables](images/windows_tutorial_3.png)
+
+Choose to edit or create a new variable.
+
+![Environment Variables](images/windows_tutorial_4.png)
+Set the "variable name" to `OLLAMA_ORIGINS`.
+Set the "variable value" to `https://otacon.github.io`
+
+Apply the changes and close the control panel. 
+
+Now you can run again Ollama. If it's already running, please restart it to pick up the environment
+variables.

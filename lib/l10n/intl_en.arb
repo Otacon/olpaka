@@ -30,6 +30,7 @@
   "onboarding_configure_cors_intro": "Now that Ollama is up and running on your local machine, it's time to ensure seamless communication between Olpaka and Ollama.\n\nYou might have encountered the term \"CORS\" (Cross-Origin Resource Sharing) before.\nEssentially, CORS is a security feature implemented by web browsers to restrict resources (e.g., data or services) from being requested from another domain.\n\nSince this is hosted on GitHub Pages is a different domain from your local machine, CORS needs to be configured to allow communication between them.",
   "onboarding_configure_cors_action": "Configure CORS",
   "onboarding_configure_cors_outro": "By setting up CORS correctly, you'll allow Olpaka to seamlessly interact with Ollama running on your local machine.\n\nLet's ensure a smooth sailing for your AI journey!",
+  "onboarding_configure_cors_error": "Can't connect to the Ollama Service. Please make sure you've setup CORS and Ollama is running. Alternatively, try to restart it.",
 
   "onboarding_install_model_title": "Install Model",
   "onboarding_install_model_subtitle": "Power Up with AI",
@@ -37,6 +38,7 @@
   "onboarding_install_model_action": "Featured Models",
   "onboarding_install_model_outro_1": "Once you've chosen a model that resonates with you, simply open your shell or command prompt and run the following command:",
   "onboarding_install_model_outro_2": "Not sure which one to choose? Just use llama3!",
+  "onboarding_install_model_error": "Can't find any model installed. Please install one before you proceed.",
 
   "error_generic_title": "Error",
   "error_generic_message": "Whoops...Something didn't work. Maybe try to restart Olpaka.",
