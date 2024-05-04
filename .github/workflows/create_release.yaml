@@ -51,7 +51,7 @@ jobs:
         uses: actions/jekyll-build-pages@v1
         with:
           source: "./blog"
-          destination: "./web/blog"
+          destination: "./build/web/blog"
 
       - name: Upload static content
         uses: actions/upload-pages-artifact@v3
