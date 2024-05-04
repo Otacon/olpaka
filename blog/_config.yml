@@ -1,0 +1,52 @@
+title: Olpaka blog
+description: >-
+  Welcome to the Olpaka Blog! Dive into our updates, releases, and adventures in the world of AI 
+  experimentation. Stay tuned for the latest features, tips, and stories about Ollama and Olpaka. 
+  Let's make AI fun and accessible together!
+
+baseurl: "/olpaka/blog"
+url: "https://otacon.github.io/"
+
+theme: minimal-mistakes-jekyll
+minimal_mistakes_skin: neon
+show_excerpts: true
+header_pages:
+  - app.md
+  - about.md
+include:
+  - _pages
+pagination:
+  enabled: true
+  per_page: 5
+plugins:
+  - jekyll-feed
+  - jekyll-paginate
+defaults:
+  # _posts
+  - scope:
+      path: ""
+      type: posts
+    values:
+      show_date: true
+      layout: single
+      author_profile: false
+      read_time: true
+      comments: false
+      share: false
+      related: false
+
+  # _pages
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: single
+      author_profile: false
+
+repository: Otacon/olpaka
+author: Orfeo Ciano
+footer:
+  links:
+    - label: "Github"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/Otacon/olpaka"
