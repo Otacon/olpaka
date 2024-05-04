@@ -1,6 +1,7 @@
 ---
 title:      "Olpaka 0.2: Onboarding"
 date:       2024-05-04 12:01:00 +0100
+categories: [releases]
 gallery:
   - url: /assets/images/0.2_onboarding_1.webp
     image_path: /assets/images/0.2_onboarding_1.webp

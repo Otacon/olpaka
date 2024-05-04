@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - add_blog
 
   workflow_dispatch:
 
@@ -57,12 +56,6 @@ jobs:
         run: |
           bundle update
           bundle exec jekyll build -d ../build/web/blog
-
-#      - name: Create Blog
-#        uses: actions/jekyll-build-pages@v1
-#        with:
-#          source: "./blog"
-#          destination: "./build/web/blog"
 
       - name: Upload static content
         uses: actions/upload-pages-artifact@v3
