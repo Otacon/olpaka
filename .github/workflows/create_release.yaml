@@ -53,9 +53,10 @@ jobs:
           ruby-version: '3.1' # Not needed with a .ruby-version file
 
       - name: Create Blog
+        working-directory: ./blog
         run: |
           bundle update
-          bundle exec jekyll build -s ./blog -d ./build/web/blog
+          bundle exec jekyll build -d ../build/web/blog
 
 #      - name: Create Blog
 #        uses: actions/jekyll-build-pages@v1
