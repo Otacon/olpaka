@@ -48,10 +48,18 @@ jobs:
         run: flutter build web --release --base-href "/olpaka/"
 
       - name: Create Blog
-        uses: actions/jekyll-build-pages@v1
+        uses: ruby/setup-ruby@8575951200e472d5f2d95c625da0c7bec8217c42 # v1.161.0
         with:
-          source: "./blog"
-          destination: "./build/web/blog"
+          ruby-version: '3.1' # Not needed with a .ruby-version file
+        run: |
+          bundle update
+          bundle exec jekyll build -s ./blog -d ./build/web/blog
+
+#      - name: Create Blog
+#        uses: actions/jekyll-build-pages@v1
+#        with:
+#          source: "./blog"
+#          destination: "./build/web/blog"
 
       - name: Upload static content
         uses: actions/upload-pages-artifact@v3
