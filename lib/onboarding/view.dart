@@ -17,8 +17,8 @@ class OnboardingScreen extends StatelessWidget {
       onViewModelReady: (viewModel) {
         viewModel.events.listen((event) {
           switch (event) {
-            case OnboardingEventNavigateToChat():
-              context.go("/chat");
+            case OnboardingEventNavigateToHome():
+              context.go("/home");
           }
         });
         viewModel.onCreate();

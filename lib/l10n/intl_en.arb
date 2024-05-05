@@ -15,6 +15,10 @@
   "chat_missing_ollama_dialog_message" : "Looks like Ollama is not installed. Visit https://ollama.com/download to install it and try again.",
   "chat_missing_ollama_dialog_positive" : "Done",
 
+  "home_tab_name_chat": "Chat",
+  "home_tab_name_models": "Models",
+  "home_tab_name_settings": "Settings",
+
   "onboarding_title": "Get Started with Olpaka!",
   "onboarding_loading": "Loading...",
   "onboarding_action_next": "Done",
@@ -39,6 +43,8 @@
   "onboarding_install_model_outro_1": "Once you've chosen a model that resonates with you, simply open your shell or command prompt and run the following command:",
   "onboarding_install_model_outro_2": "Not sure which one to choose? Just use llama3!",
   "onboarding_install_model_error": "Can't find any model installed. Please install one before you proceed.",
+
+  "models_title": "Models",
 
   "error_generic_title": "Error",
   "error_generic_message": "Whoops...Something didn't work. Maybe try to restart Olpaka.",

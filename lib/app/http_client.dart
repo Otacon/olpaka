@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 class HttpClient {
@@ -9,6 +11,16 @@ class HttpClient {
     Response<String> response;
     try {
       response = await _client.post(endpoint, data: data);
+    } on DioException catch (e) {
+      return _handleException(e);
+    }
+    return _handleResponse(response);
+  }
+
+  Future<HttpResponse> delete(String endpoint, {required Object? data}) async {
+    Response<String> response;
+    try {
+      response = await _client.delete(endpoint, data: data);
     } on DioException catch (e) {
       return _handleException(e);
     }
