@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:olpaka/ollama/model.dart';
 import 'package:olpaka/ollama/repository.dart';
 
@@ -77,8 +79,22 @@ extension Mappings on List<Model> {
       name: model.name,
       fullName: model.model,
       isLoading: false,
-      size: model.size?.toString(),
+      size: model.size?.readableFileSize(),
+      params: model.parameterSize,
+      quantization: model.quantizationLevel
     );
+  }
+}
+
+extension FileFormatter on num {
+  String readableFileSize() {
+    if (this <= 0) return "0";
+
+    const base = 1000;
+    final units = ["B", "kB", "MB", "GB", "TB"];
+
+    int digitGroups = (log(this) / log(base)).floor();
+    return "${NumberFormat("#,##0.#").format(this / pow(base, digitGroups))} ${units[digitGroups]}";
   }
 }
 
@@ -102,7 +118,7 @@ class ModelItem {
   final bool isLoading;
   final String? params;
   final String? size;
-  final String? something;
+  final String? quantization;
 
   ModelItem({
     required this.name,
@@ -110,6 +126,6 @@ class ModelItem {
     required this.isLoading,
     this.params,
     this.size,
-    this.something,
+    this.quantization,
   });
 }

@@ -115,13 +115,10 @@ class _Content extends StatelessWidget {
               itemBuilder: (context, index) {
                 final model = models[index];
                 final Widget leading;
-                final Widget trailing;
+                final Widget? trailing;
                 if(model.isLoading){
                   leading = const Icon(Icons.downloading_outlined);
-                  trailing = IconButton(
-                    onPressed: () => onRemoveModel(model.name),
-                    icon: const Icon(Icons.cancel_outlined),
-                  );
+                  trailing = null;
                 } else {
                   leading = const Icon(Icons.download_done);
                   trailing = IconButton(
@@ -132,8 +129,8 @@ class _Content extends StatelessWidget {
                 return Column(
                   children: [
                     ListTile(
-                      title: Text(model.name),
-                      subtitle: Text(model.fullName),
+                      title: Text("${model.name} (${model.fullName})"),
+                      subtitle: Text("${model.size} - ${model.params} - ${model.quantization}"),
                       leading: leading,
                       trailing: trailing,
                       tileColor: Theme.of(context).colorScheme.surface,
