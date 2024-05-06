@@ -1,26 +1,25 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/ollama/model_manager.dart';
 import 'package:olpaka/ollama/repository.dart';
+import 'package:stacked/stacked.dart';
 
-class ModelsViewModel with ChangeNotifier {
-  final ModelManager _repository;
+class ModelsViewModel extends BaseViewModel {
+  final ModelManager _modelManager;
+
   ModelsState state = ModelsStateLoading();
   final _events = StreamController<ModelsEvent>.broadcast();
 
   Stream<ModelsEvent> get events => _events.stream.map((val) => val);
 
-  ModelsViewModel(this._repository);
-
-  late StreamSubscription _subscription;
+  ModelsViewModel(this._modelManager);
 
   onCreate() async {
-    _subscription = _repository.models.stream.listen(_onModelsChanged);
-    final result = await _repository.refresh();
+    _modelManager.addListener(_onModelsChanged);
+    final result = await _modelManager.refresh();
     switch (result) {
       case ListModelResultConnectionError():
       case ListModelResultError():
@@ -37,7 +36,7 @@ class ModelsViewModel with ChangeNotifier {
   }
 
   addModel(String model) async {
-    final result = await _repository.download(model);
+    final result = await _modelManager.download(model);
     switch(result){
       case DownloadModelResponseConnectionError():
       case DownloadModelResponseError():
@@ -50,7 +49,7 @@ class ModelsViewModel with ChangeNotifier {
   }
 
   removeModel(String model) async {
-    final result = await _repository.delete(model);
+    final result = await _modelManager.delete(model);
     switch(result){
       case RemoveModelResponseConnectionError():
       case RemoveModelResponseError():
@@ -62,7 +61,8 @@ class ModelsViewModel with ChangeNotifier {
     }
   }
 
-  _onModelsChanged(List<ModelDomain> models) {
+  _onModelsChanged() {
+    final models = _modelManager.allModels;
     state = ModelsStateLoaded(models.map(_toModelItem).toList());
     notifyListeners();
   }
@@ -88,7 +88,7 @@ class ModelsViewModel with ChangeNotifier {
 
   @override
   void dispose() {
-    _subscription.cancel();
+    _modelManager.removeListener(_onModelsChanged);
     super.dispose();
   }
 }

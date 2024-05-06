@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/ollama/repository.dart';
+import 'package:stacked/stacked.dart';
 
-class OnboardingViewModel with ChangeNotifier {
+class OnboardingViewModel extends BaseViewModel {
   final OllamaRepository _repository;
 
   OnboardingViewModel(this._repository);

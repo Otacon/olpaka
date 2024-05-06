@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:stacked/stacked.dart';
 
-class HomeViewModel with ChangeNotifier {
+class HomeViewModel extends BaseViewModel {
 
   final _events = StreamController<HomeEvent>.broadcast();
 

@@ -1,14 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:olpaka/generated/l10n.dart';
+import 'package:olpaka/ollama/model_manager.dart';
 import 'package:olpaka/ollama/repository.dart';
+import 'package:stacked/stacked.dart';
 
-class ChatViewModel with ChangeNotifier {
+class ChatViewModel extends BaseViewModel {
+  final ModelManager _modelManager;
   final OllamaRepository _repository;
   final S _s;
 
-  ChatViewModel(this._repository, this._s);
+  ChatViewModel(this._repository, this._modelManager, this._s, );
 
   ChatState state = ChatState(
     isLoading: true,
@@ -101,6 +103,7 @@ class ChatViewModel with ChangeNotifier {
           models: modelNames,
           messages: List.empty(),
         );
+        _modelManager.addListener(_onModelsChanged);
       case ListModelResultConnectionError():
         state = ChatState(
           isLoading: false,
@@ -130,6 +133,22 @@ class ChatViewModel with ChangeNotifier {
         );
     }
     notifyListeners();
+  }
+
+  _onModelsChanged(){
+    final modelNames = _modelManager.cachedModels.map((model) => model.name).toList();
+    state = ChatState(
+      isLoading: state.isLoading,
+      selectedModel: state.selectedModel,
+      models: modelNames,
+      messages: state.messages,
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _modelManager.removeListener(_onModelsChanged);
   }
 }
 
