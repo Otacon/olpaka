@@ -1,0 +1,33 @@
+---
+title:      "Olpaka 0.3: Models Galore"
+date:       2024-05-06 11:40:00 +0100
+categories: [releases]
+gallery:
+  - url: /assets/images/0.3_models_galore_1.webp
+    image_path: /assets/images/0.3_models_galore_1.webp
+    title: "New tab in the home screen"
+  - url: /assets/images/0.3_models_galore_2.webp
+    image_path: /assets/images/0.3_models_galore_2.webp
+    title: "Dialog to input the model name"
+  - url: /assets/images/0.3_models_galore_3.webp
+    image_path: /assets/images/0.3_models_galore_3.webp
+    title: "Downloading state for the model"
+---
+Howdy! After some tinkering and encountering a few hiccups with 
+[DIO HttpClient and streaming API calls](https://github.com/cfug/dio/issues/1279), I'm excited to 
+unveil a new tab on the home screen: the Models management tab.
+
+While implementing this feature, I've realized there are a few areas I need to focus on:
+- Finding a workaround for the HTTP client issue;
+- Enhancing my understanding of [Ephemeral vs App state management](https://docs.flutter.dev/data-and-backend/state-mgmt/ephemeral-vs-app);
+- Deciding whether to keep or revamp the onboarding process.
+
+Despite the challenges, this version has been a valuable learning experience in Flutter, web HTTP 
+calls, and more.
+
+My current goal isn't perfection; it's about adding functionality and gaining insights to eventually 
+deliver a stable and scalable 1.0 version.
+
+Ready to give it a spin? Check out the "Olpaka web app" link above! 😊
+{% include gallery caption="Onboarding screenshots from the app" %}
+

@@ -16,18 +16,33 @@ This is a rough Roadmap and what to expect in the upcoming versions of Olpaka.
 - [x] Check Models
 - [x] Check CORS
 
-[Blog Post]({{ site.baseurl }}/releases/2024/04/30/release-v0.2)
+[Blog Post]({{ site.baseurl }}/releases/2024/05/04/release-v0.2)
 
-## v1.0 - Models galore
+## v0.3 - Models galore
 - Manage models (list, pull, remove)
 
-## v1.2 - Makeup time!
+- [Blog Post]({{ site.baseurl }}/releases/2024/05/06/release-v0.3)
+
+## v0.4 - Spring cleaning
+- Global state handling
+- Streaming HTTP requests
+- Refactor project based on what I've learned
+- Add analytics
+- Add unit tests
+
+## v0.5 - Settings
+- Add settings with some basic user preferences
+
+## v1.0 - Stable time!
+- First stable release
+
+## v1.1 - Makeup time!
 - Customize model parameters
 
-## v1.3 - You're not alone
+## v1.2 - You're not alone
 - Connect to remote Ollama instances
 
-## v1.4 - Stats for nerds
+## v1.3 - Stats for nerds
 - Show performance
 
 ## Future development - maybe this will come earlier due to CORS restrictions
