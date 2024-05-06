@@ -36,7 +36,7 @@ class ChatScreen extends StatelessWidget {
                   title: event.title,
                   message: event.message,
                   positive: event.positive,
-                  positiveAction: () => {viewModel.onRefresh()});
+                  positiveAction: () => {});
           }
         });
         viewModel.onCreate();
@@ -246,8 +246,9 @@ class _AssistantMessage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(S.current.chat_assistant_name,
-                  style: Theme.of(context).textTheme.titleLarge,
+              Text(
+                S.current.chat_assistant_name,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               MarkdownBlock(
                 config: _markdownConfig(context),

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/ollama/repository.dart';
 
-class OnboardingViewModel extends ChangeNotifier {
+class OnboardingViewModel with ChangeNotifier {
   final OllamaRepository _repository;
 
   OnboardingViewModel(this._repository);
@@ -22,7 +22,7 @@ class OnboardingViewModel extends ChangeNotifier {
         if (result.models.isEmpty) {
           state = OnboardingStateInstallModel();
         } else {
-          _events.add(OnboardingEventNavigateToChat());
+          _events.add(OnboardingEventNavigateToHome());
         }
       case ListModelResultError():
       case ListModelResultConnectionError():
@@ -38,7 +38,7 @@ class OnboardingViewModel extends ChangeNotifier {
         if (result.models.isEmpty) {
           state = OnboardingStateInstallModel();
         } else {
-          _events.add(OnboardingEventNavigateToChat());
+          _events.add(OnboardingEventNavigateToHome());
         }
       case ListModelResultError():
       case ListModelResultConnectionError():
@@ -54,7 +54,7 @@ class OnboardingViewModel extends ChangeNotifier {
         if (result.models.isEmpty) {
           state = OnboardingStateInstallModel();
         } else {
-          _events.add(OnboardingEventNavigateToChat());
+          _events.add(OnboardingEventNavigateToHome());
         }
       case ListModelResultError():
       case ListModelResultConnectionError():
@@ -70,7 +70,7 @@ class OnboardingViewModel extends ChangeNotifier {
         if (result.models.isEmpty) {
           state = OnboardingStateInstallModel(error: S.current.onboarding_install_model_error);
         } else {
-          _events.add(OnboardingEventNavigateToChat());
+          _events.add(OnboardingEventNavigateToHome());
         }
       case ListModelResultError():
       case ListModelResultConnectionError():
@@ -82,7 +82,7 @@ class OnboardingViewModel extends ChangeNotifier {
 
 sealed class OnboardingEvent {}
 
-class OnboardingEventNavigateToChat extends OnboardingEvent {}
+class OnboardingEventNavigateToHome extends OnboardingEvent {}
 
 sealed class OnboardingState {}
 

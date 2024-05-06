@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:core';
+
 import 'package:olpaka/app/http_client.dart';
 import 'package:olpaka/app/logger.dart';
 import 'package:olpaka/ollama/model.dart';
@@ -15,13 +16,45 @@ class OllamaRepository {
     switch (response) {
       case HttpResponseSuccess():
         final json = jsonDecode(response.body)["models"];
-        final models = List<Model>.from(json.map((model) => _parseModel(model)));
+        final models =
+            List<Model>.from(json.map((model) => _parseModel(model)));
         return ListModelsResultSuccess(models);
       case HttpResponseError():
       case HttpResponseUnknownError():
         return ListModelResultError();
       case HttpResponseConnectionError():
         return ListModelResultConnectionError();
+    }
+  }
+
+  Future<RemoveModelResponse> removeModel(String model) async {
+    logger.i("Removing model $model");
+    final response = await _client.delete("/delete", data: {
+      "model": model,
+    });
+    switch (response) {
+      case HttpResponseSuccess():
+        return RemoveModelResponseSuccess();
+      case HttpResponseConnectionError():
+        return RemoveModelResponseConnectionError();
+      case HttpResponseError():
+      case HttpResponseUnknownError():
+        return RemoveModelResponseError();
+    }
+  }
+
+  Future<DownloadModelResponse> downloadModel(String model) async {
+    logger.i("adding model $model");
+    final response =
+        await _client.post("/pull", data: {"name": model, "stream": false});
+    switch (response) {
+      case HttpResponseSuccess():
+        return DownloadModelResponseSuccess();
+      case HttpResponseConnectionError():
+        return DownloadModelResponseConnectionError();
+      case HttpResponseError():
+      case HttpResponseUnknownError():
+        return DownloadModelResponseError();
     }
   }
 
@@ -65,24 +98,38 @@ class OllamaRepository {
 
 sealed class ListModelsResult {}
 
-class ListModelsResultSuccess extends ListModelsResult{
+class ListModelsResultSuccess extends ListModelsResult {
   final List<Model> models;
 
   ListModelsResultSuccess(this.models);
-
 }
 
-class ListModelResultConnectionError extends ListModelsResult{}
+class ListModelResultConnectionError extends ListModelsResult {}
 
-class ListModelResultError extends ListModelsResult{}
+class ListModelResultError extends ListModelsResult {}
 
 sealed class GenerateResult {}
 
-class GenerateResultSuccess extends GenerateResult{
+class GenerateResultSuccess extends GenerateResult {
   final String answer;
 
   GenerateResultSuccess(this.answer);
-
 }
 
-class GenerateResultError extends GenerateResult{}
+class GenerateResultError extends GenerateResult {}
+
+sealed class DownloadModelResponse {}
+
+class DownloadModelResponseSuccess extends DownloadModelResponse {}
+
+class DownloadModelResponseConnectionError extends DownloadModelResponse {}
+
+class DownloadModelResponseError extends DownloadModelResponse {}
+
+sealed class RemoveModelResponse {}
+
+class RemoveModelResponseSuccess extends RemoveModelResponse {}
+
+class RemoveModelResponseConnectionError extends RemoveModelResponse {}
+
+class RemoveModelResponseError extends RemoveModelResponse {}

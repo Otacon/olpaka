@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:olpaka/chat/view.dart';
+import 'package:olpaka/home/view.dart';
 import 'package:olpaka/onboarding/view.dart';
 
 final router = GoRouter(
@@ -10,9 +10,9 @@ final router = GoRouter(
       builder: (_, __) => const OnboardingScreen(),
     ),
     GoRoute(
-      name: "Chat",
-      path: "/chat",
-      builder: (_, __) => const ChatScreen(),
+      name: "Home",
+      path: "/home",
+      builder: (_, __) => const HomeView(),
     )
   ],
 );
