@@ -45,6 +45,12 @@
   "onboarding_install_model_error": "Can't find any model installed. Please install one before you proceed.",
 
   "models_title": "Models",
+  "models_state_download": "Downloading...",
+  "models_dialog_download_model_title": "Download new Model",
+  "models_dialog_download_model_description": "Pick a model from ollama library and add its name here",
+  "models_dialog_download_model_text_hint": "Model name",
+  "models_dialog_download_model_action_positive": "Download",
+  "models_dialog_download_model_action_negative": "Cancel",
 
   "error_generic_title": "Error",
   "error_generic_message": "Whoops...Something didn't work. Maybe try to restart Olpaka.",

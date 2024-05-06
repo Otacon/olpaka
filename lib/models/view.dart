@@ -62,18 +62,17 @@ class ModelsScreen extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Download new Model"),
+          title: Text(S.current.models_dialog_download_model_title),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                  "Pick a model from ollama library and add its name here"),
+              Text(S.current.models_dialog_download_model_description),
               const SizedBox(height: 16),
               TextField(
                 controller: _controller,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: "Add model name",
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  hintText: S.current.models_dialog_download_model_text_hint,
                 ),
               ),
             ],
@@ -84,7 +83,7 @@ class ModelsScreen extends StatelessWidget {
                 Navigator.of(context).pop(false);
                 _controller.clear();
               },
-              child: const Text("Cancel"),
+              child: Text(S.current.models_dialog_download_model_action_negative),
             ),
             FilledButton(
               onPressed: () {
@@ -92,7 +91,7 @@ class ModelsScreen extends StatelessWidget {
                 positiveAction(_controller.value.text);
                 _controller.clear();
               },
-              child: const Text("Download"),
+              child: Text(S.current.models_dialog_download_model_action_positive),
             )
           ],
         );

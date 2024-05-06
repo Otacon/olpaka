@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/ollama/model_manager.dart';
 
 class ModelsViewModel with ChangeNotifier {
@@ -39,11 +40,16 @@ class ModelsViewModel with ChangeNotifier {
   }
 
   ModelItem _toModelItem(ModelDomain model) {
-    final subtitle = [
-      model.size?.readableFileSize(),
-      model.params,
-      model.quantization,
-    ].nonNulls.join(" • ");
+    final String subtitle;
+    if(model.isDownloaded) {
+      subtitle = [
+        model.size?.readableFileSize(),
+        model.params,
+        model.quantization,
+      ].nonNulls.join(" • ");
+    } else {
+      subtitle = S.current.models_state_download;
+    }
     return ModelItem(
       id: model.name,
       title: "${model.name} (${model.fullName})",
