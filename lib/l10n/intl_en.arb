@@ -8,8 +8,8 @@
   "chat_you_name" : "You",
 
   "chat_missing_model_dialog_title" : "Missing Model",
-  "chat_missing_model_dialog_message" : "You've got no AI models installed.\nDownload a model by running `ollama run llama3`. Visit https://ollama.com/library to find more.",
-  "chat_missing_model_dialog_positive" : "Done",
+  "chat_missing_model_dialog_message" : "You've got no AI models installed.\nDownload a model from the Models tab",
+  "chat_missing_model_dialog_positive" : "Ok",
 
   "chat_missing_ollama_dialog_title" : "Ollama not found",
   "chat_missing_ollama_dialog_message" : "Looks like Ollama is not installed. Visit https://ollama.com/download to install it and try again.",
@@ -51,6 +51,15 @@
   "models_dialog_download_model_text_hint": "Model name",
   "models_dialog_download_model_action_positive": "Download",
   "models_dialog_download_model_action_negative": "Cancel",
+
+  "models_dialog_load_models_error_title": "Unable to retrieve models",
+  "models_dialog_load_models_error_message": "Please check that Ollama is running and configured correctly",
+
+  "models_dialog_download_model_error_title": "Unable to download model",
+  "models_dialog_download_model_error_message": "Please check that Ollama is running, configured correctly, the model exists in the Ollama library and has not been already downloaded",
+
+  "models_dialog_remove_model_error_title": "Unable to delete model",
+  "models_dialog_remove_model_error_message": "Please check that Ollama il running and configured correctly.",
 
   "error_generic_title": "Error",
   "error_generic_message": "Whoops...Something didn't work. Maybe try to restart Olpaka.",

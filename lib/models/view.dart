@@ -21,6 +21,12 @@ class ModelsScreen extends StatelessWidget {
                 context: context,
                 positiveAction: (modelName) => viewModel.addModel(modelName),
               );
+            case ModelsEventShowError():
+              _showErrorDialog(
+                context: context,
+                title: event.title,
+                message: event.message,
+              );
           }
         });
         viewModel.onCreate();
@@ -100,6 +106,31 @@ class ModelsScreen extends StatelessWidget {
       },
     );
   }
+
+  _showErrorDialog({
+    required BuildContext context,
+    required String title,
+    required String message,
+  }) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: Text(S.current.error_generic_positive),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _Content extends StatelessWidget {
@@ -123,7 +154,11 @@ class _Content extends StatelessWidget {
               final Widget leading;
               final Widget? trailing;
               if (model.isLoading) {
-                leading = const Icon(Icons.downloading_outlined);
+                leading = const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator()
+                );
                 trailing = null;
               } else {
                 leading = const Icon(Icons.download_done);

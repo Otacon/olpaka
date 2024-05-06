@@ -27,31 +27,34 @@ class OllamaRepository {
     }
   }
 
-  Future<bool> removeModel(String model) async {
+  Future<RemoveModelResponse> removeModel(String model) async {
     logger.i("Removing model $model");
     final response = await _client.delete("/delete", data: {
       "model": model,
     });
     switch (response) {
       case HttpResponseSuccess():
-        return true;
-      case HttpResponseError():
+        return RemoveModelResponseSuccess();
       case HttpResponseConnectionError():
+        return RemoveModelResponseConnectionError();
+      case HttpResponseError():
       case HttpResponseUnknownError():
-        return false;
+        return RemoveModelResponseError();
     }
   }
 
-  Future<bool> addModel(String model) async {
+  Future<DownloadModelResponse> downloadModel(String model) async {
     logger.i("adding model $model");
-    final response = await _client.post("/pull", data: {"name": model, "stream": false});
+    final response =
+        await _client.post("/pull", data: {"name": model, "stream": false});
     switch (response) {
       case HttpResponseSuccess():
-        return true;
-      case HttpResponseError():
+        return DownloadModelResponseSuccess();
       case HttpResponseConnectionError():
+        return DownloadModelResponseConnectionError();
+      case HttpResponseError():
       case HttpResponseUnknownError():
-        return false;
+        return DownloadModelResponseError();
     }
   }
 
@@ -114,3 +117,19 @@ class GenerateResultSuccess extends GenerateResult {
 }
 
 class GenerateResultError extends GenerateResult {}
+
+sealed class DownloadModelResponse {}
+
+class DownloadModelResponseSuccess extends DownloadModelResponse {}
+
+class DownloadModelResponseConnectionError extends DownloadModelResponse {}
+
+class DownloadModelResponseError extends DownloadModelResponse {}
+
+sealed class RemoveModelResponse {}
+
+class RemoveModelResponseSuccess extends RemoveModelResponse {}
+
+class RemoveModelResponseConnectionError extends RemoveModelResponse {}
+
+class RemoveModelResponseError extends RemoveModelResponse {}

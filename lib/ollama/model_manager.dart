@@ -15,7 +15,7 @@ class ModelManager{
 
   ModelManager(this._ollama);
 
-  refresh() async {
+  Future<ListModelsResult> refresh() async {
     final response = await _ollama.listModels();
     switch(response){
       case ListModelsResultSuccess():
@@ -25,20 +25,23 @@ class ModelManager{
       case ListModelResultConnectionError():
       case ListModelResultError():
     }
+    return response;
   }
 
-  download(String modelName) async {
+  Future<DownloadModelResponse> download(String modelName) async {
     final downloadingModel = ModelDomain(name: modelName, fullName: modelName, isDownloaded: false);
     downloadingModels.add(downloadingModel);
     _broadcastUpdate();
-    await _ollama.addModel(modelName);
+    final response = await _ollama.downloadModel(modelName);
     downloadingModels.remove(downloadingModel);
     await refresh();
+    return response;
   }
 
-  delete(String modelName) async {
-    await _ollama.removeModel(modelName);
+  Future<RemoveModelResponse> delete(String modelName) async {
+    final response = await _ollama.removeModel(modelName);
     await refresh();
+    return response;
   }
 
   _broadcastUpdate() {

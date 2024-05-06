@@ -25,7 +25,6 @@ class HomeView extends StatelessWidget {
         final content = switch(viewModel.selectedItem){
           0 => const ChatScreen(),
           1 => ModelsScreen(),
-          2 => Container(),
           int() => throw UnimplementedError(),
         };
         return Row(
@@ -45,11 +44,6 @@ class HomeView extends StatelessWidget {
                     icon: const Icon(Icons.auto_awesome_outlined),
                     selectedIcon: const Icon(Icons.auto_awesome),
                     label: Text(S.current.home_tab_name_models),
-                  ),
-                  NavigationRailDestination(
-                    icon: const Icon(Icons.settings_outlined),
-                    selectedIcon: const Icon(Icons.settings),
-                    label: Text(S.current.home_tab_name_settings),
                   ),
                 ],
               ),

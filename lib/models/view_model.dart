@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/ollama/model_manager.dart';
+import 'package:olpaka/ollama/repository.dart';
 
 class ModelsViewModel with ChangeNotifier {
   final ModelManager _repository;
@@ -19,7 +20,16 @@ class ModelsViewModel with ChangeNotifier {
 
   onCreate() async {
     _subscription = _repository.models.stream.listen(_onModelsChanged);
-    _repository.refresh();
+    final result = await _repository.refresh();
+    switch (result) {
+      case ListModelResultConnectionError():
+      case ListModelResultError():
+        _events.add(ModelsEventShowError(
+          title: S.current.models_dialog_load_models_error_title,
+          message: S.current.models_dialog_load_models_error_message,
+        ));
+      case ListModelsResultSuccess():
+    }
   }
 
   onAddModelClicked() {
@@ -27,11 +37,29 @@ class ModelsViewModel with ChangeNotifier {
   }
 
   addModel(String model) async {
-    await _repository.download(model);
+    final result = await _repository.download(model);
+    switch(result){
+      case DownloadModelResponseConnectionError():
+      case DownloadModelResponseError():
+      _events.add(ModelsEventShowError(
+        title: S.current.models_dialog_download_model_error_title,
+        message: S.current.models_dialog_download_model_error_message,
+      ));
+      case DownloadModelResponseSuccess():
+    }
   }
 
   removeModel(String model) async {
-    await _repository.delete(model);
+    final result = await _repository.delete(model);
+    switch(result){
+      case RemoveModelResponseConnectionError():
+      case RemoveModelResponseError():
+      _events.add(ModelsEventShowError(
+        title: S.current.models_dialog_remove_model_error_title,
+        message: S.current.models_dialog_remove_model_error_message,
+      ));
+      case RemoveModelResponseSuccess():
+    }
   }
 
   _onModelsChanged(List<ModelDomain> models) {
@@ -41,7 +69,7 @@ class ModelsViewModel with ChangeNotifier {
 
   ModelItem _toModelItem(ModelDomain model) {
     final String subtitle;
-    if(model.isDownloaded) {
+    if (model.isDownloaded) {
       subtitle = [
         model.size?.readableFileSize(),
         model.params,
@@ -90,6 +118,16 @@ class ModelsStateLoaded extends ModelsState {
 sealed class ModelsEvent {}
 
 class ModelsEventShowAddModelDialog extends ModelsEvent {}
+
+class ModelsEventShowError extends ModelsEvent {
+  final String title;
+  final String message;
+
+  ModelsEventShowError({
+    required this.title,
+    required this.message,
+  });
+}
 
 class ModelItem {
   final String id;
