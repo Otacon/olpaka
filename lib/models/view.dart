@@ -83,7 +83,8 @@ class ModelsScreen extends StatelessWidget {
                 Navigator.of(context).pop(false);
                 _controller.clear();
               },
-              child: Text(S.current.models_dialog_download_model_action_negative),
+              child:
+                  Text(S.current.models_dialog_download_model_action_negative),
             ),
             FilledButton(
               onPressed: () {
@@ -91,7 +92,8 @@ class ModelsScreen extends StatelessWidget {
                 positiveAction(_controller.value.text);
                 _controller.clear();
               },
-              child: Text(S.current.models_dialog_download_model_action_positive),
+              child:
+                  Text(S.current.models_dialog_download_model_action_positive),
             )
           ],
         );
@@ -115,36 +117,37 @@ class _Content extends StatelessWidget {
       children: [
         Expanded(
           child: ListView.builder(
-              itemCount: models.length,
-              itemBuilder: (context, index) {
-                final model = models[index];
-                final Widget leading;
-                final Widget? trailing;
-                if (model.isLoading) {
-                  leading = const Icon(Icons.downloading_outlined);
-                  trailing = null;
-                } else {
-                  leading = const Icon(Icons.download_done);
-                  trailing = IconButton(
-                    onPressed: () => onRemoveModel(model.id),
-                    icon: const Icon(Icons.delete),
-                  );
-                }
-                return Column(
-                  children: [
-                    ListTile(
-                      title: Text(model.title),
-                      subtitle: Text(model.subtitle),
-                      leading: leading,
-                      trailing: trailing,
-                      tileColor: Theme.of(context).colorScheme.surface,
-                    ),
-                    const Divider(
-                      height: 0,
-                    )
-                  ],
+            itemCount: models.length,
+            itemBuilder: (context, index) {
+              final model = models[index];
+              final Widget leading;
+              final Widget? trailing;
+              if (model.isLoading) {
+                leading = const Icon(Icons.downloading_outlined);
+                trailing = null;
+              } else {
+                leading = const Icon(Icons.download_done);
+                trailing = IconButton(
+                  onPressed: () => onRemoveModel(model.id),
+                  icon: const Icon(Icons.delete),
                 );
-              }),
+              }
+              return Column(
+                children: [
+                  ListTile(
+                    title: Text(model.title),
+                    subtitle: Text(model.subtitle),
+                    leading: leading,
+                    trailing: trailing,
+                    tileColor: Theme.of(context).colorScheme.surface,
+                  ),
+                  const Divider(
+                    height: 0,
+                  )
+                ],
+              );
+            },
+          ),
         ),
       ],
     );
