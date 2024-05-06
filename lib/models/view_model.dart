@@ -3,11 +3,10 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-import 'package:olpaka/ollama/model.dart';
-import 'package:olpaka/ollama/repository.dart';
+import 'package:olpaka/ollama/model_manager.dart';
 
 class ModelsViewModel with ChangeNotifier {
-  final OllamaRepository _repository;
+  final ModelManager _repository;
   ModelsState state = ModelsStateLoading();
   final _events = StreamController<ModelsEvent>.broadcast();
 
@@ -15,21 +14,11 @@ class ModelsViewModel with ChangeNotifier {
 
   ModelsViewModel(this._repository);
 
-  List<ModelItem> _models = List<ModelItem>.empty(growable: true);
+  late StreamSubscription _subscription;
 
   onCreate() async {
-    state = ModelsStateLoading();
-    notifyListeners();
-    final response = await _repository.listModels();
-    switch (response) {
-      case ListModelsResultSuccess():
-        final updatedModels = response.models.toModelItems();
-        _models = updatedModels;
-        state = ModelsStateLoaded(updatedModels);
-        notifyListeners();
-      case ListModelResultConnectionError():
-      case ListModelResultError():
-    }
+    _subscription = _repository.models.stream.listen(_onModelsChanged);
+    _repository.refresh();
   }
 
   onAddModelClicked() {
@@ -37,52 +26,36 @@ class ModelsViewModel with ChangeNotifier {
   }
 
   addModel(String model) async {
-    _models.add(ModelItem(name: model, fullName: model, isLoading: true));
-    state = ModelsStateLoaded(_models);
-    notifyListeners();
-    await _repository.addModel(model);
-    final response = await _repository.listModels();
-    switch (response) {
-      case ListModelsResultSuccess():
-        final updatedModels = response.models.toModelItems();
-        _models = updatedModels;
-        state = ModelsStateLoaded(updatedModels);
-        notifyListeners();
-      case ListModelResultConnectionError():
-      case ListModelResultError():
-    }
+    await _repository.download(model);
   }
 
   removeModel(String model) async {
-    await _repository.removeModel(model);
-    final response = await _repository.listModels();
-    switch (response) {
-      case ListModelsResultSuccess():
-        final updatedModels = response.models.toModelItems();
-        _models = updatedModels;
-        state = ModelsStateLoaded(updatedModels);
-        notifyListeners();
-      case ListModelResultConnectionError():
-      case ListModelResultError():
-    }
+    await _repository.delete(model);
   }
 
-}
-
-extension Mappings on List<Model> {
-  List<ModelItem> toModelItems(){
-    return map((_toModelItem)).toList();
+  _onModelsChanged(List<ModelDomain> models) {
+    state = ModelsStateLoaded(models.map(_toModelItem).toList());
+    notifyListeners();
   }
 
-  ModelItem _toModelItem(Model model) {
+  ModelItem _toModelItem(ModelDomain model) {
+    final subtitle = [
+      model.size?.readableFileSize(),
+      model.params,
+      model.quantization,
+    ].nonNulls.join(" • ");
     return ModelItem(
-      name: model.name,
-      fullName: model.model,
-      isLoading: false,
-      size: model.size?.readableFileSize(),
-      params: model.parameterSize,
-      quantization: model.quantizationLevel
+      id: model.name,
+      title: "${model.name} (${model.fullName})",
+      subtitle: subtitle,
+      isLoading: !model.isDownloaded,
     );
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 }
 
@@ -113,19 +86,15 @@ sealed class ModelsEvent {}
 class ModelsEventShowAddModelDialog extends ModelsEvent {}
 
 class ModelItem {
-  final String name;
-  final String fullName;
+  final String id;
+  final String title;
+  final String subtitle;
   final bool isLoading;
-  final String? params;
-  final String? size;
-  final String? quantization;
 
   ModelItem({
-    required this.name,
-    required this.fullName,
+    required this.id,
+    required this.title,
+    required this.subtitle,
     required this.isLoading,
-    this.params,
-    this.size,
-    this.quantization,
   });
 }

@@ -66,7 +66,8 @@ class ModelsScreen extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Pick a model from ollama library and add its name here"),
+              const Text(
+                  "Pick a model from ollama library and add its name here"),
               const SizedBox(height: 16),
               TextField(
                 controller: _controller,
@@ -79,13 +80,17 @@ class ModelsScreen extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                _controller.clear();
+              },
               child: const Text("Cancel"),
             ),
             FilledButton(
-              onPressed: () => {
-                Navigator.of(context).pop(false),
-                positiveAction(_controller.value.text)
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                positiveAction(_controller.value.text);
+                _controller.clear();
               },
               child: const Text("Download"),
             )
@@ -116,21 +121,21 @@ class _Content extends StatelessWidget {
                 final model = models[index];
                 final Widget leading;
                 final Widget? trailing;
-                if(model.isLoading){
+                if (model.isLoading) {
                   leading = const Icon(Icons.downloading_outlined);
                   trailing = null;
                 } else {
                   leading = const Icon(Icons.download_done);
                   trailing = IconButton(
-                    onPressed: () => onRemoveModel(model.name),
+                    onPressed: () => onRemoveModel(model.id),
                     icon: const Icon(Icons.delete),
                   );
                 }
                 return Column(
                   children: [
                     ListTile(
-                      title: Text("${model.name} (${model.fullName})"),
-                      subtitle: Text("${model.size} - ${model.params} - ${model.quantization}"),
+                      title: Text(model.title),
+                      subtitle: Text(model.subtitle),
                       leading: leading,
                       trailing: trailing,
                       tileColor: Theme.of(context).colorScheme.surface,

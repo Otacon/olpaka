@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:olpaka/app/http_client.dart';
+import 'package:olpaka/ollama/model_manager.dart';
 import 'package:olpaka/ollama/repository.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
@@ -24,4 +25,5 @@ registerOllama() {
   });
   l.registerFactory(() => HttpClient(l.get()));
   l.registerFactory(() => OllamaRepository(l.get()));
+  l.registerLazySingleton(() => ModelManager(l.get()));
 }
