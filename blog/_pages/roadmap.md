@@ -21,7 +21,7 @@ This is a rough Roadmap and what to expect in the upcoming versions of Olpaka.
 ## v0.3 - Models galore
 - Manage models (list, pull, remove)
 
-- [Blog Post]({{ site.baseurl }}/releases/2024/05/06/release-v0.3)
+[Blog Post]({{ site.baseurl }}/releases/2024/05/06/release-v0.3)
 
 ## v0.4 - Spring cleaning
 - Global state handling
