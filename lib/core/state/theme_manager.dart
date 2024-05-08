@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:olpaka/preferences/preferences.dart';
-import 'package:olpaka/settings/view_model.dart';
+import 'package:olpaka/core/preferences.dart';
 
 class ThemeManager with ChangeNotifier {
   final Preferences _preferences;
@@ -21,3 +20,7 @@ class ThemeManager with ChangeNotifier {
     notifyListeners();
   }
 }
+
+enum OlpakaThemeMode { system, dark, light }
+
+enum OlpakaThemeColor { olpaka, blue, green, orange, red, purple, grey }

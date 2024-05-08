@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:intl/intl.dart';
+import 'package:olpaka/core/ollama/repository.dart';
+import 'package:olpaka/core/state/model_manager.dart';
 import 'package:olpaka/generated/l10n.dart';
-import 'package:olpaka/ollama/model_manager.dart';
-import 'package:olpaka/ollama/repository.dart';
 import 'package:stacked/stacked.dart';
 
 class ModelsViewModel extends BaseViewModel {

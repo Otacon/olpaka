@@ -2,8 +2,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:olpaka/ollama/model.dart';
-import 'package:olpaka/ollama/repository.dart';
+import 'package:olpaka/core/ollama/model.dart';
+import 'package:olpaka/core/ollama/repository.dart';
 
 class ModelManager with ChangeNotifier{
 

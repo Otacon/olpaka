@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:olpaka/feature/models/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
-import 'package:olpaka/models/view_model.dart';
 import 'package:stacked/stacked.dart';
 
 class ModelsScreen extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:olpaka/generated/l10n.dart';
-import 'package:olpaka/app/di.dart';
+import 'package:olpaka/core/di.dart';
 import 'package:olpaka/app/olpaka_app.dart';
 
 void main() async {

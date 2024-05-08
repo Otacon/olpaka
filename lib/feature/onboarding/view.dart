@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:markdown_widget/markdown_widget.dart';
+import 'package:olpaka/feature/onboarding/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
-import 'package:olpaka/onboarding/view_model.dart';
 import 'package:stacked/stacked.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
