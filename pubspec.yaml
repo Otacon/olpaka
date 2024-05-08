@@ -39,6 +39,8 @@ dependencies:
   # Url launcher
   url_launcher: ^6.2.6
 
+  # Shared Preferences
+  shared_preferences: ^2.2.3
 
 flutter_localizations:
   sdk: flutter

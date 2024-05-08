@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:olpaka/app/router.dart';
 import 'package:olpaka/generated/l10n.dart';
+import 'package:olpaka/settings/ThemeManager.dart';
+import 'package:olpaka/settings/view_model.dart';
+import 'package:stacked/stacked.dart';
 
 class OlpakaApp extends StatelessWidget {
   const OlpakaApp({super.key});
@@ -8,24 +12,43 @@ class OlpakaApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: S.current.app_name,
-      themeMode: ThemeMode.system,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.red,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
-      routerConfig: router,
+    return ViewModelBuilder<ThemeManager>.reactive(
+      viewModelBuilder: () => GetIt.I.get(),
+      builder: (context, themeManager, child) {
+        final themeMode = switch(themeManager.themeMode){
+          OlpakaThemeMode.system => ThemeMode.system,
+          OlpakaThemeMode.dark => ThemeMode.dark,
+          OlpakaThemeMode.light => ThemeMode.light,
+        };
+        final color = switch(themeManager.themeColor){
+          OlpakaThemeColor.olpaka => const Color(0xFFF21368),
+          OlpakaThemeColor.red => Colors.red,
+          OlpakaThemeColor.purple => Colors.purple,
+          OlpakaThemeColor.blue => Colors.blue,
+          OlpakaThemeColor.orange => Colors.orange,
+          OlpakaThemeColor.green => Colors.green,
+          OlpakaThemeColor.grey => Colors.grey,
+        };
+        return MaterialApp.router(
+          title: S.current.app_name,
+          themeMode: themeMode,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: color,
+              brightness: Brightness.light,
+            ),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: color,
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+          ),
+          routerConfig: router,
+        );
+      },
     );
   }
 }

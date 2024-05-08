@@ -1,17 +1,17 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:olpaka/ollama/model.dart';
 import 'package:olpaka/ollama/repository.dart';
 
-class ModelManager{
+class ModelManager with ChangeNotifier{
 
   final OllamaRepository _ollama;
 
-  StreamController<List<ModelDomain>> models = StreamController.broadcast();
-
   List<ModelDomain> cachedModels = List.empty(growable: true);
   List<ModelDomain> downloadingModels = List.empty(growable: true);
+  List<ModelDomain> get allModels => cachedModels + downloadingModels;
 
   ModelManager(this._ollama);
 
@@ -21,7 +21,7 @@ class ModelManager{
       case ListModelsResultSuccess():
         final ollamaModels = response.models.map((e) => _toDomain(e, true)).toList();
         cachedModels = ollamaModels;
-        _broadcastUpdate();
+        notifyListeners();
       case ListModelResultConnectionError():
       case ListModelResultError():
     }
@@ -31,7 +31,7 @@ class ModelManager{
   Future<DownloadModelResponse> download(String modelName) async {
     final downloadingModel = ModelDomain(name: modelName, fullName: modelName, isDownloaded: false);
     downloadingModels.add(downloadingModel);
-    _broadcastUpdate();
+    notifyListeners();
     final response = await _ollama.downloadModel(modelName);
     downloadingModels.remove(downloadingModel);
     await refresh();
@@ -42,10 +42,6 @@ class ModelManager{
     final response = await _ollama.removeModel(modelName);
     await refresh();
     return response;
-  }
-
-  _broadcastUpdate() {
-    models.add(cachedModels + downloadingModels);
   }
 
   ModelDomain _toDomain(Model model, isDownloaded) {

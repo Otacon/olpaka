@@ -4,6 +4,7 @@ import 'package:olpaka/chat/view.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/home/view_model.dart';
 import 'package:olpaka/models/view.dart';
+import 'package:olpaka/settings/view.dart';
 import 'package:stacked/stacked.dart';
 
 class HomeView extends StatelessWidget {
@@ -25,6 +26,7 @@ class HomeView extends StatelessWidget {
         final content = switch(viewModel.selectedItem){
           0 => const ChatScreen(),
           1 => ModelsScreen(),
+          2 => const SettingsScreen(),
           int() => throw UnimplementedError(),
         };
         return Row(
@@ -44,6 +46,11 @@ class HomeView extends StatelessWidget {
                     icon: const Icon(Icons.auto_awesome_outlined),
                     selectedIcon: const Icon(Icons.auto_awesome),
                     label: Text(S.current.home_tab_name_models),
+                  ),
+                  NavigationRailDestination(
+                    icon: const Icon(Icons.settings_outlined),
+                    selectedIcon: const Icon(Icons.settings),
+                    label: Text(S.current.home_tab_name_settings),
                   ),
                 ],
               ),
