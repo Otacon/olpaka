@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:core';
 
-import 'package:olpaka/app/http_client.dart';
-import 'package:olpaka/app/logger.dart';
-import 'package:olpaka/ollama/model.dart';
+import 'package:olpaka/core/http_client.dart';
+import 'package:olpaka/core/logger.dart';
+
+import 'model.dart';
 
 class OllamaRepository {
   final HttpClient _client;

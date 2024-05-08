@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:olpaka/chat/view_model.dart';
+import 'package:olpaka/feature/chat/view_model.dart';
 
 registerChat() {
   final l = GetIt.instance;

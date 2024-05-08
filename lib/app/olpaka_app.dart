@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:olpaka/app/router.dart';
+import 'package:olpaka/core/router.dart';
+import 'package:olpaka/core/state/theme_manager.dart';
 import 'package:olpaka/generated/l10n.dart';
-import 'package:olpaka/settings/ThemeManager.dart';
-import 'package:olpaka/settings/view_model.dart';
 import 'package:stacked/stacked.dart';
 
 class OlpakaApp extends StatelessWidget {

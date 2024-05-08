@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:olpaka/chat/view.dart';
+import 'package:olpaka/feature/chat/view.dart';
+import 'package:olpaka/feature/home/view_model.dart';
+import 'package:olpaka/feature/models/view.dart';
+import 'package:olpaka/feature/settings/view.dart';
 import 'package:olpaka/generated/l10n.dart';
-import 'package:olpaka/home/view_model.dart';
-import 'package:olpaka/models/view.dart';
-import 'package:olpaka/settings/view.dart';
 import 'package:stacked/stacked.dart';
 
 class HomeView extends StatelessWidget {

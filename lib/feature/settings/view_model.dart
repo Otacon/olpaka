@@ -1,4 +1,4 @@
-import 'package:olpaka/settings/ThemeManager.dart';
+import 'package:olpaka/core/state/theme_manager.dart';
 import 'package:stacked/stacked.dart';
 
 class SettingsViewModel extends BaseViewModel {
@@ -34,7 +34,3 @@ class SettingsState {
     this.themeColor = OlpakaThemeColor.olpaka,
   ]);
 }
-
-enum OlpakaThemeMode { system, dark, light }
-
-enum OlpakaThemeColor { olpaka, blue, green, orange, red, purple, grey }

@@ -1,4 +1,4 @@
-import 'package:olpaka/settings/view_model.dart';
+import 'package:olpaka/core/state/theme_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class Preferences {
