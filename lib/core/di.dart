@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:olpaka/core/http_client.dart';
-import 'package:olpaka/core/state/model_manager.dart';
+import 'package:olpaka/core/state/model_state_holder.dart';
 import 'package:olpaka/core/state/theme_manager.dart';
 import 'package:olpaka/feature/chat/di.dart';
 import 'package:olpaka/feature/home/di.dart';
@@ -19,7 +19,7 @@ void registerModules() {
   final l = GetIt.instance;
   l.registerSingletonAsync<Preferences>(
       () async => PreferenceDefault(await SharedPreferences.getInstance()));
-  l.registerLazySingleton(() => ThemeManager(l.get()));
+  l.registerLazySingleton(() => ThemeStateHolder(l.get()));
   l.registerFactory(() => S.current);
 
   l.registerFactory(() {
@@ -39,7 +39,7 @@ void registerModules() {
   });
   l.registerFactory(() => HttpClient(l.get()));
   l.registerFactory(() => OllamaRepository(l.get()));
-  l.registerLazySingleton(() => ModelManager(l.get()));
+  l.registerLazySingleton(() => ModelStateHolder(l.get()));
   registerOnboarding();
   registerHome();
   registerChat();

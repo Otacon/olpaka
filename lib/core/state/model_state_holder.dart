@@ -5,21 +5,21 @@ import 'package:flutter/foundation.dart';
 import 'package:olpaka/core/ollama/model.dart';
 import 'package:olpaka/core/ollama/repository.dart';
 
-class ModelManager with ChangeNotifier{
+class ModelStateHolder with ChangeNotifier{
 
   final OllamaRepository _ollama;
 
-  List<ModelDomain> cachedModels = List.empty(growable: true);
-  List<ModelDomain> downloadingModels = List.empty(growable: true);
-  List<ModelDomain> get allModels => cachedModels + downloadingModels;
+  Set<ModelDomain> cachedModels = <ModelDomain>{};
+  Set<ModelDomain> downloadingModels = <ModelDomain>{};
+  Set<ModelDomain> get allModels => (cachedModels.toList() + downloadingModels.toList()).toSet();
 
-  ModelManager(this._ollama);
+  ModelStateHolder(this._ollama);
 
   Future<ListModelsResult> refresh() async {
     final response = await _ollama.listModels();
     switch(response){
       case ListModelsResultSuccess():
-        final ollamaModels = response.models.map((e) => _toDomain(e, true)).toList();
+        final ollamaModels = response.models.map((e) => _toDomain(e, true)).toSet();
         cachedModels = ollamaModels;
         notifyListeners();
       case ListModelResultConnectionError():

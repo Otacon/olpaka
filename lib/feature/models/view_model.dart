@@ -3,12 +3,12 @@ import 'dart:math';
 
 import 'package:intl/intl.dart';
 import 'package:olpaka/core/ollama/repository.dart';
-import 'package:olpaka/core/state/model_manager.dart';
+import 'package:olpaka/core/state/model_state_holder.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
 
 class ModelsViewModel extends BaseViewModel {
-  final ModelManager _modelManager;
+  final ModelStateHolder _modelManager;
 
   ModelsState state = ModelsStateLoading();
   final _events = StreamController<ModelsEvent>.broadcast();

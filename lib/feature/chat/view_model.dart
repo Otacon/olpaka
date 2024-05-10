@@ -1,12 +1,13 @@
 import 'dart:async';
 
+import 'package:olpaka/core/ollama/model.dart';
 import 'package:olpaka/core/ollama/repository.dart';
-import 'package:olpaka/core/state/model_manager.dart';
+import 'package:olpaka/core/state/model_state_holder.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
 
 class ChatViewModel extends BaseViewModel {
-  final ModelManager _modelManager;
+  final ModelStateHolder _modelManager;
   final OllamaRepository _repository;
   final S _s;
 
@@ -31,7 +32,7 @@ class ChatViewModel extends BaseViewModel {
     await _load();
   }
 
-  onModelChanged(String? model) async {
+  onModelChanged(ChatModel? model) async {
     if (model == null) {
       return;
     }
@@ -45,6 +46,10 @@ class ChatViewModel extends BaseViewModel {
   }
 
   onSendMessage(String message) async {
+    final selectedModel = state.selectedModel;
+    if(selectedModel == null){
+      return;
+    }
     final newMessages = List<ChatMessage>.from(state.messages, growable: true);
     newMessages.add(ChatMessage(isUser: true, message: message));
     var assistantMessage = ChatMessage(isUser: false, isLoading: true);
@@ -56,7 +61,7 @@ class ChatViewModel extends BaseViewModel {
       messages: newMessages,
     );
     notifyListeners();
-    final result = await _repository.generate(state.selectedModel!, message);
+    final result = await _repository.generate(selectedModel.id, message);
     newMessages.remove(assistantMessage);
     switch (result) {
       case GenerateResultSuccess():
@@ -83,11 +88,12 @@ class ChatViewModel extends BaseViewModel {
   }
 
   _load() async {
-    final response = await _repository.listModels();
+    //TODO tweak this part.
+    final response = await _modelManager.refresh();
     switch (response) {
       case ListModelsResultSuccess():
-        final modelNames = response.models.map((model) => model.name).toList();
-        if (modelNames.isEmpty) {
+        final models = response.models.map(_modelToChatModel).toList();
+        if (models.isEmpty) {
           _events.add(
             ModelNotFound(
               _s.chat_missing_model_dialog_title,
@@ -96,11 +102,11 @@ class ChatViewModel extends BaseViewModel {
             ),
           );
         }
-        final selectedModel = modelNames.firstOrNull;
+        final selectedModel = models.firstOrNull;
         state = ChatState(
           isLoading: false,
           selectedModel: selectedModel,
-          models: modelNames,
+          models: models,
           messages: List.empty(),
         );
         _modelManager.addListener(_onModelsChanged);
@@ -136,13 +142,23 @@ class ChatViewModel extends BaseViewModel {
   }
 
   _onModelsChanged(){
-    final modelNames = _modelManager.cachedModels.map((model) => model.name).toList();
+    final uiModels = _modelManager.cachedModels.map(_domainToChatModel).toList();
     state = ChatState(
       isLoading: state.isLoading,
       selectedModel: state.selectedModel,
-      models: modelNames,
+      models: uiModels,
       messages: state.messages,
     );
+    notifyListeners();
+  }
+
+  ChatModel _domainToChatModel(ModelDomain model){
+    return ChatModel(model.fullName, model.name);
+  }
+
+  ChatModel _modelToChatModel(Model model){
+    // TODO map to domain in the layer below.
+    return ChatModel(model.model, model.name);
   }
 
   @override
@@ -154,8 +170,8 @@ class ChatViewModel extends BaseViewModel {
 
 class ChatState {
   final bool isLoading;
-  final String? selectedModel;
-  final List<String> models;
+  final ChatModel? selectedModel;
+  final List<ChatModel> models;
   final List<ChatMessage> messages;
 
   ChatState({
@@ -176,6 +192,24 @@ class ChatMessage {
     this.message = "",
     this.isLoading = false,
   });
+}
+
+class ChatModel{
+  final String id;
+  final String name;
+
+  ChatModel(this.id, this.name);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChatModel &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name;
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode;
 }
 
 sealed class ChatEvent {}

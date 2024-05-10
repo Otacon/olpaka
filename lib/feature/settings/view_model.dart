@@ -4,7 +4,7 @@ import 'package:stacked/stacked.dart';
 class SettingsViewModel extends BaseViewModel {
 
   SettingsState state = SettingsState();
-  final ThemeManager themeManager;
+  final ThemeStateHolder themeManager;
 
   SettingsViewModel(this.themeManager);
 
