@@ -3,5 +3,5 @@ import 'package:olpaka/feature/home/view_model.dart';
 
 registerHome(){
   final l = GetIt.instance;
-  l.registerFactory(() => HomeViewModel());
+  l.registerFactory(() => HomeViewModel(l.get()));
 }

@@ -48,8 +48,8 @@ class ModelsViewModel extends BaseViewModel {
     }
   }
 
-  removeModel(String model) async {
-    final result = await _modelManager.delete(model);
+  removeModel(ModelItem model) async {
+    final result = await _modelManager.delete(model.id);
     switch(result){
       case RemoveModelResponseConnectionError():
       case RemoveModelResponseError():
@@ -79,7 +79,7 @@ class ModelsViewModel extends BaseViewModel {
       subtitle = S.current.models_state_download;
     }
     return ModelItem(
-      id: model.name,
+      id: model.fullName,
       title: "${model.name} (${model.fullName})",
       subtitle: subtitle,
       isLoading: !model.isDownloaded,
