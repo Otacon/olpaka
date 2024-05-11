@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
-import 'package:olpaka/core/http_client.dart';
+import 'package:olpaka/core/http_client/http_client.dart';
 import 'package:olpaka/core/logger.dart';
 
 import 'model.dart';
@@ -45,7 +45,7 @@ class OllamaRepository {
   }
 
   Future<DownloadModelResponse> downloadModel(String model) async {
-    logger.i("adding model $model");
+    logger.i("Adding model $model");
     final response =
         await _client.post("/pull", data: {"name": model, "stream": false});
     switch (response) {
@@ -82,7 +82,7 @@ class OllamaRepository {
 
   Stream<GenerateStreamingResult> generateStream(String model, String prompt) async* {
     logger.i("Generating answer...");
-    yield* _client.postStreaming2(
+    yield* _client.postStreaming(
       "/generate",
       data: {
         "model": model,

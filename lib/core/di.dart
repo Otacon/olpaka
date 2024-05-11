@@ -1,6 +1,9 @@
-import 'package:dio/dio.dart';
+import 'package:fetch_client/fetch_client.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
-import 'package:olpaka/core/http_client.dart';
+import 'package:http/http.dart';
+import 'package:olpaka/core/http_client/http_client.dart';
+import 'package:olpaka/core/http_client/url_provider.dart';
 import 'package:olpaka/core/state/di.dart';
 import 'package:olpaka/feature/chat/di.dart';
 import 'package:olpaka/feature/home/di.dart';
@@ -9,7 +12,6 @@ import 'package:olpaka/feature/onboarding/di.dart';
 import 'package:olpaka/feature/settings/di.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/core/preferences.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ollama/repository.dart';
@@ -23,22 +25,16 @@ void registerModules() {
 
   registerStateHolders();
 
+  l.registerLazySingleton(() => UrlProvider());
   l.registerFactory(() {
-    final client = Dio();
-    client.options.baseUrl = "http://localhost:11434/api";
-    client.interceptors.add(
-      PrettyDioLogger(
-          requestHeader: true,
-          requestBody: true,
-          responseBody: true,
-          responseHeader: true,
-          error: true,
-          compact: true,
-          maxWidth: 90),
-    );
-    return client;
+    if(kIsWeb){
+      return FetchClient(mode: RequestMode.cors);
+    } else {
+      return Client();
+    }
+
   });
-  l.registerFactory(() => HttpClient(l.get()));
+  l.registerFactory(() => HttpClient(l.get(), l.get()));
   l.registerFactory(() => OllamaRepository(l.get()));
   registerOnboarding();
   registerHome();
