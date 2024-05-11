@@ -140,7 +140,7 @@ class _Content extends StatelessWidget {
   });
 
   final List<ModelItem> models;
-  final Function(String) onRemoveModel;
+  final Function(ModelItem) onRemoveModel;
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +163,7 @@ class _Content extends StatelessWidget {
               } else {
                 leading = const Icon(Icons.download_done);
                 trailing = IconButton(
-                  onPressed: () => onRemoveModel(model.id),
+                  onPressed: () => onRemoveModel(model),
                   icon: const Icon(Icons.delete),
                 );
               }

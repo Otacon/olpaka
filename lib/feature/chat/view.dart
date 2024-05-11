@@ -103,11 +103,11 @@ class _Content extends StatelessWidget {
   });
 
   final List<ChatMessage> messages;
-  final List<String> models;
-  final String? selectedModel;
+  final List<ChatModel> models;
+  final ChatModel? selectedModel;
   final bool isEnabled;
   final Function(String) onSendMessage;
-  final Function(String?) onModelSelected;
+  final Function(ChatModel?) onModelSelected;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -164,7 +164,7 @@ class _Content extends StatelessWidget {
                 }
               }),
         ),
-        _BottomBar(
+        _MessageInputBar(
           isEnabled: isEnabled,
           onSendMessage: onSendMessage,
           onModelSelected: onModelSelected,
@@ -263,8 +263,8 @@ class _AssistantMessage extends StatelessWidget {
   }
 }
 
-class _BottomBar extends StatelessWidget {
-  _BottomBar({
+class _MessageInputBar extends StatelessWidget {
+  _MessageInputBar({
     required this.isEnabled,
     required this.onSendMessage,
     required this.onModelSelected,
@@ -274,16 +274,16 @@ class _BottomBar extends StatelessWidget {
 
   final bool isEnabled;
   final Function(String) onSendMessage;
-  final Function(String?) onModelSelected;
-  final String? selectedModel;
-  final List<String> models;
+  final Function(ChatModel?) onModelSelected;
+  final ChatModel? selectedModel;
+  final List<ChatModel> models;
 
   final TextEditingController _controller = TextEditingController();
   final _focusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
-    final Function(String?)? dropdownCallback;
+    final Function(ChatModel?)? dropdownCallback;
     if (isEnabled) {
       _focusNode.requestFocus();
       dropdownCallback = onModelSelected;
@@ -312,12 +312,12 @@ class _BottomBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16.0),
-          DropdownButton<String>(
+          DropdownButton<ChatModel>(
             hint: Text(S.current.chat_model_dropdown_hint),
             onChanged: dropdownCallback,
             value: selectedModel,
             items: models
-                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
                 .toList(),
           ),
         ],

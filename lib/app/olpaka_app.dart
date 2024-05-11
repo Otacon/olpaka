@@ -11,7 +11,7 @@ class OlpakaApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ThemeManager>.reactive(
+    return ViewModelBuilder<ThemeStateHolder>.reactive(
       viewModelBuilder: () => GetIt.I.get(),
       builder: (context, themeManager, child) {
         final themeMode = switch(themeManager.themeMode){

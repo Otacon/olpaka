@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
-
 import 'package:olpaka/core/http_client.dart';
 import 'package:olpaka/core/logger.dart';
 
@@ -80,6 +80,32 @@ class OllamaRepository {
     }
   }
 
+  Stream<GenerateStreamingResult> generateStream(String model, String prompt) async* {
+    logger.i("Generating answer...");
+    yield* _client.postStreaming2(
+      "/generate",
+      data: {
+        "model": model,
+        "prompt": prompt,
+        "stream": true,
+      },
+    ).transform(StreamTransformer.fromHandlers(
+      handleData: (data, sink) {
+        sink.add(_mapSomething(data));
+      }
+    ));
+  }
+
+  GenerateStreamingResult _mapSomething(String data) {
+    final payload = jsonDecode(data);
+    if(payload["done"]){
+      final contextInts = List<int>.from(payload["context"]);
+      return GenerateStreamingResultComplete(contextInts);
+    } else {
+      return GenerateStreamingResultChunk(payload["response"]);
+    }
+  }
+
   Model _parseModel(dynamic json) {
     return Model(
       name: json["name"].split(':')[0],
@@ -115,6 +141,20 @@ class GenerateResultSuccess extends GenerateResult {
   final String answer;
 
   GenerateResultSuccess(this.answer);
+}
+
+sealed class GenerateStreamingResult{}
+
+class GenerateStreamingResultChunk extends GenerateStreamingResult{
+  final String chunk;
+
+  GenerateStreamingResultChunk(this.chunk);
+}
+
+class GenerateStreamingResultComplete extends GenerateStreamingResult{
+  final List<int> context;
+
+  GenerateStreamingResultComplete(this.context);
 }
 
 class GenerateResultError extends GenerateResult {}

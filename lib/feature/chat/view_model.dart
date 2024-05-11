@@ -1,16 +1,18 @@
 import 'dart:async';
 
+import 'package:olpaka/core/ollama/model.dart';
 import 'package:olpaka/core/ollama/repository.dart';
-import 'package:olpaka/core/state/model_manager.dart';
+import 'package:olpaka/core/state/chat_state_holder.dart';
+import 'package:olpaka/core/state/model_state_holder.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
 
 class ChatViewModel extends BaseViewModel {
-  final ModelManager _modelManager;
-  final OllamaRepository _repository;
+  final ModelStateHolder _modelsState;
+  final ChatStateHolder _chatState;
   final S _s;
 
-  ChatViewModel(this._repository, this._modelManager, this._s, );
+  ChatViewModel(this._modelsState, this._chatState, this._s);
 
   ChatState state = ChatState(
     isLoading: true,
@@ -31,7 +33,7 @@ class ChatViewModel extends BaseViewModel {
     await _load();
   }
 
-  onModelChanged(String? model) async {
+  onModelChanged(ChatModel? model) async {
     if (model == null) {
       return;
     }
@@ -45,49 +47,36 @@ class ChatViewModel extends BaseViewModel {
   }
 
   onSendMessage(String message) async {
-    final newMessages = List<ChatMessage>.from(state.messages, growable: true);
-    newMessages.add(ChatMessage(isUser: true, message: message));
-    var assistantMessage = ChatMessage(isUser: false, isLoading: true);
-    newMessages.add(assistantMessage);
+    final selectedModel = state.selectedModel;
+    if (selectedModel == null) {
+      return;
+    }
     state = ChatState(
       isLoading: true,
       selectedModel: state.selectedModel,
       models: state.models,
-      messages: newMessages,
+      messages: state.messages,
     );
     notifyListeners();
-    final result = await _repository.generate(state.selectedModel!, message);
-    newMessages.remove(assistantMessage);
-    switch (result) {
-      case GenerateResultSuccess():
-        newMessages.add(ChatMessage(
-          isUser: false,
-          message: result.answer,
-          isLoading: false,
-        ));
-      case GenerateResultError():
-        _events.add(
-          GenericError(
-            _s.error_generic_title,
-            _s.error_generic_message,
-          ),
-        );
-    }
+    final result = _chatState.sendMessageStreaming(message, selectedModel.id);
+    //TODO handle result
     state = ChatState(
       isLoading: false,
       selectedModel: state.selectedModel,
       models: state.models,
-      messages: newMessages,
+      messages: state.messages,
     );
     notifyListeners();
   }
 
   _load() async {
-    final response = await _repository.listModels();
+    //TODO tweak this part.
+    final response = await _modelsState.refresh();
+    final messages = _chatState.messages.map(_domainToChatMessage).toList();
     switch (response) {
       case ListModelsResultSuccess():
-        final modelNames = response.models.map((model) => model.name).toList();
-        if (modelNames.isEmpty) {
+        final models = response.models.map(_modelToChatModel).toList();
+        if (models.isEmpty) {
           _events.add(
             ModelNotFound(
               _s.chat_missing_model_dialog_title,
@@ -96,20 +85,21 @@ class ChatViewModel extends BaseViewModel {
             ),
           );
         }
-        final selectedModel = modelNames.firstOrNull;
+        final selectedModel = models.firstOrNull;
         state = ChatState(
           isLoading: false,
           selectedModel: selectedModel,
-          models: modelNames,
-          messages: List.empty(),
+          models: models,
+          messages: messages,
         );
-        _modelManager.addListener(_onModelsChanged);
+        _modelsState.addListener(_onModelsChanged);
+        _chatState.addListener(_onChatChanged);
       case ListModelResultConnectionError():
         state = ChatState(
           isLoading: false,
           selectedModel: state.selectedModel,
           models: state.models,
-          messages: List.empty(),
+          messages: messages,
         );
         _events.add(
           OllamaNotFound(
@@ -123,7 +113,7 @@ class ChatViewModel extends BaseViewModel {
           isLoading: false,
           selectedModel: state.selectedModel,
           models: state.models,
-          messages: List.empty(),
+          messages: messages,
         );
         _events.add(
           GenericError(
@@ -135,27 +125,64 @@ class ChatViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  _onModelsChanged(){
-    final modelNames = _modelManager.cachedModels.map((model) => model.name).toList();
+  _onModelsChanged() {
+    final uiModels = _modelsState.cachedModels.map(_domainToChatModel).toList();
     state = ChatState(
       isLoading: state.isLoading,
       selectedModel: state.selectedModel,
-      models: modelNames,
+      models: uiModels,
       messages: state.messages,
     );
+    notifyListeners();
+  }
+
+  _onChatChanged() {
+    final messages = _chatState.messages.map(_domainToChatMessage).toList();
+    state = ChatState(
+      isLoading: state.isLoading,
+      selectedModel: state.selectedModel,
+      models: state.models,
+      messages: messages,
+    );
+    notifyListeners();
+  }
+
+  ChatModel _domainToChatModel(ModelDomain model) {
+    return ChatModel(model.fullName, model.name);
+  }
+
+  ChatModel _modelToChatModel(Model model) {
+    // TODO map to domain in the layer below.
+    return ChatModel(model.model, model.name);
+  }
+
+  ChatMessage _domainToChatMessage(ChatMessageDomain message) {
+    final ChatMessage chatMessage;
+    switch (message) {
+      case ChatMessageUserDomain():
+        chatMessage = ChatMessage(
+            isUser: true, message: message.message, isLoading: false);
+      case ChatMessageAssistantDomain():
+        chatMessage = ChatMessage(
+            isUser: false,
+            message: message.message,
+            isLoading: message.isFinalised);
+    }
+    return chatMessage;
   }
 
   @override
   void dispose() {
     super.dispose();
-    _modelManager.removeListener(_onModelsChanged);
+    _modelsState.removeListener(_onModelsChanged);
+    _chatState.removeListener(_onChatChanged);
   }
 }
 
 class ChatState {
   final bool isLoading;
-  final String? selectedModel;
-  final List<String> models;
+  final ChatModel? selectedModel;
+  final List<ChatModel> models;
   final List<ChatMessage> messages;
 
   ChatState({
@@ -176,6 +203,24 @@ class ChatMessage {
     this.message = "",
     this.isLoading = false,
   });
+}
+
+class ChatModel {
+  final String id;
+  final String name;
+
+  ChatModel(this.id, this.name);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChatModel &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name;
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode;
 }
 
 sealed class ChatEvent {}

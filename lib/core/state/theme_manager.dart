@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:olpaka/core/preferences.dart';
 
-class ThemeManager with ChangeNotifier {
+class ThemeStateHolder with ChangeNotifier {
   final Preferences _preferences;
 
-  ThemeManager(this._preferences);
+  ThemeStateHolder(this._preferences);
 
   OlpakaThemeMode get themeMode => _preferences.getThemeMode();
 

@@ -3,12 +3,12 @@ import 'dart:math';
 
 import 'package:intl/intl.dart';
 import 'package:olpaka/core/ollama/repository.dart';
-import 'package:olpaka/core/state/model_manager.dart';
+import 'package:olpaka/core/state/model_state_holder.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
 
 class ModelsViewModel extends BaseViewModel {
-  final ModelManager _modelManager;
+  final ModelStateHolder _modelManager;
 
   ModelsState state = ModelsStateLoading();
   final _events = StreamController<ModelsEvent>.broadcast();
@@ -48,8 +48,8 @@ class ModelsViewModel extends BaseViewModel {
     }
   }
 
-  removeModel(String model) async {
-    final result = await _modelManager.delete(model);
+  removeModel(ModelItem model) async {
+    final result = await _modelManager.delete(model.id);
     switch(result){
       case RemoveModelResponseConnectionError():
       case RemoveModelResponseError():
@@ -79,7 +79,7 @@ class ModelsViewModel extends BaseViewModel {
       subtitle = S.current.models_state_download;
     }
     return ModelItem(
-      id: model.name,
+      id: model.fullName,
       title: "${model.name} (${model.fullName})",
       subtitle: subtitle,
       isLoading: !model.isDownloaded,
