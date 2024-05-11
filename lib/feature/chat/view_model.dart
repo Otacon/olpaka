@@ -58,7 +58,7 @@ class ChatViewModel extends BaseViewModel {
       messages: state.messages,
     );
     notifyListeners();
-    final result = await _chatState.sendMessage(message, selectedModel.id);
+    final result = _chatState.sendMessageStreaming(message, selectedModel.id);
     //TODO handle result
     state = ChatState(
       isLoading: false,

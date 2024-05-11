@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:fetch_client/fetch_client.dart';
+import 'package:http/http.dart' as Http;
 
 class HttpClient {
   final Dio _client;
@@ -11,30 +15,65 @@ class HttpClient {
     Response<String> response;
     try {
       response = await _client.post(endpoint, data: data);
+      return _handleResponse(response);
     } on DioException catch (e) {
       return _handleException(e);
     }
-    return _handleResponse(response);
+  }
+
+  Stream<String> postStreaming(String endpoint,
+      {required Object? data}) async* {
+    StreamTransformer<Uint8List, List<int>> unit8Transformer =
+        StreamTransformer.fromHandlers(
+      handleData: (data, sink) {
+        sink.add(List<int>.from(data));
+      },
+    );
+    try {
+      final response = await _client.post<ResponseBody>(
+        endpoint,
+        data: data,
+        options: Options(
+          responseType: ResponseType.stream,
+        ),
+      );
+      response.data?.stream
+          .transform(unit8Transformer)
+          .transform(const Utf8Decoder())
+          .transform(const LineSplitter())
+          .listen((event) {print("Received $event at ${DateTime.now().millisecond}");});
+    } on DioException catch (e) {
+      print(e.stackTrace);
+    }
+  }
+
+  Stream<String> postStreaming2(String endpoint, {required Object? data}) async* {
+    final client = FetchClient(mode: RequestMode.cors);
+    final uri = Uri.http("localhost:11434", "/api/generate");
+    final request = Http.Request("POST", uri);
+    request.body = json.encode(data);
+    final response = await client.send(request);
+    yield* response.stream
+        .transform(const Utf8Decoder())
+        .transform(const LineSplitter());
   }
 
   Future<HttpResponse> delete(String endpoint, {required Object? data}) async {
-    Response<String> response;
     try {
-      response = await _client.delete(endpoint, data: data);
+      Response<String> response = await _client.delete(endpoint, data: data);
+      return _handleResponse(response);
     } on DioException catch (e) {
       return _handleException(e);
     }
-    return _handleResponse(response);
   }
 
   Future<HttpResponse> get(String endpoint) async {
-    Response<String> response;
     try {
-      response = await _client.get(endpoint);
+      Response<String> response = await _client.get(endpoint);
+      return _handleResponse(response);
     } on DioException catch (e) {
       return _handleException(e);
     }
-    return _handleResponse(response);
   }
 
   HttpResponse _handleResponse(Response<String> response) {
@@ -83,6 +122,4 @@ class HttpResponseError extends HttpResponse {
   final String? message;
 
   HttpResponseError(this.code, this.message);
-
 }
-
