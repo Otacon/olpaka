@@ -19,16 +19,7 @@ class ModelsViewModel extends BaseViewModel {
 
   onCreate() async {
     _modelManager.addListener(_onModelsChanged);
-    final result = await _modelManager.refresh();
-    switch (result) {
-      case ListModelResultConnectionError():
-      case ListModelResultError():
-        _events.add(ModelsEventShowError(
-          title: S.current.models_dialog_load_models_error_title,
-          message: S.current.models_dialog_load_models_error_message,
-        ));
-      case ListModelsResultSuccess():
-    }
+    await _loadData();
   }
 
   onAddModelClicked() {
@@ -58,6 +49,23 @@ class ModelsViewModel extends BaseViewModel {
         message: S.current.models_dialog_remove_model_error_message,
       ));
       case RemoveModelResponseSuccess():
+    }
+  }
+
+  onRefreshClicked() async {
+    await _loadData();
+  }
+
+  _loadData() async {
+    final result = await _modelManager.refresh();
+    switch (result) {
+      case ListModelResultConnectionError():
+      case ListModelResultError():
+        _events.add(ModelsEventShowError(
+          title: S.current.models_dialog_load_models_error_title,
+          message: S.current.models_dialog_load_models_error_message,
+        ));
+      case ListModelsResultSuccess():
     }
   }
 

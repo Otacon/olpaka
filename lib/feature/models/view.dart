@@ -45,6 +45,12 @@ class ModelsScreen extends StatelessWidget {
             elevation: 4,
             shadowColor: Theme.of(context).shadowColor,
             centerTitle: true,
+            actions: [
+              IconButton(
+                onPressed: viewModel.onRefreshClicked,
+                icon: const Icon(Icons.refresh),
+              ),
+            ],
             title: Text(
               S.current.models_title,
               style: Theme.of(context).textTheme.headlineMedium,
@@ -155,10 +161,7 @@ class _Content extends StatelessWidget {
               final Widget? trailing;
               if (model.isLoading) {
                 leading = const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator()
-                );
+                    width: 24, height: 24, child: CircularProgressIndicator());
                 trailing = null;
               } else {
                 leading = const Icon(Icons.download_done);
