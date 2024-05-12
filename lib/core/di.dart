@@ -2,6 +2,7 @@ import 'package:fetch_client/fetch_client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
+import 'package:olpaka/app/di.dart';
 import 'package:olpaka/core/http_client/http_client.dart';
 import 'package:olpaka/core/http_client/url_provider.dart';
 import 'package:olpaka/core/state/di.dart';
@@ -36,6 +37,7 @@ void registerModules() {
   });
   l.registerFactory(() => HttpClient(l.get(), l.get()));
   l.registerFactory(() => OllamaRepository(l.get()));
+  registerApp();
   registerOnboarding();
   registerHome();
   registerChat();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:olpaka/core/state/theme_manager.dart';
+import 'package:olpaka/core/state/theme/theme_domain.dart';
 import 'package:olpaka/feature/settings/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
@@ -60,34 +60,36 @@ class SettingsScreen extends StatelessWidget {
     required OlpakaThemeMode themeMode,
     required Function(OlpakaThemeMode) onThemeModeChanged,
   }) {
-    return Row(
-      children: [
-        Text(S.current.settings_theme_mode),
-        const Spacer(),
-        SegmentedButton<OlpakaThemeMode>(
-            segments: <ButtonSegment<OlpakaThemeMode>>[
-              ButtonSegment<OlpakaThemeMode>(
-                value: OlpakaThemeMode.system,
-                label: Text(S.current.settings_theme_mode_system),
-                icon: const Icon(Icons.brightness_auto),
-              ),
-              ButtonSegment<OlpakaThemeMode>(
-                value: OlpakaThemeMode.dark,
-                label: Text(S.current.settings_theme_mode_dark),
-                icon: const Icon(Icons.dark_mode),
-              ),
-              ButtonSegment<OlpakaThemeMode>(
-                value: OlpakaThemeMode.light,
-                label: Text(S.current.settings_theme_mode_light),
-                icon: const Icon(Icons.light_mode),
-              )
-            ],
-            selected: <OlpakaThemeMode>{
-              themeMode
-            },
-            onSelectionChanged: (selection) =>
-                onThemeModeChanged(selection.first))
-      ],
+    return Flexible(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(S.current.settings_theme_mode),
+          SegmentedButton<OlpakaThemeMode>(
+              segments: <ButtonSegment<OlpakaThemeMode>>[
+                ButtonSegment<OlpakaThemeMode>(
+                  value: OlpakaThemeMode.system,
+                  label: Text(S.current.settings_theme_mode_system),
+                  icon: const Icon(Icons.brightness_auto),
+                ),
+                ButtonSegment<OlpakaThemeMode>(
+                  value: OlpakaThemeMode.dark,
+                  label: Text(S.current.settings_theme_mode_dark),
+                  icon: const Icon(Icons.dark_mode),
+                ),
+                ButtonSegment<OlpakaThemeMode>(
+                  value: OlpakaThemeMode.light,
+                  label: Text(S.current.settings_theme_mode_light),
+                  icon: const Icon(Icons.light_mode),
+                )
+              ],
+              selected: <OlpakaThemeMode>{
+                themeMode
+              },
+              onSelectionChanged: (selection) =>
+                  onThemeModeChanged(selection.first))
+        ],
+      ),
     );
   }
 

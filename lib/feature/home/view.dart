@@ -37,8 +37,10 @@ class HomeView extends StatelessWidget {
         }
 
         return Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             NavigationRail(
+              useIndicator: true,
               groupAlignment: 0.0,
               selectedIndex: selectedIndex,
               labelType: NavigationRailLabelType.all,

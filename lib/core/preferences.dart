@@ -1,13 +1,11 @@
-import 'package:olpaka/core/state/theme_manager.dart';
+import 'package:olpaka/core/state/theme/theme_domain.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class Preferences {
-  OlpakaThemeMode getThemeMode();
+  abstract final OlpakaThemeMode themeMode;
+  abstract final OlpakaThemeColor themeColor;
 
   Future<void> setThemeMode(OlpakaThemeMode mode);
-
-  OlpakaThemeColor getThemeColor();
-
   Future<void> setThemeColor(OlpakaThemeColor color);
 }
 
@@ -20,7 +18,7 @@ class PreferenceDefault extends Preferences {
   PreferenceDefault(this._sharedPreferences);
 
   @override
-  OlpakaThemeColor getThemeColor() {
+  OlpakaThemeColor get themeColor {
     final colorString = _sharedPreferences.getString(_keyThemeColor);
     return switch (colorString) {
       "olpaka" => OlpakaThemeColor.olpaka,
@@ -35,7 +33,7 @@ class PreferenceDefault extends Preferences {
   }
 
   @override
-  OlpakaThemeMode getThemeMode() {
+  OlpakaThemeMode get themeMode {
     final colorString = _sharedPreferences.getString(_keyThemeMode);
     return switch (colorString) {
       "system" => OlpakaThemeMode.system,

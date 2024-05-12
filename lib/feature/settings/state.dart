@@ -1,5 +1,4 @@
-
-import 'package:olpaka/core/state/theme_manager.dart';
+import 'package:olpaka/core/state/theme/theme_domain.dart';
 
 class SettingsState {
   final OlpakaThemeMode themeMode;
