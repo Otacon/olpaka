@@ -1,7 +1,7 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
-import 'package:olpaka/core/http_client.dart';
+
+import 'package:olpaka/core/http_client/http_client.dart';
 import 'package:olpaka/core/logger.dart';
 
 import 'model.dart';
@@ -44,66 +44,64 @@ class OllamaRepository {
     }
   }
 
-  Future<DownloadModelResponse> downloadModel(String model) async {
-    logger.i("adding model $model");
-    final response =
-        await _client.post("/pull", data: {"name": model, "stream": false});
+  Future<DownloadModelStreamingResult> downloadModel(String model) async {
+    final payload = {"name": model, "stream": true};
+    final response = await _client.postStreaming("/pull", data: payload);
     switch (response) {
-      case HttpResponseSuccess():
-        return DownloadModelResponseSuccess();
-      case HttpResponseConnectionError():
-        return DownloadModelResponseConnectionError();
-      case HttpResponseError():
-      case HttpResponseUnknownError():
-        return DownloadModelResponseError();
+      case HttpStreamingResponseSuccess():
+        final stream = response.chunks.map((chunk) {
+          final chunkJson = jsonDecode(chunk);
+          return DownloadChunk(
+            status: chunkJson["status"],
+            digest: chunkJson["digest"],
+            total: chunkJson["total"],
+            completed: chunkJson["completed"],
+          );
+        });
+        return DownloadModelStreamingResultSuccess(stream);
+      case HttpStreamingResponseError():
+        if (response.code == 404) {
+          return DownloadModelStreamingResultNotFound();
+        } else {
+          return DownloadModelStreamingResultConnectionError();
+        }
+      case HttpStreamingResponseConnectionError():
+      case HttpStreamingResponseUnknownError():
+        return DownloadModelStreamingResultConnectionError();
     }
   }
 
-  Future<GenerateResult> generate(String model, String prompt) async {
+  Future<GenerateStreamingResult> generate(String model, String prompt) async {
     logger.i("Generating answer...");
-    final response = await _client.post(
-      "/generate",
-      data: {
-        "model": model,
-        "prompt": prompt,
-        "stream": false,
-      },
-    );
+    final payload = {
+      "model": model,
+      "prompt": prompt,
+      "stream": true,
+    };
+    final response = await _client.postStreaming("/generate", data: payload);
     switch (response) {
-      case HttpResponseSuccess():
-        final json = jsonDecode(response.body);
-        return GenerateResultSuccess(json["response"]);
-      case HttpResponseError():
-      case HttpResponseConnectionError():
-      case HttpResponseUnknownError():
-        return GenerateResultError();
+      case HttpStreamingResponseSuccess():
+        final stream = response.chunks.map(_mapGenerateChunk);
+        return GenerateStreamingResultSuccess(stream);
+      case HttpStreamingResponseError():
+      case HttpStreamingResponseConnectionError():
+      case HttpStreamingResponseUnknownError():
+        return GenerateStreamingResultError();
     }
   }
 
-  Stream<GenerateStreamingResult> generateStream(String model, String prompt) async* {
-    logger.i("Generating answer...");
-    yield* _client.postStreaming2(
-      "/generate",
-      data: {
-        "model": model,
-        "prompt": prompt,
-        "stream": true,
-      },
-    ).transform(StreamTransformer.fromHandlers(
-      handleData: (data, sink) {
-        sink.add(_mapSomething(data));
-      }
-    ));
-  }
-
-  GenerateStreamingResult _mapSomething(String data) {
+  GenerateChunk _mapGenerateChunk(String data) {
     final payload = jsonDecode(data);
-    if(payload["done"]){
-      final contextInts = List<int>.from(payload["context"]);
-      return GenerateStreamingResultComplete(contextInts);
+    final contextJson = payload["context"];
+    final List<int>? context;
+    if (contextJson != null) {
+      context = List<int>.from(contextJson);
     } else {
-      return GenerateStreamingResultChunk(payload["response"]);
+      context = null;
     }
+    final String message = payload["response"];
+    final bool done = payload["done"];
+    return GenerateChunk(message, context, done);
   }
 
   Model _parseModel(dynamic json) {
@@ -143,21 +141,54 @@ class GenerateResultSuccess extends GenerateResult {
   GenerateResultSuccess(this.answer);
 }
 
-sealed class GenerateStreamingResult{}
-
-class GenerateStreamingResultChunk extends GenerateStreamingResult{
-  final String chunk;
-
-  GenerateStreamingResultChunk(this.chunk);
-}
-
-class GenerateStreamingResultComplete extends GenerateStreamingResult{
-  final List<int> context;
-
-  GenerateStreamingResultComplete(this.context);
-}
-
 class GenerateResultError extends GenerateResult {}
+
+sealed class GenerateStreamingResult {}
+
+class GenerateStreamingResultSuccess extends GenerateStreamingResult {
+  final Stream<GenerateChunk> chunkStream;
+
+  GenerateStreamingResultSuccess(this.chunkStream);
+}
+
+class GenerateStreamingResultConnectionError extends GenerateStreamingResult {}
+
+class GenerateStreamingResultError extends GenerateStreamingResult {}
+
+class GenerateChunk {
+  final String message;
+  final List<int>? context;
+  final bool done;
+
+  GenerateChunk(this.message, this.context, this.done);
+}
+
+sealed class DownloadModelStreamingResult {}
+
+class DownloadModelStreamingResultSuccess extends DownloadModelStreamingResult {
+  final Stream<DownloadChunk> chunkStream;
+
+  DownloadModelStreamingResultSuccess(this.chunkStream);
+}
+
+class DownloadModelStreamingResultNotFound
+    extends DownloadModelStreamingResult {}
+
+class DownloadModelStreamingResultConnectionError
+    extends DownloadModelStreamingResult {}
+
+class DownloadChunk {
+  final String status;
+  final String? digest;
+  final int? total;
+  final int? completed;
+
+  DownloadChunk(
+      {required this.status,
+      required this.digest,
+      required this.total,
+      required this.completed});
+}
 
 sealed class DownloadModelResponse {}
 

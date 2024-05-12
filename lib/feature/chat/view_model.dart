@@ -58,8 +58,18 @@ class ChatViewModel extends BaseViewModel {
       messages: state.messages,
     );
     notifyListeners();
-    final result = _chatState.sendMessageStreaming(message, selectedModel.id);
-    //TODO handle result
+    final result = await _chatState.sendMessage(message, selectedModel.id);
+    switch (result) {
+      case SendMessageResultSuccess():
+        break;
+      case SendMessageResultError():
+        _events.add(
+          GenericError(
+            _s.error_generic_title,
+            _s.error_generic_message,
+          ),
+        );
+    }
     state = ChatState(
       isLoading: false,
       selectedModel: state.selectedModel,
@@ -70,12 +80,12 @@ class ChatViewModel extends BaseViewModel {
   }
 
   _load() async {
-    //TODO tweak this part.
     final response = await _modelsState.refresh();
     final messages = _chatState.messages.map(_domainToChatMessage).toList();
+    final List<ChatModel> models;
     switch (response) {
       case ListModelsResultSuccess():
-        final models = response.models.map(_modelToChatModel).toList();
+        models = response.models.map(_modelToChatModel).toList();
         if (models.isEmpty) {
           _events.add(
             ModelNotFound(
@@ -85,22 +95,8 @@ class ChatViewModel extends BaseViewModel {
             ),
           );
         }
-        final selectedModel = models.firstOrNull;
-        state = ChatState(
-          isLoading: false,
-          selectedModel: selectedModel,
-          models: models,
-          messages: messages,
-        );
-        _modelsState.addListener(_onModelsChanged);
-        _chatState.addListener(_onChatChanged);
       case ListModelResultConnectionError():
-        state = ChatState(
-          isLoading: false,
-          selectedModel: state.selectedModel,
-          models: state.models,
-          messages: messages,
-        );
+        models = state.models;
         _events.add(
           OllamaNotFound(
             _s.chat_missing_ollama_dialog_title,
@@ -109,12 +105,7 @@ class ChatViewModel extends BaseViewModel {
           ),
         );
       case ListModelResultError():
-        state = ChatState(
-          isLoading: false,
-          selectedModel: state.selectedModel,
-          models: state.models,
-          messages: messages,
-        );
+        models = state.models;
         _events.add(
           GenericError(
             _s.error_generic_title,
@@ -122,7 +113,15 @@ class ChatViewModel extends BaseViewModel {
           ),
         );
     }
+    state = ChatState(
+      isLoading: false,
+      selectedModel: models.firstOrNull,
+      models: models,
+      messages: messages,
+    );
     notifyListeners();
+    _modelsState.addListener(_onModelsChanged);
+    _chatState.addListener(_onChatChanged);
   }
 
   _onModelsChanged() {

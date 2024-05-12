@@ -9,49 +9,35 @@ class ChatStateHolder with ChangeNotifier {
 
   ChatStateHolder(this._ollama);
 
-  sendMessage(String text, String model) async {
+  Future<SendMessageResult> sendMessage(String text, String model) async {
     final newMessages = List<ChatMessageDomain>.from(messages, growable: true);
     newMessages.add(ChatMessageUserDomain(text));
     newMessages.add(ChatMessageAssistantDomain("...", false));
     messages = newMessages;
     notifyListeners();
-    final response = await _ollama.generate(model, text);
-    final SendMessageResult result;
-    switch (response) {
-      case GenerateResultSuccess():
-        newMessages.removeLast();
-        newMessages.add(ChatMessageAssistantDomain(response.answer, true));
-        messages = newMessages;
-        result = SendMessageResultSuccess();
-      case GenerateResultError():
-        newMessages.removeLast();
-        messages = newMessages;
-        result = SendMessageResultError();
-    }
-    notifyListeners();
-    return result;
-  }
 
-  sendMessageStreaming(String text, String model) async {
-    final newMessages = List<ChatMessageDomain>.from(messages, growable: true);
-    newMessages.add(ChatMessageUserDomain(text));
-    newMessages.add(ChatMessageAssistantDomain("...", false));
-    messages = newMessages;
-    notifyListeners();
+    final response = await _ollama.generate(model, text);
+    final Stream<GenerateChunk> stream;
+    switch(response){
+      case GenerateStreamingResultSuccess():
+        stream = response.chunkStream;
+      case GenerateStreamingResultConnectionError():
+      case GenerateStreamingResultError():
+        newMessages.removeLast();
+        messages = newMessages;
+        notifyListeners();
+        return SendMessageResultError();
+    }
+
     String message = "";
-    bool isDone = false;
-    _ollama.generateStream(model, text).listen((event) {
-      switch(event){
-        case GenerateStreamingResultChunk():
-          message += event.chunk;
-        case GenerateStreamingResultComplete():
-          isDone = true;
-          message += ".";
-      }
+    await for (final chunkResult in stream) {
+      message += chunkResult.message;
       newMessages.removeLast();
-      newMessages.add(ChatMessageAssistantDomain(message, isDone));
+      newMessages.add(ChatMessageAssistantDomain(message, chunkResult.done));
+      messages = newMessages;
       notifyListeners();
-    });
+    }
+    return SendMessageResultSuccess();
   }
 }
 

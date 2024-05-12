@@ -19,16 +19,7 @@ class ModelsViewModel extends BaseViewModel {
 
   onCreate() async {
     _modelManager.addListener(_onModelsChanged);
-    final result = await _modelManager.refresh();
-    switch (result) {
-      case ListModelResultConnectionError():
-      case ListModelResultError():
-        _events.add(ModelsEventShowError(
-          title: S.current.models_dialog_load_models_error_title,
-          message: S.current.models_dialog_load_models_error_message,
-        ));
-      case ListModelsResultSuccess():
-    }
+    await _loadData();
   }
 
   onAddModelClicked() {
@@ -61,6 +52,23 @@ class ModelsViewModel extends BaseViewModel {
     }
   }
 
+  onRefreshClicked() async {
+    await _loadData();
+  }
+
+  _loadData() async {
+    final result = await _modelManager.refresh();
+    switch (result) {
+      case ListModelResultConnectionError():
+      case ListModelResultError():
+        _events.add(ModelsEventShowError(
+          title: S.current.models_dialog_load_models_error_title,
+          message: S.current.models_dialog_load_models_error_message,
+        ));
+      case ListModelsResultSuccess():
+    }
+  }
+
   _onModelsChanged() {
     final models = _modelManager.allModels;
     state = ModelsStateLoaded(models.map(_toModelItem).toList());
@@ -83,6 +91,7 @@ class ModelsViewModel extends BaseViewModel {
       title: "${model.name} (${model.fullName})",
       subtitle: subtitle,
       isLoading: !model.isDownloaded,
+      progress: model.progress,
     );
   }
 
@@ -134,11 +143,13 @@ class ModelItem {
   final String title;
   final String subtitle;
   final bool isLoading;
+  final double? progress;
 
   ModelItem({
     required this.id,
     required this.title,
     required this.subtitle,
     required this.isLoading,
+    required this.progress
   });
 }
