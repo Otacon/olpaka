@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:olpaka/core/state/model_state_holder.dart';
+import 'package:olpaka/core/state/models/model_state_holder.dart';
+import 'package:olpaka/feature/home/events.dart';
+import 'package:olpaka/feature/home/state.dart';
 import 'package:stacked/stacked.dart';
 
 class HomeViewModel extends BaseViewModel {
@@ -14,16 +16,14 @@ class HomeViewModel extends BaseViewModel {
     HomeTabSettings(false),
   );
 
-  Stream<HomeEvent> get events => _events.stream.map((val) {
-        return val;
-      });
+  Stream<HomeEvent> get events => _events.stream.map((val) => val);
 
   DownloadsState _downloadsState = DownloadsState.none;
 
   HomeViewModel(this._modelStateHolder);
 
   onCreate() async {
-    _modelStateHolder.addListener(_onModelsChanged);
+    _modelStateHolder.cachedModels.addListener(_onModelsChanged);
   }
 
   onItemTapped(int index) async {
@@ -54,7 +54,7 @@ class HomeViewModel extends BaseViewModel {
   _onModelsChanged() {
     var downloadState = DownloadsState.none;
     if(!state.downloads.isSelected){
-      if(_modelStateHolder.downloadingModels.isNotEmpty){
+      if(_modelStateHolder.downloadingModels.value.isNotEmpty){
         downloadState = DownloadsState.downloading;
       } else if(_downloadsState != DownloadsState.none){
         downloadState = DownloadsState.completed;
@@ -72,41 +72,9 @@ class HomeViewModel extends BaseViewModel {
 
   @override
   void dispose() {
+    _modelStateHolder.cachedModels.removeListener(_onModelsChanged);
     super.dispose();
-    _modelStateHolder.removeListener(_onModelsChanged);
   }
 
-
 }
 
-class HomeState {
-  final HomeTabChat chat;
-  final HomeTabDownloads downloads;
-  final HomeTabSettings settings;
-
-  HomeState(this.chat, this.downloads, this.settings);
-}
-
-sealed class HomeEvent {}
-
-sealed class HomeTab {
-  final bool isSelected;
-
-  HomeTab(this.isSelected);
-}
-
-class HomeTabChat extends HomeTab {
-  HomeTabChat(super.isSelected);
-}
-
-class HomeTabDownloads extends HomeTab {
-  final DownloadsState state;
-
-  HomeTabDownloads(super.isSelected, this.state);
-}
-
-class HomeTabSettings extends HomeTab {
-  HomeTabSettings(super.isSelected);
-}
-
-enum DownloadsState { none, downloading, completed }

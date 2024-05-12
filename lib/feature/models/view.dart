@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:olpaka/feature/models/events.dart';
+import 'package:olpaka/feature/models/state.dart';
 import 'package:olpaka/feature/models/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';

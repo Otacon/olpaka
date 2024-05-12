@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get_it/get_it.dart';
 import 'package:markdown_widget/markdown_widget.dart';
+import 'package:olpaka/feature/chat/events.dart';
+import 'package:olpaka/feature/chat/state.dart';
 import 'package:olpaka/feature/chat/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
@@ -118,8 +120,8 @@ class _Content extends StatelessWidget {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 3),
+        curve: Curves.linear,
       );
     });
     return Column(

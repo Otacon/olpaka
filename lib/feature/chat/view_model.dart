@@ -2,8 +2,13 @@ import 'dart:async';
 
 import 'package:olpaka/core/ollama/model.dart';
 import 'package:olpaka/core/ollama/repository.dart';
-import 'package:olpaka/core/state/chat_state_holder.dart';
-import 'package:olpaka/core/state/model_state_holder.dart';
+import 'package:olpaka/core/state/chat/chat_message_domain.dart';
+import 'package:olpaka/core/state/chat/chat_state_holder.dart';
+import 'package:olpaka/core/state/chat/send_message_result.dart';
+import 'package:olpaka/core/state/models/model_domain.dart';
+import 'package:olpaka/core/state/models/model_state_holder.dart';
+import 'package:olpaka/feature/chat/events.dart';
+import 'package:olpaka/feature/chat/state.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
 
@@ -81,7 +86,8 @@ class ChatViewModel extends BaseViewModel {
 
   _load() async {
     final response = await _modelsState.refresh();
-    final messages = _chatState.messages.map(_domainToChatMessage).toList();
+    final messages =
+        _chatState.messages.value.map(_domainToChatMessage).toList();
     final List<ChatModel> models;
     switch (response) {
       case ListModelsResultSuccess():
@@ -120,12 +126,13 @@ class ChatViewModel extends BaseViewModel {
       messages: messages,
     );
     notifyListeners();
-    _modelsState.addListener(_onModelsChanged);
-    _chatState.addListener(_onChatChanged);
+    _modelsState.cachedModels.addListener(_onModelsChanged);
+    _chatState.messages.addListener(_onChatChanged);
   }
 
   _onModelsChanged() {
-    final uiModels = _modelsState.cachedModels.map(_domainToChatModel).toList();
+    final uiModels =
+        _modelsState.cachedModels.value.map(_domainToChatModel).toList();
     state = ChatState(
       isLoading: state.isLoading,
       selectedModel: state.selectedModel,
@@ -136,7 +143,8 @@ class ChatViewModel extends BaseViewModel {
   }
 
   _onChatChanged() {
-    final messages = _chatState.messages.map(_domainToChatMessage).toList();
+    final messages =
+        _chatState.messages.value.map(_domainToChatMessage).toList();
     state = ChatState(
       isLoading: state.isLoading,
       selectedModel: state.selectedModel,
@@ -146,8 +154,8 @@ class ChatViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  ChatModel _domainToChatModel(ModelDomain model) {
-    return ChatModel(model.fullName, model.name);
+  ChatModel _domainToChatModel(ModelDomainAvailable model) {
+    return ChatModel(model.id, model.name);
   }
 
   ChatModel _modelToChatModel(Model model) {
@@ -173,76 +181,7 @@ class ChatViewModel extends BaseViewModel {
   @override
   void dispose() {
     super.dispose();
-    _modelsState.removeListener(_onModelsChanged);
-    _chatState.removeListener(_onChatChanged);
+    _modelsState.cachedModels.removeListener(_onModelsChanged);
+    _chatState.messages.removeListener(_onChatChanged);
   }
-}
-
-class ChatState {
-  final bool isLoading;
-  final ChatModel? selectedModel;
-  final List<ChatModel> models;
-  final List<ChatMessage> messages;
-
-  ChatState({
-    required this.isLoading,
-    required this.selectedModel,
-    required this.models,
-    required this.messages,
-  });
-}
-
-class ChatMessage {
-  final bool isUser;
-  final String message;
-  final bool isLoading;
-
-  ChatMessage({
-    required this.isUser,
-    this.message = "",
-    this.isLoading = false,
-  });
-}
-
-class ChatModel {
-  final String id;
-  final String name;
-
-  ChatModel(this.id, this.name);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ChatModel &&
-          runtimeType == other.runtimeType &&
-          id == other.id &&
-          name == other.name;
-
-  @override
-  int get hashCode => id.hashCode ^ name.hashCode;
-}
-
-sealed class ChatEvent {}
-
-class GenericError extends ChatEvent {
-  final String title;
-  final String message;
-
-  GenericError(this.title, this.message);
-}
-
-class OllamaNotFound extends ChatEvent {
-  final String title;
-  final String message;
-  final String positive;
-
-  OllamaNotFound(this.title, this.message, this.positive);
-}
-
-class ModelNotFound extends ChatEvent {
-  final String title;
-  final String message;
-  final String positive;
-
-  ModelNotFound(this.title, this.message, this.positive);
 }

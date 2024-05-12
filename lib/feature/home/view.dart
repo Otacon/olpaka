@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:olpaka/feature/chat/view.dart';
+import 'package:olpaka/feature/home/state.dart';
 import 'package:olpaka/feature/home/view_model.dart';
 import 'package:olpaka/feature/models/view.dart';
 import 'package:olpaka/feature/settings/view.dart';
@@ -21,7 +22,7 @@ class HomeView extends StatelessWidget {
         viewModel.onCreate();
       },
       builder: (context, viewModel, child) {
-        final HomeState state = viewModel.state;
+        final state = viewModel.state;
         final Widget content;
         final int selectedIndex;
         if (state.settings.isSelected) {

@@ -1,4 +1,5 @@
 import 'package:olpaka/core/state/theme_manager.dart';
+import 'package:olpaka/feature/settings/state.dart';
 import 'package:stacked/stacked.dart';
 
 class SettingsViewModel extends BaseViewModel {
@@ -25,12 +26,3 @@ class SettingsViewModel extends BaseViewModel {
   }
 }
 
-class SettingsState {
-  final OlpakaThemeMode themeMode;
-  final OlpakaThemeColor themeColor;
-
-  SettingsState([
-    this.themeMode = OlpakaThemeMode.system,
-    this.themeColor = OlpakaThemeColor.olpaka,
-  ]);
-}

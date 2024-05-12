@@ -1,9 +1,11 @@
 import 'dart:async';
-import 'dart:math';
 
-import 'package:intl/intl.dart';
 import 'package:olpaka/core/ollama/repository.dart';
-import 'package:olpaka/core/state/model_state_holder.dart';
+import 'package:olpaka/core/state/models/model_domain.dart';
+import 'package:olpaka/core/state/models/model_state_holder.dart';
+import 'package:olpaka/core/utils/size_formatter.dart';
+import 'package:olpaka/feature/models/events.dart';
+import 'package:olpaka/feature/models/state.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
 
@@ -18,7 +20,8 @@ class ModelsViewModel extends BaseViewModel {
   ModelsViewModel(this._modelManager);
 
   onCreate() async {
-    _modelManager.addListener(_onModelsChanged);
+    _modelManager.downloadingModels.addListener(_onModelsChanged);
+    _modelManager.cachedModels.addListener(_onModelsChanged);
     await _loadData();
   }
 
@@ -28,26 +31,26 @@ class ModelsViewModel extends BaseViewModel {
 
   addModel(String model) async {
     final result = await _modelManager.download(model);
-    switch(result){
+    switch (result) {
       case DownloadModelResponseConnectionError():
       case DownloadModelResponseError():
-      _events.add(ModelsEventShowError(
-        title: S.current.models_dialog_download_model_error_title,
-        message: S.current.models_dialog_download_model_error_message,
-      ));
+        _events.add(ModelsEventShowError(
+          title: S.current.models_dialog_download_model_error_title,
+          message: S.current.models_dialog_download_model_error_message,
+        ));
       case DownloadModelResponseSuccess():
     }
   }
 
   removeModel(ModelItem model) async {
     final result = await _modelManager.delete(model.id);
-    switch(result){
+    switch (result) {
       case RemoveModelResponseConnectionError():
       case RemoveModelResponseError():
-      _events.add(ModelsEventShowError(
-        title: S.current.models_dialog_remove_model_error_title,
-        message: S.current.models_dialog_remove_model_error_message,
-      ));
+        _events.add(ModelsEventShowError(
+          title: S.current.models_dialog_remove_model_error_title,
+          message: S.current.models_dialog_remove_model_error_message,
+        ));
       case RemoveModelResponseSuccess():
     }
   }
@@ -70,86 +73,52 @@ class ModelsViewModel extends BaseViewModel {
   }
 
   _onModelsChanged() {
-    final models = _modelManager.allModels;
+    final available = _modelManager.cachedModels.value.map<ModelDomain>((e) => e).toList();
+    final downloading = _modelManager.downloadingModels.value.map<ModelDomain>((e) => e).toList();
+    final models = available + downloading;
     state = ModelsStateLoaded(models.map(_toModelItem).toList());
     notifyListeners();
   }
 
   ModelItem _toModelItem(ModelDomain model) {
     final String subtitle;
-    if (model.isDownloaded) {
-      subtitle = [
-        model.size?.readableFileSize(),
-        model.params,
-        model.quantization,
-      ].nonNulls.join(" • ");
-    } else {
-      subtitle = S.current.models_state_download;
+    final String name;
+    final bool isLoading;
+    final double? progress;
+    switch (model) {
+      case ModelDomainDownloading():
+        name = model.name;
+        isLoading = true;
+        progress = model.progress;
+        subtitle = S.current.models_state_download;
+      case ModelDomainAvailable():
+        name = "${model.friendlyName} (${model.name})";
+        isLoading = false;
+        progress = null;
+        subtitle = [
+          model.size?.readableFileSize(),
+          model.params,
+          model.quantization,
+        ].nonNulls.join(" • ");
+      case ModelDomainError():
+        name = model.name;
+        isLoading = true;
+        progress = null;
+        subtitle = "Error";
     }
     return ModelItem(
-      id: model.fullName,
-      title: "${model.name} (${model.fullName})",
+      id: model.id,
+      title: name,
       subtitle: subtitle,
-      isLoading: !model.isDownloaded,
-      progress: model.progress,
+      isLoading: isLoading,
+      progress: progress,
     );
   }
 
   @override
   void dispose() {
-    _modelManager.removeListener(_onModelsChanged);
+    _modelManager.cachedModels.removeListener(_onModelsChanged);
+    _modelManager.downloadingModels.removeListener(_onModelsChanged);
     super.dispose();
   }
-}
-
-extension FileFormatter on num {
-  String readableFileSize() {
-    if (this <= 0) return "0";
-
-    const base = 1000;
-    final units = ["B", "kB", "MB", "GB", "TB"];
-
-    int digitGroups = (log(this) / log(base)).floor();
-    return "${NumberFormat("#,##0.#").format(this / pow(base, digitGroups))} ${units[digitGroups]}";
-  }
-}
-
-sealed class ModelsState {}
-
-class ModelsStateLoading extends ModelsState {}
-
-class ModelsStateLoaded extends ModelsState {
-  final List<ModelItem> models;
-
-  ModelsStateLoaded(this.models);
-}
-
-sealed class ModelsEvent {}
-
-class ModelsEventShowAddModelDialog extends ModelsEvent {}
-
-class ModelsEventShowError extends ModelsEvent {
-  final String title;
-  final String message;
-
-  ModelsEventShowError({
-    required this.title,
-    required this.message,
-  });
-}
-
-class ModelItem {
-  final String id;
-  final String title;
-  final String subtitle;
-  final bool isLoading;
-  final double? progress;
-
-  ModelItem({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.isLoading,
-    required this.progress
-  });
 }
