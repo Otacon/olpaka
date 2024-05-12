@@ -52,23 +52,21 @@ class HomeViewModel extends BaseViewModel {
   }
 
   _onModelsChanged() {
-    if(_modelStateHolder.downloadingModels.isNotEmpty){
-      _downloadsState = DownloadsState.downloading;
-      state = HomeState(
-          state.chat,
-          HomeTabDownloads(state.downloads.isSelected, _downloadsState),
-          state.settings
-      );
-      notifyListeners();
-    } else if(_downloadsState != DownloadsState.none){
-      _downloadsState = DownloadsState.completed;
-      state = HomeState(
-          state.chat,
-          HomeTabDownloads(state.downloads.isSelected, _downloadsState),
-          state.settings
-      );
-      notifyListeners();
+    var downloadState = DownloadsState.none;
+    if(!state.downloads.isSelected){
+      if(_modelStateHolder.downloadingModels.isNotEmpty){
+        downloadState = DownloadsState.downloading;
+      } else if(_downloadsState != DownloadsState.none){
+        downloadState = DownloadsState.completed;
+      }
     }
+    _downloadsState = downloadState;
+    state = HomeState(
+        state.chat,
+        HomeTabDownloads(state.downloads.isSelected, downloadState),
+        state.settings
+    );
+    notifyListeners();
 
   }
 

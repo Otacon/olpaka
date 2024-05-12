@@ -91,6 +91,7 @@ class ModelsViewModel extends BaseViewModel {
       title: "${model.name} (${model.fullName})",
       subtitle: subtitle,
       isLoading: !model.isDownloaded,
+      progress: model.progress,
     );
   }
 
@@ -142,11 +143,13 @@ class ModelItem {
   final String title;
   final String subtitle;
   final bool isLoading;
+  final double? progress;
 
   ModelItem({
     required this.id,
     required this.title,
     required this.subtitle,
     required this.isLoading,
+    required this.progress
   });
 }

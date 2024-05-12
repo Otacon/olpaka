@@ -160,8 +160,13 @@ class _Content extends StatelessWidget {
               final Widget leading;
               final Widget? trailing;
               if (model.isLoading) {
-                leading = const SizedBox(
-                    width: 24, height: 24, child: CircularProgressIndicator());
+                leading = SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    value: model.progress,
+                  ),
+                );
                 trailing = null;
               } else {
                 leading = const Icon(Icons.download_done);

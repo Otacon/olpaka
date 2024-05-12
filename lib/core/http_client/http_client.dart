@@ -27,19 +27,29 @@ class HttpClient {
     }
   }
 
-  Stream<String> postStreaming(
+  Future<HttpStreamingResponse> postStreaming(
     String endpoint, {
     required Map<String, Object>? data,
-  }) async* {
+  }) async {
     final url = _urlProvider.forPath(endpoint);
     final request = Request("POST", url);
     final body = json.encode(data);
     request.body = body;
-    logger.d("> POST (stream) @ $url\n$body");
-    final response = await _client.send(request);
-    yield* response.stream
-        .transform(const Utf8Decoder())
-        .transform(const LineSplitter());
+    logger.d("> (s) POST @ $url\n$body");
+    try {
+      final response = await _client.send(request);
+      final statusCode = response.statusCode;
+      logger.d("< (s) POST @ $url\n$statusCode");
+      if (statusCode >= 200 && statusCode <= 299) {
+        final chunkStream = response.stream
+            .transform(const Utf8Decoder())
+            .transform(const LineSplitter());
+        return HttpStreamingResponseSuccess(chunkStream);
+      }
+      return HttpStreamingResponseError(statusCode, body);
+    } on SocketException catch (_){
+      return HttpStreamingResponseConnectionError();
+    }
   }
 
   Future<HttpResponse> delete(
@@ -85,6 +95,26 @@ class HttpClient {
     return HttpResponseConnectionError();
   }
 }
+
+sealed class HttpStreamingResponse {}
+
+class HttpStreamingResponseSuccess extends HttpStreamingResponse {
+  final Stream<String> chunks;
+
+  HttpStreamingResponseSuccess(this.chunks);
+}
+
+class HttpStreamingResponseConnectionError extends HttpStreamingResponse {}
+
+class HttpStreamingResponseUnknownError extends HttpStreamingResponse {}
+
+class HttpStreamingResponseError extends HttpStreamingResponse {
+  final int code;
+  final String? message;
+
+  HttpStreamingResponseError(this.code, this.message);
+}
+
 
 sealed class HttpResponse {}
 
