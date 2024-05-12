@@ -45,8 +45,8 @@ class HomeView extends StatelessWidget {
               onDestinationSelected: (index) => viewModel.onItemTapped(index),
               destinations: <NavigationRailDestination>[
                 NavigationRailDestination(
-                  icon: const Icon(Icons.chat),
-                  selectedIcon: const Icon(Icons.chat_outlined),
+                  icon: const Icon(Icons.chat_outlined),
+                  selectedIcon: const Icon(Icons.chat),
                   label: Text(S.current.home_tab_name_chat),
                 ),
                 NavigationRailDestination(

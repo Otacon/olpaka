@@ -84,6 +84,11 @@ class ModelsScreen extends StatelessWidget {
               const SizedBox(height: 16),
               TextField(
                 controller: _controller,
+                onSubmitted: (text) {
+                  Navigator.of(context).pop(false);
+                  positiveAction(text);
+                  _controller.clear();
+                },
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
                   hintText: S.current.models_dialog_download_model_text_hint,
@@ -171,10 +176,10 @@ class _Content extends StatelessWidget {
                 );
                 trailing = null;
               } else {
-                leading = const Icon(Icons.download_done);
-                trailing = IconButton(
+                leading = const Icon(Icons.storage_outlined);
+                trailing = FilledButton(
                   onPressed: () => onRemoveModel(model),
-                  icon: const Icon(Icons.delete),
+                  child: Text(S.current.models_action_remove_model),
                 );
               }
               return Column(
