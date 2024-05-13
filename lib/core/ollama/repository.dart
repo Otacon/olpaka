@@ -3,6 +3,10 @@ import 'dart:core';
 
 import 'package:olpaka/core/http_client/http_client.dart';
 import 'package:olpaka/core/logger.dart';
+import 'package:olpaka/core/ollama/delete_model_result.dart';
+import 'package:olpaka/core/ollama/download_streaming_result.dart';
+import 'package:olpaka/core/ollama/generate_streaming_result.dart';
+import 'package:olpaka/core/ollama/list_models_result.dart';
 
 import 'model.dart';
 
@@ -51,12 +55,16 @@ class OllamaRepository {
       case HttpStreamingResponseSuccess():
         final stream = response.chunks.map((chunk) {
           final chunkJson = jsonDecode(chunk);
-          return DownloadChunk(
-            status: chunkJson["status"],
-            digest: chunkJson["digest"],
-            total: chunkJson["total"],
-            completed: chunkJson["completed"],
-          );
+          if(chunkJson["error"] != null){
+            return DownloadChunkError(message: chunkJson["error"]);
+          } else {
+            return DownloadChunkProgress(
+              status: chunkJson["status"],
+              digest: chunkJson["digest"],
+              total: chunkJson["total"],
+              completed: chunkJson["completed"],
+            );
+          }
         });
         return DownloadModelStreamingResultSuccess(stream);
       case HttpStreamingResponseError():
@@ -121,87 +129,4 @@ class OllamaRepository {
   }
 }
 
-sealed class ListModelsResult {}
 
-class ListModelsResultSuccess extends ListModelsResult {
-  final List<Model> models;
-
-  ListModelsResultSuccess(this.models);
-}
-
-class ListModelResultConnectionError extends ListModelsResult {}
-
-class ListModelResultError extends ListModelsResult {}
-
-sealed class GenerateResult {}
-
-class GenerateResultSuccess extends GenerateResult {
-  final String answer;
-
-  GenerateResultSuccess(this.answer);
-}
-
-class GenerateResultError extends GenerateResult {}
-
-sealed class GenerateStreamingResult {}
-
-class GenerateStreamingResultSuccess extends GenerateStreamingResult {
-  final Stream<GenerateChunk> chunkStream;
-
-  GenerateStreamingResultSuccess(this.chunkStream);
-}
-
-class GenerateStreamingResultConnectionError extends GenerateStreamingResult {}
-
-class GenerateStreamingResultError extends GenerateStreamingResult {}
-
-class GenerateChunk {
-  final String message;
-  final List<int>? context;
-  final bool done;
-
-  GenerateChunk(this.message, this.context, this.done);
-}
-
-sealed class DownloadModelStreamingResult {}
-
-class DownloadModelStreamingResultSuccess extends DownloadModelStreamingResult {
-  final Stream<DownloadChunk> chunkStream;
-
-  DownloadModelStreamingResultSuccess(this.chunkStream);
-}
-
-class DownloadModelStreamingResultNotFound
-    extends DownloadModelStreamingResult {}
-
-class DownloadModelStreamingResultConnectionError
-    extends DownloadModelStreamingResult {}
-
-class DownloadChunk {
-  final String status;
-  final String? digest;
-  final int? total;
-  final int? completed;
-
-  DownloadChunk(
-      {required this.status,
-      required this.digest,
-      required this.total,
-      required this.completed});
-}
-
-sealed class DownloadModelResponse {}
-
-class DownloadModelResponseSuccess extends DownloadModelResponse {}
-
-class DownloadModelResponseConnectionError extends DownloadModelResponse {}
-
-class DownloadModelResponseError extends DownloadModelResponse {}
-
-sealed class RemoveModelResponse {}
-
-class RemoveModelResponseSuccess extends RemoveModelResponse {}
-
-class RemoveModelResponseConnectionError extends RemoveModelResponse {}
-
-class RemoveModelResponseError extends RemoveModelResponse {}

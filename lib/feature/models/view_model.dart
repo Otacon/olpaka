@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:olpaka/core/ollama/repository.dart';
+import 'package:olpaka/core/ollama/delete_model_result.dart';
+import 'package:olpaka/core/ollama/list_models_result.dart';
+import 'package:olpaka/core/state/models/download_model_response.dart';
 import 'package:olpaka/core/state/models/model_domain.dart';
 import 'package:olpaka/core/state/models/model_state_holder.dart';
 import 'package:olpaka/core/utils/size_formatter.dart';
@@ -42,14 +44,18 @@ class ModelsViewModel extends BaseViewModel {
     }
   }
 
-  removeModel(ModelItem model) async {
-    final result = await _modelManager.delete(model.id);
+  onRemoveModel(ModelItem modelItem) async {
+    _events.add(ModelsEventShowRemoveModelDialog(modelItem.id, modelItem.id));
+  }
+
+  onConfirmRemoveModel(String modelId) async {
+    final result = await _modelManager.delete(modelId);
     switch (result) {
       case RemoveModelResponseConnectionError():
       case RemoveModelResponseError():
         _events.add(ModelsEventShowError(
-          title: S.current.models_dialog_remove_model_error_title,
-          message: S.current.models_dialog_remove_model_error_message,
+          title: S.current.models_dialog_delete_model_error_title,
+          message: S.current.models_dialog_delete_model_error_message,
         ));
       case RemoveModelResponseSuccess():
     }
@@ -60,24 +66,45 @@ class ModelsViewModel extends BaseViewModel {
   }
 
   _loadData() async {
+    state = ModelsStateLoading();
+    notifyListeners();
     final result = await _modelManager.refresh();
     switch (result) {
       case ListModelResultConnectionError():
       case ListModelResultError():
-        _events.add(ModelsEventShowError(
-          title: S.current.models_dialog_load_models_error_title,
-          message: S.current.models_dialog_load_models_error_message,
-        ));
+        state = ModelsStateError(
+          S.current.error_missing_ollama_title,
+          S.current.error_missing_ollama_message,
+          ctaText: S.current.error_missing_ollama_positive,
+        );
+        notifyListeners();
       case ListModelsResultSuccess():
     }
   }
 
   _onModelsChanged() {
-    final available = _modelManager.cachedModels.value.map<ModelDomain>((e) => e).toList();
-    final downloading = _modelManager.downloadingModels.value.map<ModelDomain>((e) => e).toList();
-    final models = available + downloading;
-    state = ModelsStateLoaded(models.map(_toModelItem).toList());
+    final models = _getAllModels();
+    if (models.isEmpty) {
+      state = ModelsStateError(S.current.models_error_no_models_title,
+          S.current.models_error_no_models_message);
+    } else {
+      state = ModelsStateContent(models.map(_toModelItem).toList());
+    }
     notifyListeners();
+  }
+
+  List<ModelDomain> _getAllModels() {
+    return _getCachedModels() + _getDownloadingModels();
+  }
+
+  List<ModelDomain> _getCachedModels() {
+    var cachedModels = _modelManager.cachedModels.value;
+    return cachedModels.map<ModelDomain>((e) => e).toList();
+  }
+
+  List<ModelDomain> _getDownloadingModels() {
+    var downloadedingModels = _modelManager.downloadingModels.value;
+    return downloadedingModels.map<ModelDomain>((e) => e).toList();
   }
 
   ModelItem _toModelItem(ModelDomain model) {

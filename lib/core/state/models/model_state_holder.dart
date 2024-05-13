@@ -1,8 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:olpaka/core/ollama/delete_model_result.dart';
+import 'package:olpaka/core/ollama/download_streaming_result.dart';
+import 'package:olpaka/core/ollama/list_models_result.dart';
 import 'package:olpaka/core/ollama/model.dart';
 import 'package:olpaka/core/ollama/repository.dart';
+import 'package:olpaka/core/state/models/download_model_response.dart';
 import 'package:olpaka/core/state/models/model_domain.dart';
 
 class ModelStateHolder {
@@ -44,7 +48,14 @@ class ModelStateHolder {
     _addDownloadingModel(downloadingModel);
 
     await for (final downloadChunk in stream) {
-      _updateDownloadingModel(modelName, downloadChunk);
+      switch(downloadChunk){
+        case DownloadChunkError():
+          _removeDownloadingModel(modelName);
+          await refresh();
+          return DownloadModelResponseError();
+        case DownloadChunkProgress():
+          _updateDownloadingModel(modelName, downloadChunk);
+      }
     }
     _removeDownloadingModel(modelName);
     await refresh();
@@ -52,6 +63,7 @@ class ModelStateHolder {
   }
 
   Future<RemoveModelResponse> delete(String modelName) async {
+    //TODO map between layers
     final response = await _ollama.removeModel(modelName);
     await refresh();
     return response;
@@ -84,7 +96,7 @@ class ModelStateHolder {
     downloadingModels.value = currentModels;
   }
 
-  void _updateDownloadingModel(String id, DownloadChunk chunk) {
+  void _updateDownloadingModel(String id, DownloadChunkProgress chunk) {
     final index = _getDownloadingModelIndex(id);
     if (index == null) {
       return;

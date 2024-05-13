@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:olpaka/core/ollama/repository.dart';
+import 'package:olpaka/core/ollama/list_models_result.dart';
 import 'package:olpaka/core/state/chat/chat_message_domain.dart';
 import 'package:olpaka/core/state/chat/chat_state_holder.dart';
 import 'package:olpaka/core/state/models/model_domain.dart';
@@ -89,9 +89,9 @@ class ChatViewModel extends BaseViewModel {
       case ListModelResultError():
       case ListModelResultConnectionError():
         state = ChatStateError(
-          _s.chat_missing_ollama_error_title,
-          _s.chat_missing_ollama_error_message,
-          _s.chat_missing_ollama_error_positive,
+          _s.error_missing_ollama_title,
+          _s.error_missing_ollama_message,
+          _s.error_missing_ollama_positive,
         );
         notifyListeners();
         return;
@@ -116,19 +116,33 @@ class ChatViewModel extends BaseViewModel {
   }
 
   _onModelsChanged() {
+    final models = _getModels();
     final currentState = state;
     switch (currentState) {
       case ChatStateError():
       case ChatStateLoading():
-        return;
+        if (models.isEmpty) {
+          state = ChatStateError(
+            _s.chat_missing_model_error_title,
+            _s.chat_missing_model_error_message,
+            _s.chat_missing_model_error_positive,
+          );
+        } else {
+          state = ChatStateContent(
+            isGeneratingMessage: false,
+            selectedModel: models.first,
+            models: models,
+            messages: _getMessages(),
+          );
+        }
       case ChatStateContent():
+        state = ChatStateContent(
+          selectedModel: currentState.selectedModel,
+          models: models,
+          messages: _getMessages(),
+          isGeneratingMessage: currentState.isGeneratingMessage,
+        );
     }
-    final models = _getModels();
-    state = ChatStateContent(
-        selectedModel: currentState.selectedModel,
-        models: models,
-        messages: _getMessages(),
-        isGeneratingMessage: currentState.isGeneratingMessage);
     notifyListeners();
   }
 

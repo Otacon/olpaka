@@ -67,7 +67,6 @@ class ChatScreen extends StatelessWidget {
     bool isEnabled = true,
     ChatModel? selectedModel,
   }) {
-
     final Widget content;
     if (messages.isEmpty) {
       content = EmptyScreen(
@@ -173,7 +172,8 @@ class ChatScreen extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     final defaultFont = theme.textTheme.bodyMedium;
-    final textErrorStyle = defaultFont?.copyWith(color: theme.colorScheme.onError);
+    final textErrorStyle =
+        defaultFont?.copyWith(color: theme.colorScheme.onError);
     return FractionallySizedBox(
       widthFactor: 0.75,
       child: Padding(
@@ -215,10 +215,16 @@ class _MessageInputBarState extends State<_MessageInputBar> {
   _MessageInputBarState();
 
   final TextEditingController _controller = TextEditingController();
+  bool isSubmitEnabled = false;
   late FocusNode _focusNode;
 
   @override
   void initState() {
+    _controller.addListener(() {
+      setState(() {
+        isSubmitEnabled = _controller.text.isNotEmpty;
+      });
+    });
     _focusNode = FocusNode(
       onKeyEvent: (node, event) {
         final enterPressedWithoutShift = event is KeyDownEvent &&
@@ -230,11 +236,9 @@ class _MessageInputBarState extends State<_MessageInputBar> {
               }.contains(key),
             );
 
-        if (enterPressedWithoutShift) {
+        if (enterPressedWithoutShift && isSubmitEnabled) {
           widget.onSendMessage(_controller.text);
           _controller.clear();
-          return KeyEventResult.handled;
-        } else if (event is KeyRepeatEvent) {
           return KeyEventResult.handled;
         } else {
           return KeyEventResult.ignored;
@@ -253,6 +257,19 @@ class _MessageInputBarState extends State<_MessageInputBar> {
     } else {
       dropdownCallback = null;
     }
+
+    final Function(String)? submitCallback;
+    final Function()? sendPressedCallback;
+    final Icon sendIcon;
+    if(isSubmitEnabled){
+      submitCallback = widget.onSendMessage;
+      sendPressedCallback = () => widget.onSendMessage(_controller.value.text);
+      sendIcon = const Icon(Icons.send);
+    } else {
+      submitCallback = null;
+      sendPressedCallback = null;
+      sendIcon = const Icon(Icons.send_outlined);
+    }
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -265,12 +282,11 @@ class _MessageInputBarState extends State<_MessageInputBar> {
               focusNode: _focusNode,
               controller: _controller,
               enabled: widget.isEnabled,
-              onSubmitted: widget.onSendMessage,
+              onSubmitted: submitCallback,
               decoration: InputDecoration(
                 suffixIcon: IconButton(
-                  onPressed: () =>
-                      {widget.onSendMessage(_controller.value.text)},
-                  icon: const Icon(Icons.send),
+                  onPressed: sendPressedCallback,
+                  icon: sendIcon,
                 ),
                 border: const OutlineInputBorder(),
                 hintText: S.current.chat_text_input_hint,

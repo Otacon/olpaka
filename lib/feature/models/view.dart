@@ -4,12 +4,12 @@ import 'package:olpaka/feature/models/events.dart';
 import 'package:olpaka/feature/models/state.dart';
 import 'package:olpaka/feature/models/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
+import 'package:olpaka/ui/empty_screen.dart';
+import 'package:olpaka/ui/loading.dart';
 import 'package:stacked/stacked.dart';
 
 class ModelsScreen extends StatelessWidget {
-  ModelsScreen({super.key});
-
-  final TextEditingController _controller = TextEditingController();
+  const ModelsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,19 +29,43 @@ class ModelsScreen extends StatelessWidget {
                 title: event.title,
                 message: event.message,
               );
+            case ModelsEventShowRemoveModelDialog():
+              _showRemoveModelDialog(
+                context: context,
+                modelName: event.modelName,
+                modelId: event.modelId,
+                positiveAction: viewModel.onConfirmRemoveModel,
+              );
           }
         });
         viewModel.onCreate();
       },
       builder: (context, viewModel, child) {
         final state = viewModel.state;
-        final content = switch (state) {
-          ModelsStateLoading() => _Loading(),
-          ModelsStateLoaded() => _Content(
-              models: state.models,
-              onRemoveModel: viewModel.removeModel,
-            ),
-        };
+        final Widget content;
+        switch (state) {
+          case ModelsStateLoading():
+            content = const Loading();
+          case ModelsStateContent():
+            content = _content(
+              state.models,
+              viewModel.onRemoveModel,
+            );
+          case ModelsStateError():
+            final String ctaText = state.ctaText ?? "";
+            final Function()? onCtaClicked;
+            if (state.ctaText != null) {
+              onCtaClicked = viewModel.onRefreshClicked;
+            } else {
+              onCtaClicked = null;
+            }
+            content = EmptyScreen(
+              header: state.title,
+              body: state.message,
+              ctaText: ctaText,
+              onCtaClicked: onCtaClicked,
+            );
+        }
         return Scaffold(
           appBar: AppBar(
             elevation: 4,
@@ -67,56 +91,53 @@ class ModelsScreen extends StatelessWidget {
     );
   }
 
-  _showDownloadModelDialog({
-    required BuildContext context,
-    required Function(String) positiveAction,
-  }) {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(S.current.models_dialog_download_model_title),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(S.current.models_dialog_download_model_description),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _controller,
-                onSubmitted: (text) {
-                  Navigator.of(context).pop(false);
-                  positiveAction(text);
-                  _controller.clear();
-                },
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  hintText: S.current.models_dialog_download_model_text_hint,
-                ),
-              ),
-            ],
+  _content(
+    List<ModelItem> models,
+    Function(ModelItem) onRemoveModel,
+  ) {
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            itemCount: models.length,
+            itemBuilder: (context, index) {
+              final model = models[index];
+              final Widget leading;
+              final Widget? trailing;
+              if (model.isLoading) {
+                leading = SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    value: model.progress,
+                  ),
+                );
+                trailing = null;
+              } else {
+                leading = const Icon(Icons.storage);
+                trailing = FilledButton(
+                  onPressed: () => onRemoveModel(model),
+                  child: Text(S.current.models_action_remove_model),
+                );
+              }
+              return Column(
+                children: [
+                  ListTile(
+                    title: Text(model.title),
+                    subtitle: Text(model.subtitle),
+                    leading: leading,
+                    trailing: trailing,
+                    tileColor: Theme.of(context).colorScheme.surface,
+                  ),
+                  const Divider(
+                    height: 0,
+                  )
+                ],
+              );
+            },
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-                _controller.clear();
-              },
-              child:
-                  Text(S.current.models_dialog_download_model_action_negative),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-                positiveAction(_controller.value.text);
-                _controller.clear();
-              },
-              child:
-                  Text(S.current.models_dialog_download_model_action_positive),
-            )
-          ],
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -144,78 +165,121 @@ class ModelsScreen extends StatelessWidget {
       },
     );
   }
-}
 
-class _Content extends StatelessWidget {
-  const _Content({
-    required this.models,
-    required this.onRemoveModel,
-  });
+  _showDownloadModelDialog({
+    required BuildContext context,
+    required Function(String) positiveAction,
+  }) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return _DownloadModelDialog(positiveAction);
+      },
+    );
+  }
 
-  final List<ModelItem> models;
-  final Function(ModelItem) onRemoveModel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            itemCount: models.length,
-            itemBuilder: (context, index) {
-              final model = models[index];
-              final Widget leading;
-              final Widget? trailing;
-              if (model.isLoading) {
-                leading = SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    value: model.progress,
-                  ),
-                );
-                trailing = null;
-              } else {
-                leading = const Icon(Icons.storage_outlined);
-                trailing = FilledButton(
-                  onPressed: () => onRemoveModel(model),
-                  child: Text(S.current.models_action_remove_model),
-                );
-              }
-              return Column(
-                children: [
-                  ListTile(
-                    title: Text(model.title),
-                    subtitle: Text(model.subtitle),
-                    leading: leading,
-                    trailing: trailing,
-                    tileColor: Theme.of(context).colorScheme.surface,
-                  ),
-                  const Divider(
-                    height: 0,
-                  )
-                ],
-              );
-            },
-          ),
-        ),
-      ],
+  _showRemoveModelDialog({
+    required BuildContext context,
+    required String modelName,
+    required String modelId,
+    required Function(String) positiveAction,
+  }) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(S.current.models_dialog_remove_model_title),
+          content:
+              Text(S.current.models_dialog_remove_model_description(modelName)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.current.models_dialog_remove_model_action_negative),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                positiveAction(modelId);
+              },
+              child: Text(S.current.models_dialog_remove_model_action_positive),
+            )
+          ],
+        );
+      },
     );
   }
 }
 
-class _Loading extends StatelessWidget {
+class _DownloadModelDialog extends StatefulWidget {
+  final Function(String) positiveAction;
+
+  const _DownloadModelDialog(this.positiveAction);
+
+  @override
+  State<StatefulWidget> createState() {
+    return _DownloadModelDialogState();
+  }
+}
+
+class _DownloadModelDialogState extends State<_DownloadModelDialog> {
+  final TextEditingController _controller = TextEditingController();
+  bool submitEnabled = false;
+
+  @override
+  void initState() {
+    _controller.addListener(() {
+      setState(() => submitEnabled = _controller.text.isNotEmpty);
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    final Function(String)? submitCallback;
+    final Function()? positiveButtonCallback;
+    if (submitEnabled) {
+      submitCallback = (modelName) => _onSubmit(context, modelName);
+      positiveButtonCallback = () => _onSubmit(context, _controller.text);
+    } else {
+      submitCallback = null;
+      positiveButtonCallback = null;
+    }
+
+    return AlertDialog(
+      title: Text(S.current.models_dialog_download_model_title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(),
+          Text(S.current.models_dialog_download_model_description),
           const SizedBox(height: 16),
-          Text(S.current.onboarding_loading),
+          TextField(
+            controller: _controller,
+            onSubmitted: submitCallback,
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: S.current.models_dialog_download_model_text_hint,
+            ),
+          ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(S.current.models_dialog_download_model_action_negative),
+        ),
+        FilledButton(
+          onPressed: positiveButtonCallback,
+          child: Text(S.current.models_dialog_download_model_action_positive),
+        )
+      ],
     );
+  }
+
+  _onSubmit(BuildContext context, String modelName) {
+    Navigator.of(context).pop(false);
+    widget.positiveAction(modelName);
+    _controller.clear();
   }
 }

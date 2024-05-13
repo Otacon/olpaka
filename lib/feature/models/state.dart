@@ -3,10 +3,18 @@ sealed class ModelsState {}
 
 class ModelsStateLoading extends ModelsState {}
 
-class ModelsStateLoaded extends ModelsState {
+class ModelsStateContent extends ModelsState {
   final List<ModelItem> models;
 
-  ModelsStateLoaded(this.models);
+  ModelsStateContent(this.models);
+}
+
+class ModelsStateError extends ModelsState{
+  final String title;
+  final String message;
+  final String? ctaText;
+
+  ModelsStateError(this.title, this.message, {this.ctaText});
 }
 
 

@@ -11,3 +11,10 @@ class ModelsEventShowError extends ModelsEvent {
     required this.message,
   });
 }
+
+class ModelsEventShowRemoveModelDialog extends ModelsEvent {
+  final String modelId;
+  final String modelName;
+
+  ModelsEventShowRemoveModelDialog(this.modelId, this.modelName);
+}

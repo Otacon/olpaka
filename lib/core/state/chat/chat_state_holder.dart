@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:olpaka/core/ollama/generate_streaming_result.dart';
 import 'package:olpaka/core/ollama/repository.dart';
 import 'package:olpaka/core/state/chat/chat_message_domain.dart';
 import 'package:olpaka/core/state/chat/send_message_result.dart';
