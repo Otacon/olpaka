@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:olpaka/app/view_model.dart';
 import 'package:olpaka/core/router.dart';
-import 'package:olpaka/core/state/theme_manager.dart';
+import 'package:olpaka/core/state/theme/theme_domain.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
 
@@ -11,15 +12,19 @@ class OlpakaApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ThemeStateHolder>.reactive(
+    return ViewModelBuilder<AppViewModel>.reactive(
       viewModelBuilder: () => GetIt.I.get(),
-      builder: (context, themeManager, child) {
-        final themeMode = switch(themeManager.themeMode){
+      onViewModelReady: (viewModel){
+        viewModel.onCreate();
+      },
+      builder: (context, viewModel, child) {
+        final state = viewModel.state;
+        final themeMode = switch(state.themeMode){
           OlpakaThemeMode.system => ThemeMode.system,
           OlpakaThemeMode.dark => ThemeMode.dark,
           OlpakaThemeMode.light => ThemeMode.light,
         };
-        final color = switch(themeManager.themeColor){
+        final color = switch(state.themeColor){
           OlpakaThemeColor.olpaka => const Color(0xFFF21368),
           OlpakaThemeColor.red => Colors.red,
           OlpakaThemeColor.purple => Colors.purple,

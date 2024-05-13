@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:olpaka/core/ollama/list_models_result.dart';
 import 'package:olpaka/core/ollama/repository.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';

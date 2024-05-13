@@ -1,36 +1,31 @@
-import 'package:olpaka/core/state/theme_manager.dart';
+import 'package:olpaka/core/state/theme/theme_domain.dart';
+import 'package:olpaka/core/state/theme/theme_state_holder.dart';
+import 'package:olpaka/feature/settings/state.dart';
 import 'package:stacked/stacked.dart';
 
 class SettingsViewModel extends BaseViewModel {
-
   SettingsState state = SettingsState();
-  final ThemeStateHolder themeManager;
+  final ThemeStateHolder _themeManager;
 
-  SettingsViewModel(this.themeManager);
+  SettingsViewModel(this._themeManager);
 
   onCreate() async {
-    state = SettingsState(themeManager.themeMode, themeManager.themeColor);
+    state = SettingsState(
+      _themeManager.themeMode.value,
+      _themeManager.themeColor.value,
+    );
   }
 
   onThemeModeChanged(OlpakaThemeMode themeMode) async {
-    themeManager.setThemeMode(themeMode);
+    _themeManager.setThemeMode(themeMode);
     state = SettingsState(themeMode, state.themeColor);
     notifyListeners();
   }
 
   onSeedColorChanged(OlpakaThemeColor color) async {
-    themeManager.setThemeColor(color);
+    _themeManager.setThemeColor(color);
     state = SettingsState(state.themeMode, color);
     notifyListeners();
   }
-}
 
-class SettingsState {
-  final OlpakaThemeMode themeMode;
-  final OlpakaThemeColor themeColor;
-
-  SettingsState([
-    this.themeMode = OlpakaThemeMode.system,
-    this.themeColor = OlpakaThemeColor.olpaka,
-  ]);
 }

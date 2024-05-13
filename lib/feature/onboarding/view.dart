@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
-import 'package:markdown_widget/markdown_widget.dart';
 import 'package:olpaka/feature/onboarding/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
+import 'package:olpaka/ui/loading.dart';
+import 'package:olpaka/ui/markdown.dart';
 import 'package:stacked/stacked.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -36,7 +37,7 @@ class OnboardingScreen extends StatelessWidget {
             ),
           ),
           body: switch (state) {
-            OnboardingStateLoading() => _Loading(),
+            OnboardingStateLoading() => const Loading(),
             OnboardingStateInstallOllama() => _Loaded(
                 step: _Step.installOllama,
                 error: null,
@@ -59,21 +60,6 @@ class OnboardingScreen extends StatelessWidget {
   }
 }
 
-class _Loading extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 16),
-          Text(S.current.onboarding_loading),
-        ],
-      ),
-    );
-  }
-}
 
 class _Loaded extends StatelessWidget {
   final _Step step;
@@ -225,29 +211,23 @@ class _StepInstallModel extends StatelessWidget {
           const SizedBox(height: 16),
           Text(S.current.onboarding_install_model_outro_1),
           const SizedBox(height: 16),
-          MarkdownBlock(
-            config: _markdownConfig(context),
-            data: "```bash\nollama pull <model_name>\n```",
+          const Markdown(
+            "```bash\nollama pull <model_name>\n```",
             selectable: true,
           ),
           const SizedBox(height: 16),
           Text(S.current.onboarding_install_model_outro_2),
           if (errorMessage != null)
-          Card.filled(
-              color: Theme.of(context).colorScheme.errorContainer,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(errorMessage),
-              ))
+            Card.filled(
+                color: Theme.of(context).colorScheme.errorContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(errorMessage),
+                ))
         ],
       ),
     );
   }
-}
-
-_markdownConfig(BuildContext context) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  return isDark ? MarkdownConfig.darkConfig : MarkdownConfig.defaultConfig;
 }
 
 enum _Step {
