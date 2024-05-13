@@ -29,7 +29,7 @@ class HomeView extends StatelessWidget {
           content = const SettingsScreen();
           selectedIndex = 2;
         } else if (state.downloads.isSelected) {
-          content = ModelsScreen();
+          content = const ModelsScreen();
           selectedIndex = 1;
         } else {
           content = ChatScreen();
