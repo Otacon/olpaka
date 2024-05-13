@@ -32,7 +32,7 @@ class HomeView extends StatelessWidget {
           content = ModelsScreen();
           selectedIndex = 1;
         } else {
-          content = const ChatScreen();
+          content = ChatScreen();
           selectedIndex = 0;
         }
 

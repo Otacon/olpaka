@@ -1,125 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
-import 'package:markdown_widget/markdown_widget.dart';
-import 'package:olpaka/feature/chat/events.dart';
 import 'package:olpaka/feature/chat/state.dart';
 import 'package:olpaka/feature/chat/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
+import 'package:olpaka/ui/empty_screen.dart';
+import 'package:olpaka/ui/loading.dart';
+import 'package:olpaka/ui/markdown.dart';
 import 'package:stacked/stacked.dart';
 
 class ChatScreen extends StatelessWidget {
-  const ChatScreen({super.key});
+  ChatScreen({super.key});
+
+  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ChatViewModel>.reactive(
       viewModelBuilder: () => GetIt.I.get(),
       onViewModelReady: (viewModel) {
-        viewModel.events.listen((event) {
-          switch (event) {
-            case GenericError():
-              _showErrorDialog(
-                  context: context,
-                  title: event.title,
-                  message: event.message,
-                  positive: S.current.error_generic_positive,
-                  positiveAction: () => {});
-            case OllamaNotFound():
-              _showErrorDialog(
-                  context: context,
-                  title: event.title,
-                  message: event.message,
-                  positive: event.positive,
-                  positiveAction: () => {viewModel.onRefresh()});
-            case ModelNotFound():
-              _showErrorDialog(
-                  context: context,
-                  title: event.title,
-                  message: event.message,
-                  positive: event.positive,
-                  positiveAction: () => {});
-          }
-        });
+        viewModel.events.listen((event) {});
         viewModel.onCreate();
       },
       builder: (context, viewModel, child) {
         final state = viewModel.state;
         return Scaffold(
-            appBar: AppBar(
-              elevation: 4,
-              shadowColor: Theme.of(context).shadowColor,
-              centerTitle: true,
-              title: Text(
-                S.current.app_name,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
+          appBar: AppBar(
+            elevation: 4,
+            shadowColor: Theme.of(context).shadowColor,
+            centerTitle: true,
+            title: Text(
+              S.current.app_name,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-            body: switch (state) {
-              ChatStateLoading() => Container(),
-              ChatStateContent() => _Content(
-                  messages: state.messages,
-                  models: state.models,
-                  selectedModel: state.selectedModel,
-                  isEnabled: !state.isGeneratingMessage,
-                  onModelSelected: viewModel.onModelChanged,
-                  onSendMessage: viewModel.onSendMessage,
-                ),
-              ChatStateError() => Container(),
-            });
-      },
-    );
-  }
-
-  _showErrorDialog({
-    required BuildContext context,
-    required String title,
-    required String message,
-    required String positive,
-    required Function() positiveAction,
-  }) {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: [
-            TextButton(
-                onPressed: () =>
-                    {Navigator.of(context).pop(false), positiveAction()},
-                child: Text(positive))
-          ],
+          ),
+          body: switch (state) {
+            ChatStateLoading() => const Loading(),
+            ChatStateContent() => _content(
+                context,
+                messages: state.messages,
+                models: state.models,
+                selectedModel: state.selectedModel,
+                isEnabled: !state.isGeneratingMessage,
+                onModelSelected: viewModel.onModelChanged,
+                onSendMessage: viewModel.onSendMessage,
+              ),
+            ChatStateError() => EmptyScreen(
+                header: state.title,
+                body: state.message,
+                ctaText: state.ctaText,
+                onCtaClicked: viewModel.onRefresh,
+              ),
+          },
         );
       },
     );
   }
-}
 
-class _Content extends StatelessWidget {
-  _Content({
-    required this.messages,
-    required this.models,
-    required this.onSendMessage,
-    required this.onModelSelected,
-    this.isEnabled = true,
-    this.selectedModel,
-  });
-
-  final List<ChatMessage> messages;
-  final List<ChatModel> models;
-  final ChatModel? selectedModel;
-  final bool isEnabled;
-  final Function(String) onSendMessage;
-  final Function(ChatModel?) onModelSelected;
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final messageMinWidth = 0.1 * screenWidth;
-    final messageMaxWidth = 0.9 * screenWidth;
+  Widget _content(
+    BuildContext context, {
+    required List<ChatMessage> messages,
+    required List<ChatModel> models,
+    required Function(String) onSendMessage,
+    required Function(ChatModel?) onModelSelected,
+    bool isEnabled = true,
+    ChatModel? selectedModel,
+  }) {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
@@ -127,140 +74,90 @@ class _Content extends StatelessWidget {
         curve: Curves.linear,
       );
     });
+
+    final Widget content;
+    if (messages.isEmpty) {
+      content = EmptyScreen(
+        header: S.current.chat_empty_screen_title,
+        body: S.current.chat_empty_screen_message,
+      );
+    } else {
+      content = ListView.builder(
+        controller: _scrollController,
+        itemCount: messages.length,
+        itemBuilder: (context, index) {
+          final message = messages[index];
+          return switch (message) {
+            ChatMessageUser() => _chatMessage(
+                context,
+                sender: S.current.chat_user_name,
+                text: message.message,
+              ),
+            ChatMessageError() => Container(),
+            ChatMessageAssistant() => _chatMessage(
+                context,
+                sender: S.current.chat_assistant_name,
+                text: message.message,
+                showLoading: message.isLoading,
+              ),
+          };
+        },
+      );
+    }
     return Column(
       children: [
-        Expanded(
-          child: ListView.builder(
-              controller: _scrollController,
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final message = messages[index];
-                return switch (message) {
-                  ChatMessageUser() => Row(
-                      children: [
-                        Container(
-                          constraints: BoxConstraints(
-                            minWidth: messageMinWidth,
-                            maxWidth: messageMaxWidth,
-                          ),
-                          child: _OwnMessage(
-                            text: message.message,
-                          ),
-                        ),
-                        const Spacer(),
-                      ],
-                    ),
-                  ChatMessageError() => Container(),
-                  ChatMessageAssistant() => Row(
-                      children: [
-                        const Spacer(),
-                        Container(
-                          constraints: BoxConstraints(
-                            minWidth: messageMinWidth,
-                            maxWidth: messageMaxWidth,
-                          ),
-                          child: _AssistantMessage(
-                            text: message.message,
-                            isLoading: message.isLoading,
-                          ),
-                        ),
-                      ],
-                    ),
-                };
-              }),
-        ),
-        _MessageInputBar(
-          isEnabled: isEnabled,
-          onSendMessage: onSendMessage,
-          onModelSelected: onModelSelected,
-          selectedModel: selectedModel,
-          models: models,
+        Expanded(child: content),
+        FractionallySizedBox(
+          widthFactor: 0.9,
+          child: _MessageInputBar(
+            isEnabled: isEnabled,
+            onSendMessage: onSendMessage,
+            onModelSelected: onModelSelected,
+            selectedModel: selectedModel,
+            models: models,
+          ),
         ),
       ],
     );
   }
-}
 
-class _OwnMessage extends StatelessWidget {
-  const _OwnMessage({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.only(
-          left: 16.0,
-          right: 16.0,
-          top: 16.0,
-        ),
-        child: Card.filled(
-          elevation: 4,
-          color: Theme.of(context).colorScheme.surfaceVariant,
+  Widget _chatMessage(
+    BuildContext context, {
+    required String sender,
+    required String text,
+    bool showLoading = false,
+  }) {
+    return FractionallySizedBox(
+      widthFactor: 0.75,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Card.outlined(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8.0,
-              horizontal: 16.0,
-            ),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Text(
-                  S.current.chat_you_name,
-                  style: Theme.of(context).textTheme.titleLarge,
+                Row(
+                  children: [
+                    Text(
+                      sender,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(width: 16.0),
+                    Visibility(
+                      visible: showLoading,
+                      child: const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  ],
                 ),
-                const SizedBox(width: 16.0),
-                MarkdownBlock(
-                  config: _markdownConfig(context),
-                  data: text,
-                  selectable: true,
-                )
+                Markdown(text, selectable: true)
               ],
             ),
-          ),
-        ));
-  }
-}
-
-class _AssistantMessage extends StatelessWidget {
-  const _AssistantMessage({
-    required this.text,
-    required this.isLoading,
-  });
-
-  final String text;
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 16.0,
-      ),
-      child: Card.outlined(
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8.0,
-            horizontal: 16.0,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                S.current.chat_assistant_name,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              MarkdownBlock(
-                config: _markdownConfig(context),
-                data: text,
-                selectable: true,
-              )
-            ],
           ),
         ),
       ),
@@ -268,30 +165,66 @@ class _AssistantMessage extends StatelessWidget {
   }
 }
 
-class _MessageInputBar extends StatelessWidget {
-  _MessageInputBar({
-    required this.isEnabled,
-    required this.onSendMessage,
-    required this.onModelSelected,
-    required this.models,
-    this.selectedModel,
-  });
-
+class _MessageInputBar extends StatefulWidget {
   final bool isEnabled;
-  final Function(String) onSendMessage;
-  final Function(ChatModel?) onModelSelected;
   final ChatModel? selectedModel;
   final List<ChatModel> models;
+  final Function(String) onSendMessage;
+  final Function(ChatModel?) onModelSelected;
+
+  const _MessageInputBar({
+    required this.isEnabled,
+    required this.onSendMessage,
+    required this.models,
+    required this.selectedModel,
+    required this.onModelSelected,
+  });
+
+  @override
+  State<StatefulWidget> createState() {
+    return _MessageInputBarState();
+  }
+}
+
+class _MessageInputBarState extends State<_MessageInputBar> {
+  _MessageInputBarState();
 
   final TextEditingController _controller = TextEditingController();
-  final _focusNode = FocusNode();
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    _focusNode = FocusNode(
+      onKeyEvent: (node, event) {
+        final enterPressedWithoutShift = event is KeyDownEvent &&
+            event.physicalKey == PhysicalKeyboardKey.enter &&
+            !HardwareKeyboard.instance.physicalKeysPressed.any(
+              (key) => <PhysicalKeyboardKey>{
+                PhysicalKeyboardKey.shiftLeft,
+                PhysicalKeyboardKey.shiftRight,
+              }.contains(key),
+            );
+
+        if (enterPressedWithoutShift) {
+          widget.onSendMessage(_controller.text);
+          _controller.clear();
+          return KeyEventResult.handled;
+        } else if (event is KeyRepeatEvent) {
+          return KeyEventResult.handled;
+        } else {
+          return KeyEventResult.ignored;
+        }
+      },
+    );
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final Function(ChatModel?)? dropdownCallback;
-    if (isEnabled) {
+    if (widget.isEnabled) {
       _focusNode.requestFocus();
-      dropdownCallback = onModelSelected;
+      dropdownCallback = widget.onModelSelected;
     } else {
       dropdownCallback = null;
     }
@@ -302,13 +235,16 @@ class _MessageInputBar extends StatelessWidget {
         children: [
           Expanded(
             child: TextField(
+              maxLines: 3,
+              minLines: 1,
               focusNode: _focusNode,
               controller: _controller,
-              enabled: isEnabled,
-              onSubmitted: onSendMessage,
+              enabled: widget.isEnabled,
+              onSubmitted: widget.onSendMessage,
               decoration: InputDecoration(
                 suffixIcon: IconButton(
-                  onPressed: () => {onSendMessage(_controller.value.text)},
+                  onPressed: () =>
+                      {widget.onSendMessage(_controller.value.text)},
                   icon: const Icon(Icons.send),
                 ),
                 border: const OutlineInputBorder(),
@@ -320,8 +256,8 @@ class _MessageInputBar extends StatelessWidget {
           DropdownButton<ChatModel>(
             hint: Text(S.current.chat_model_dropdown_hint),
             onChanged: dropdownCallback,
-            value: selectedModel,
-            items: models
+            value: widget.selectedModel,
+            items: widget.models
                 .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
                 .toList(),
           ),
@@ -329,9 +265,4 @@ class _MessageInputBar extends StatelessWidget {
       ),
     );
   }
-}
-
-_markdownConfig(BuildContext context) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  return isDark ? MarkdownConfig.darkConfig : MarkdownConfig.defaultConfig;
 }

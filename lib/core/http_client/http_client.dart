@@ -24,6 +24,8 @@ class HttpClient {
       return _handleResponse(response);
     } on SocketException catch (e) {
       return _handleException(e);
+    } on ClientException catch(e) {
+      return _handleClientException(e);
     }
   }
 
@@ -47,7 +49,9 @@ class HttpClient {
         return HttpStreamingResponseSuccess(chunkStream);
       }
       return HttpStreamingResponseError(statusCode, body);
-    } on SocketException catch (_){
+    } on SocketException catch (_) {
+      return HttpStreamingResponseConnectionError();
+    } on ClientException catch(_) {
       return HttpStreamingResponseConnectionError();
     }
   }
@@ -64,6 +68,8 @@ class HttpClient {
       return _handleResponse(response);
     } on SocketException catch (e) {
       return _handleException(e);
+    } on ClientException catch(e) {
+      return _handleClientException(e);
     }
   }
 
@@ -75,6 +81,8 @@ class HttpClient {
       return _handleResponse(response);
     } on SocketException catch (e) {
       return _handleException(e);
+    } on ClientException catch(e) {
+      return _handleClientException(e);
     }
   }
 
@@ -92,6 +100,10 @@ class HttpClient {
   }
 
   HttpResponse _handleException(SocketException exception) {
+    return HttpResponseConnectionError();
+  }
+
+  HttpResponse _handleClientException(ClientException exception){
     return HttpResponseConnectionError();
   }
 }
@@ -114,7 +126,6 @@ class HttpStreamingResponseError extends HttpStreamingResponse {
 
   HttpStreamingResponseError(this.code, this.message);
 }
-
 
 sealed class HttpResponse {}
 

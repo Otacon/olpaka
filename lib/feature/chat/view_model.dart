@@ -82,31 +82,42 @@ class ChatViewModel extends BaseViewModel {
   }
 
   _load() async {
+    state = ChatStateLoading();
+    notifyListeners();
     final response = await _modelsState.refresh();
     switch (response) {
       case ListModelResultError():
       case ListModelResultConnectionError():
-        //TODO trigger error
+        state = ChatStateError(
+          _s.chat_missing_ollama_error_title,
+          _s.chat_missing_ollama_error_message,
+          _s.chat_missing_ollama_error_positive,
+        );
+        notifyListeners();
         return;
       case ListModelsResultSuccess():
     }
     final models = _getModels();
-    if(models.isEmpty){
-      //TODO handle empty models
+    if (models.isEmpty) {
+      state = ChatStateError(
+        _s.chat_missing_model_error_title,
+        _s.chat_missing_model_error_message,
+        _s.chat_missing_model_error_positive,
+      );
+    } else {
+      state = ChatStateContent(
+        isGeneratingMessage: false,
+        selectedModel: models.first,
+        models: models,
+        messages: _getMessages(),
+      );
     }
-    state = ChatStateContent(
-      isGeneratingMessage: false,
-      selectedModel: models.first,
-      models: models,
-      messages: _getMessages(),
-    );
     notifyListeners();
-    return true;
   }
 
   _onModelsChanged() {
     final currentState = state;
-    switch(currentState){
+    switch (currentState) {
       case ChatStateError():
       case ChatStateLoading():
         return;
@@ -115,17 +126,16 @@ class ChatViewModel extends BaseViewModel {
     final models = _getModels();
     //TODO handle selected model
     state = ChatStateContent(
-      selectedModel: currentState.selectedModel,
-      models : models,
-      messages: _getMessages(),
-      isGeneratingMessage: currentState.isGeneratingMessage
-    );
+        selectedModel: currentState.selectedModel,
+        models: models,
+        messages: _getMessages(),
+        isGeneratingMessage: currentState.isGeneratingMessage);
     notifyListeners();
   }
 
   _onChatChanged() {
     final currentState = state;
-    switch(currentState){
+    switch (currentState) {
       case ChatStateLoading():
       case ChatStateError():
         return;
@@ -140,11 +150,11 @@ class ChatViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  List<ChatModel> _getModels(){
+  List<ChatModel> _getModels() {
     return _modelsState.cachedModels.value.map(_domainToChatModel).toList();
   }
 
-  List<ChatMessage> _getMessages(){
+  List<ChatMessage> _getMessages() {
     return _chatState.messages.value.map(_domainToChatMessage).toList();
   }
 

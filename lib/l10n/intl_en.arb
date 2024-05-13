@@ -5,15 +5,18 @@
   "chat_model_dropdown_hint": "Selected model",
 
   "chat_assistant_name" : "Assistant",
-  "chat_you_name" : "You",
+  "chat_user_name" : "You",
 
-  "chat_missing_model_dialog_title" : "Missing Model",
-  "chat_missing_model_dialog_message" : "You've got no AI models installed.\nDownload a model from the Models tab",
-  "chat_missing_model_dialog_positive" : "Ok",
+  "chat_missing_model_error_title" : "You've got no AI models installed.",
+  "chat_missing_model_error_message" : "To start a new conversation, make sure you've got at least one model installed.\n\nHead to the \"Models\" tab to download your first model.",
+  "chat_missing_model_error_positive" : "Try again",
 
-  "chat_missing_ollama_dialog_title" : "Ollama not found",
-  "chat_missing_ollama_dialog_message" : "Looks like Ollama is not installed. Visit https://ollama.com/download to install it and try again.",
-  "chat_missing_ollama_dialog_positive" : "Done",
+  "chat_missing_ollama_error_title" : "Connection failed",
+  "chat_missing_ollama_error_message" : "Olpaka is not able to communicate with Ollama.\n\nYou could try to fix it by:\n\t• Making sure [Ollama is installed](https://ollama.com/download);\n\t• Checking it is running on port 11434;\n\t• Checking that [CORS is configured correctly](https://github.com/Otacon/olpaka/blob/main/docs/setup_cors.md);\n\nAs a last resort, you could try to restart the app.",
+  "chat_missing_ollama_error_positive" : "Try again",
+
+  "chat_empty_screen_title" : "Heyya!",
+  "chat_empty_screen_message" : "How can I help you today?",
 
   "home_tab_name_chat": "Chat",
   "home_tab_name_models": "Models",
@@ -71,6 +74,8 @@
   "settings_theme_mode_dark": "Dark",
 
   "settings_theme_color": "Theme color",
+
+  "loading": "Loading...",
 
   "error_generic_title": "Error",
   "error_generic_message": "Whoops...Something didn't work. Maybe try to restart Olpaka.",

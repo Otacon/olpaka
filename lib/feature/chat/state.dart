@@ -19,8 +19,9 @@ class ChatStateContent extends ChatState {
 class ChatStateError extends ChatState {
   final String title;
   final String message;
+  final String ctaText;
 
-  ChatStateError(this.title, this.message);
+  ChatStateError(this.title, this.message, this.ctaText);
 }
 
 sealed class ChatMessage{
