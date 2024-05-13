@@ -23,6 +23,7 @@ class ChatStateHolder {
       case GenerateStreamingResultConnectionError():
       case GenerateStreamingResultError():
         _removeMessage(responseIndex);
+        _addMessage(ChatMessageErrorDomain());
         return SendMessageResultError();
     }
 
@@ -56,6 +57,8 @@ class ChatStateHolder {
         updatedMessage = ChatMessageUserDomain(text);
       case ChatMessageAssistantDomain():
         updatedMessage = ChatMessageAssistantDomain(text, isFinalised);
+      case ChatMessageErrorDomain():
+        updatedMessage = ChatMessageErrorDomain();
     }
     currentMessages.removeAt(index);
     currentMessages.insert(index, updatedMessage);

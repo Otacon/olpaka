@@ -28,7 +28,7 @@ class ChatScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             elevation: 4,
-            shadowColor: Theme.of(context).shadowColor,
+            shadowColor: Theme.of(context).colorScheme.shadow,
             centerTitle: true,
             title: Text(
               S.current.app_name,
@@ -67,13 +67,6 @@ class ChatScreen extends StatelessWidget {
     bool isEnabled = true,
     ChatModel? selectedModel,
   }) {
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 3),
-        curve: Curves.linear,
-      );
-    });
 
     final Widget content;
     if (messages.isEmpty) {
@@ -82,6 +75,13 @@ class ChatScreen extends StatelessWidget {
         body: S.current.chat_empty_screen_message,
       );
     } else {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 3),
+          curve: Curves.linear,
+        );
+      });
       content = ListView.builder(
         controller: _scrollController,
         itemCount: messages.length,
@@ -93,7 +93,10 @@ class ChatScreen extends StatelessWidget {
                 sender: S.current.chat_user_name,
                 text: message.message,
               ),
-            ChatMessageError() => Container(),
+            ChatMessageError() => _chatError(
+                context,
+                text: message.message,
+              ),
             ChatMessageAssistant() => _chatMessage(
                 context,
                 sender: S.current.chat_assistant_name,
@@ -158,6 +161,28 @@ class ChatScreen extends StatelessWidget {
                 Markdown(text, selectable: true)
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _chatError(
+    BuildContext context, {
+    required String text,
+  }) {
+    final theme = Theme.of(context);
+    final defaultFont = theme.textTheme.bodyMedium;
+    final textErrorStyle = defaultFont?.copyWith(color: theme.colorScheme.onError);
+    return FractionallySizedBox(
+      widthFactor: 0.75,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Card.outlined(
+          color: theme.colorScheme.error,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(text, style: textErrorStyle),
           ),
         ),
       ),

@@ -12,3 +12,6 @@ class ChatMessageAssistantDomain extends ChatMessageDomain {
 
   ChatMessageAssistantDomain(this.message, this.isFinalised);
 }
+
+class ChatMessageErrorDomain extends ChatMessageDomain {
+}

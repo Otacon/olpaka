@@ -124,7 +124,6 @@ class ChatViewModel extends BaseViewModel {
       case ChatStateContent():
     }
     final models = _getModels();
-    //TODO handle selected model
     state = ChatStateContent(
         selectedModel: currentState.selectedModel,
         models: models,
@@ -170,6 +169,8 @@ class ChatViewModel extends BaseViewModel {
       case ChatMessageAssistantDomain():
         chatMessage = ChatMessageAssistant(message.message,
             isLoading: !message.isFinalised);
+      case ChatMessageErrorDomain():
+        chatMessage = ChatMessageError(_s.chat_message_error);
     }
     return chatMessage;
   }

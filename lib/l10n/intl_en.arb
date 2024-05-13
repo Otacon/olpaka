@@ -18,6 +18,8 @@
   "chat_empty_screen_title" : "Heyya!",
   "chat_empty_screen_message" : "How can I help you today?",
 
+  "chat_message_error": "Whooops...something went wrong when genereating the answer...",
+
   "home_tab_name_chat": "Chat",
   "home_tab_name_models": "Models",
   "home_tab_name_settings": "Settings",
