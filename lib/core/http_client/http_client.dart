@@ -24,7 +24,7 @@ class HttpClient {
       return _handleResponse(response);
     } on SocketException catch (e) {
       return _handleException(e);
-    } on ClientException catch(e) {
+    } on ClientException catch (e) {
       return _handleClientException(e);
     }
   }
@@ -51,7 +51,7 @@ class HttpClient {
       return HttpStreamingResponseError(statusCode, body);
     } on SocketException catch (_) {
       return HttpStreamingResponseConnectionError();
-    } on ClientException catch(_) {
+    } on ClientException catch (_) {
       return HttpStreamingResponseConnectionError();
     }
   }
@@ -68,7 +68,7 @@ class HttpClient {
       return _handleResponse(response);
     } on SocketException catch (e) {
       return _handleException(e);
-    } on ClientException catch(e) {
+    } on ClientException catch (e) {
       return _handleClientException(e);
     }
   }
@@ -81,7 +81,7 @@ class HttpClient {
       return _handleResponse(response);
     } on SocketException catch (e) {
       return _handleException(e);
-    } on ClientException catch(e) {
+    } on ClientException catch (e) {
       return _handleClientException(e);
     }
   }
@@ -103,7 +103,7 @@ class HttpClient {
     return HttpResponseConnectionError();
   }
 
-  HttpResponse _handleClientException(ClientException exception){
+  HttpResponse _handleClientException(ClientException exception) {
     return HttpResponseConnectionError();
   }
 }

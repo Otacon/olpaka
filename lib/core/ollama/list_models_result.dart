@@ -1,4 +1,3 @@
-
 import 'package:olpaka/core/ollama/model.dart';
 
 sealed class ListModelsResult {}

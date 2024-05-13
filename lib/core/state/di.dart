@@ -1,4 +1,3 @@
-
 import 'package:get_it/get_it.dart';
 import 'package:olpaka/core/state/theme/theme_state_holder.dart';
 

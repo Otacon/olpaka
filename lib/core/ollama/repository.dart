@@ -55,7 +55,7 @@ class OllamaRepository {
       case HttpStreamingResponseSuccess():
         final stream = response.chunks.map((chunk) {
           final chunkJson = jsonDecode(chunk);
-          if(chunkJson["error"] != null){
+          if (chunkJson["error"] != null) {
             return DownloadChunkError(message: chunkJson["error"]);
           } else {
             return DownloadChunkProgress(
@@ -128,5 +128,3 @@ class OllamaRepository {
     );
   }
 }
-
-

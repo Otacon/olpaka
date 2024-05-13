@@ -48,7 +48,7 @@ class ModelStateHolder {
     _addDownloadingModel(downloadingModel);
 
     await for (final downloadChunk in stream) {
-      switch(downloadChunk){
+      switch (downloadChunk) {
         case DownloadChunkError():
           _removeDownloadingModel(modelName);
           await refresh();

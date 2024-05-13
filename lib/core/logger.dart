@@ -6,7 +6,7 @@ final logger = Logger(
     methodCount: 8,
     lineLength: 160,
     printTime: true,
-    printEmojis: false
+    printEmojis: false,
   ),
   output: null,
 );

@@ -1,4 +1,3 @@
-
 class Model {
   final String name;
   final String model;
@@ -34,19 +33,19 @@ class Model {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Model &&
-              runtimeType == other.runtimeType &&
-              name == other.name &&
-              model == other.model &&
-              modifiedAt == other.modifiedAt &&
-              size == other.size &&
-              digest == other.digest &&
-              parentModel == other.parentModel &&
-              format == other.format &&
-              family == other.family &&
-              families == other.families &&
-              parameterSize == other.parameterSize &&
-              quantizationLevel == other.quantizationLevel;
+      other is Model &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          model == other.model &&
+          modifiedAt == other.modifiedAt &&
+          size == other.size &&
+          digest == other.digest &&
+          parentModel == other.parentModel &&
+          format == other.format &&
+          family == other.family &&
+          families == other.families &&
+          parameterSize == other.parameterSize &&
+          quantizationLevel == other.quantizationLevel;
 
   @override
   int get hashCode =>

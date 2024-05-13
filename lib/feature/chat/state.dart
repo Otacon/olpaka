@@ -1,6 +1,6 @@
 sealed class ChatState {}
 
-class ChatStateLoading extends ChatState { }
+class ChatStateLoading extends ChatState {}
 
 class ChatStateContent extends ChatState {
   final ChatModel selectedModel;
@@ -24,28 +24,24 @@ class ChatStateError extends ChatState {
   ChatStateError(this.title, this.message, this.ctaText);
 }
 
-sealed class ChatMessage{
+sealed class ChatMessage {
   final String message;
 
   ChatMessage(this.message);
 }
 
-class ChatMessageUser extends ChatMessage{
-
+class ChatMessageUser extends ChatMessage {
   ChatMessageUser(super.message);
-
 }
 
-class ChatMessageError extends ChatMessage{
+class ChatMessageError extends ChatMessage {
   ChatMessageError(super.message);
-
 }
 
-class ChatMessageAssistant extends ChatMessage{
+class ChatMessageAssistant extends ChatMessage {
   final bool isLoading;
 
   ChatMessageAssistant(super.message, {required this.isLoading});
-
 }
 
 class ChatModel {
