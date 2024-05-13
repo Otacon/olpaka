@@ -1,10 +1,8 @@
 import 'dart:async';
 
-import 'package:olpaka/core/ollama/model.dart';
 import 'package:olpaka/core/ollama/repository.dart';
 import 'package:olpaka/core/state/chat/chat_message_domain.dart';
 import 'package:olpaka/core/state/chat/chat_state_holder.dart';
-import 'package:olpaka/core/state/chat/send_message_result.dart';
 import 'package:olpaka/core/state/models/model_domain.dart';
 import 'package:olpaka/core/state/models/model_state_holder.dart';
 import 'package:olpaka/feature/chat/events.dart';
@@ -19,18 +17,15 @@ class ChatViewModel extends BaseViewModel {
 
   ChatViewModel(this._modelsState, this._chatState, this._s);
 
-  ChatState state = ChatState(
-    isLoading: true,
-    selectedModel: null,
-    models: List.empty(),
-    messages: List.empty(),
-  );
+  ChatState state = ChatStateLoading();
 
   final _events = StreamController<ChatEvent>.broadcast();
 
   Stream<ChatEvent> get events => _events.stream.map((val) => val);
 
   onCreate() async {
+    _modelsState.cachedModels.addListener(_onModelsChanged);
+    _chatState.messages.addListener(_onChatChanged);
     await _load();
   }
 
@@ -42,138 +37,129 @@ class ChatViewModel extends BaseViewModel {
     if (model == null) {
       return;
     }
-    state = ChatState(
-      isLoading: false,
+
+    final currentState = state;
+    switch (currentState) {
+      case ChatStateLoading():
+      case ChatStateError():
+        return;
+      case ChatStateContent():
+    }
+
+    state = ChatStateContent(
       selectedModel: model,
-      models: state.models,
-      messages: state.messages,
+      models: _getModels(),
+      messages: _getMessages(),
+      isGeneratingMessage: currentState.isGeneratingMessage,
     );
     notifyListeners();
   }
 
   onSendMessage(String message) async {
-    final selectedModel = state.selectedModel;
-    if (selectedModel == null) {
-      return;
+    final currentState = state;
+    switch (currentState) {
+      case ChatStateError():
+      case ChatStateLoading():
+        return;
+      case ChatStateContent():
     }
-    state = ChatState(
-      isLoading: true,
-      selectedModel: state.selectedModel,
-      models: state.models,
-      messages: state.messages,
+
+    state = ChatStateContent(
+      selectedModel: currentState.selectedModel,
+      models: _getModels(),
+      messages: _getMessages(),
+      isGeneratingMessage: true,
     );
     notifyListeners();
-    final result = await _chatState.sendMessage(message, selectedModel.id);
-    switch (result) {
-      case SendMessageResultSuccess():
-        break;
-      case SendMessageResultError():
-        _events.add(
-          GenericError(
-            _s.error_generic_title,
-            _s.error_generic_message,
-          ),
-        );
-    }
-    state = ChatState(
-      isLoading: false,
-      selectedModel: state.selectedModel,
-      models: state.models,
-      messages: state.messages,
+    await _chatState.sendMessage(message, currentState.selectedModel.id);
+    state = ChatStateContent(
+      selectedModel: currentState.selectedModel,
+      models: _getModels(),
+      messages: _getMessages(),
+      isGeneratingMessage: false,
     );
     notifyListeners();
   }
 
   _load() async {
     final response = await _modelsState.refresh();
-    final messages =
-        _chatState.messages.value.map(_domainToChatMessage).toList();
-    final List<ChatModel> models;
     switch (response) {
-      case ListModelsResultSuccess():
-        models = response.models.map(_modelToChatModel).toList();
-        if (models.isEmpty) {
-          _events.add(
-            ModelNotFound(
-              _s.chat_missing_model_dialog_title,
-              _s.chat_missing_model_dialog_message,
-              _s.chat_missing_model_dialog_positive,
-            ),
-          );
-        }
-      case ListModelResultConnectionError():
-        models = state.models;
-        _events.add(
-          OllamaNotFound(
-            _s.chat_missing_ollama_dialog_title,
-            _s.chat_missing_ollama_dialog_message,
-            _s.chat_missing_ollama_dialog_positive,
-          ),
-        );
       case ListModelResultError():
-        models = state.models;
-        _events.add(
-          GenericError(
-            _s.error_generic_title,
-            _s.error_generic_message,
-          ),
-        );
+      case ListModelResultConnectionError():
+        //TODO trigger error
+        return;
+      case ListModelsResultSuccess():
     }
-    state = ChatState(
-      isLoading: false,
-      selectedModel: models.firstOrNull,
+    final models = _getModels();
+    if(models.isEmpty){
+      //TODO handle empty models
+    }
+    state = ChatStateContent(
+      isGeneratingMessage: false,
+      selectedModel: models.first,
       models: models,
-      messages: messages,
+      messages: _getMessages(),
     );
     notifyListeners();
-    _modelsState.cachedModels.addListener(_onModelsChanged);
-    _chatState.messages.addListener(_onChatChanged);
+    return true;
   }
 
   _onModelsChanged() {
-    final uiModels =
-        _modelsState.cachedModels.value.map(_domainToChatModel).toList();
-    state = ChatState(
-      isLoading: state.isLoading,
-      selectedModel: state.selectedModel,
-      models: uiModels,
-      messages: state.messages,
+    final currentState = state;
+    switch(currentState){
+      case ChatStateError():
+      case ChatStateLoading():
+        return;
+      case ChatStateContent():
+    }
+    final models = _getModels();
+    //TODO handle selected model
+    state = ChatStateContent(
+      selectedModel: currentState.selectedModel,
+      models : models,
+      messages: _getMessages(),
+      isGeneratingMessage: currentState.isGeneratingMessage
     );
     notifyListeners();
   }
 
   _onChatChanged() {
-    final messages =
-        _chatState.messages.value.map(_domainToChatMessage).toList();
-    state = ChatState(
-      isLoading: state.isLoading,
-      selectedModel: state.selectedModel,
-      models: state.models,
-      messages: messages,
+    final currentState = state;
+    switch(currentState){
+      case ChatStateLoading():
+      case ChatStateError():
+        return;
+      case ChatStateContent():
+    }
+    state = ChatStateContent(
+      isGeneratingMessage: currentState.isGeneratingMessage,
+      selectedModel: currentState.selectedModel,
+      models: _getModels(),
+      messages: _getMessages(),
     );
     notifyListeners();
+  }
+
+  List<ChatModel> _getModels(){
+    return _modelsState.cachedModels.value.map(_domainToChatModel).toList();
+  }
+
+  List<ChatMessage> _getMessages(){
+    return _chatState.messages.value.map(_domainToChatMessage).toList();
   }
 
   ChatModel _domainToChatModel(ModelDomainAvailable model) {
     return ChatModel(model.id, model.name);
   }
 
-  ChatModel _modelToChatModel(Model model) {
-    // TODO map to domain in the layer below.
-    return ChatModel(model.model, model.name);
-  }
-
   ChatMessage _domainToChatMessage(ChatMessageDomain message) {
     final ChatMessage chatMessage;
     switch (message) {
       case ChatMessageUserDomain():
-        chatMessage = ChatMessage(
-            isUser: true, message: message.message, isLoading: false);
+        chatMessage = ChatMessageUser(message.message);
       case ChatMessageAssistantDomain():
-        chatMessage = ChatMessage(
-            isUser: false,
-            message: message.message,
-            isLoading: message.isFinalised);
+        chatMessage = ChatMessageAssistant(message.message,
+            isLoading: !message.isFinalised);
     }
     return chatMessage;
   }

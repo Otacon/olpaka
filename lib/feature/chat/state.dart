@@ -1,28 +1,50 @@
+sealed class ChatState {}
 
-class ChatState {
-  final bool isLoading;
-  final ChatModel? selectedModel;
+class ChatStateLoading extends ChatState { }
+
+class ChatStateContent extends ChatState {
+  final ChatModel selectedModel;
   final List<ChatModel> models;
   final List<ChatMessage> messages;
+  final bool isGeneratingMessage;
 
-  ChatState({
-    required this.isLoading,
+  ChatStateContent({
     required this.selectedModel,
     required this.models,
     required this.messages,
+    required this.isGeneratingMessage,
   });
 }
 
-class ChatMessage {
-  final bool isUser;
+class ChatStateError extends ChatState {
+  final String title;
   final String message;
+
+  ChatStateError(this.title, this.message);
+}
+
+sealed class ChatMessage{
+  final String message;
+
+  ChatMessage(this.message);
+}
+
+class ChatMessageUser extends ChatMessage{
+
+  ChatMessageUser(super.message);
+
+}
+
+class ChatMessageError extends ChatMessage{
+  ChatMessageError(super.message);
+
+}
+
+class ChatMessageAssistant extends ChatMessage{
   final bool isLoading;
 
-  ChatMessage({
-    required this.isUser,
-    this.message = "",
-    this.isLoading = false,
-  });
+  ChatMessageAssistant(super.message, {required this.isLoading});
+
 }
 
 class ChatModel {
@@ -34,10 +56,10 @@ class ChatModel {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is ChatModel &&
-              runtimeType == other.runtimeType &&
-              id == other.id &&
-              name == other.name;
+      other is ChatModel &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name;
 
   @override
   int get hashCode => id.hashCode ^ name.hashCode;

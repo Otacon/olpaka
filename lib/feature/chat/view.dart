@@ -46,24 +46,27 @@ class ChatScreen extends StatelessWidget {
       builder: (context, viewModel, child) {
         final state = viewModel.state;
         return Scaffold(
-          appBar: AppBar(
-            elevation: 4,
-            shadowColor: Theme.of(context).shadowColor,
-            centerTitle: true,
-            title: Text(
-              S.current.app_name,
-              style: Theme.of(context).textTheme.headlineMedium,
+            appBar: AppBar(
+              elevation: 4,
+              shadowColor: Theme.of(context).shadowColor,
+              centerTitle: true,
+              title: Text(
+                S.current.app_name,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
             ),
-          ),
-          body: _Content(
-            messages: state.messages,
-            models: state.models,
-            selectedModel: state.selectedModel,
-            isEnabled: !state.isLoading,
-            onModelSelected: viewModel.onModelChanged,
-            onSendMessage: viewModel.onSendMessage,
-          ),
-        );
+            body: switch (state) {
+              ChatStateLoading() => Container(),
+              ChatStateContent() => _Content(
+                  messages: state.messages,
+                  models: state.models,
+                  selectedModel: state.selectedModel,
+                  isEnabled: !state.isGeneratingMessage,
+                  onModelSelected: viewModel.onModelChanged,
+                  onSendMessage: viewModel.onSendMessage,
+                ),
+              ChatStateError() => Container(),
+            });
       },
     );
   }
@@ -132,38 +135,38 @@ class _Content extends StatelessWidget {
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final message = messages[index];
-                if (message.isUser) {
-                  return Row(
-                    children: [
-                      Container(
-                        constraints: BoxConstraints(
-                          minWidth: messageMinWidth,
-                          maxWidth: messageMaxWidth,
+                return switch (message) {
+                  ChatMessageUser() => Row(
+                      children: [
+                        Container(
+                          constraints: BoxConstraints(
+                            minWidth: messageMinWidth,
+                            maxWidth: messageMaxWidth,
+                          ),
+                          child: _OwnMessage(
+                            text: message.message,
+                          ),
                         ),
-                        child: _OwnMessage(
-                          text: message.message,
+                        const Spacer(),
+                      ],
+                    ),
+                  ChatMessageError() => Container(),
+                  ChatMessageAssistant() => Row(
+                      children: [
+                        const Spacer(),
+                        Container(
+                          constraints: BoxConstraints(
+                            minWidth: messageMinWidth,
+                            maxWidth: messageMaxWidth,
+                          ),
+                          child: _AssistantMessage(
+                            text: message.message,
+                            isLoading: message.isLoading,
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                    ],
-                  );
-                } else {
-                  return Row(
-                    children: [
-                      const Spacer(),
-                      Container(
-                        constraints: BoxConstraints(
-                          minWidth: messageMinWidth,
-                          maxWidth: messageMaxWidth,
-                        ),
-                        child: _AssistantMessage(
-                          text: message.message,
-                          isLoading: message.isLoading,
-                        ),
-                      ),
-                    ],
-                  );
-                }
+                      ],
+                    ),
+                };
               }),
         ),
         _MessageInputBar(
