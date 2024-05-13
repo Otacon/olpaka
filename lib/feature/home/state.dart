@@ -1,4 +1,3 @@
-
 class HomeState {
   final HomeTabChat chat;
   final HomeTabDownloads downloads;
@@ -6,7 +5,6 @@ class HomeState {
 
   HomeState(this.chat, this.downloads, this.settings);
 }
-
 
 sealed class HomeTab {
   final bool isSelected;

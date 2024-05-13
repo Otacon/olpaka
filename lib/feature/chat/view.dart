@@ -261,7 +261,7 @@ class _MessageInputBarState extends State<_MessageInputBar> {
     final Function(String)? submitCallback;
     final Function()? sendPressedCallback;
     final Icon sendIcon;
-    if(isSubmitEnabled){
+    if (isSubmitEnabled) {
       submitCallback = widget.onSendMessage;
       sendPressedCallback = () => widget.onSendMessage(_controller.value.text);
       sendIcon = const Icon(Icons.send);

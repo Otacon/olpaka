@@ -6,6 +6,7 @@ abstract class Preferences {
   abstract final OlpakaThemeColor themeColor;
 
   Future<void> setThemeMode(OlpakaThemeMode mode);
+
   Future<void> setThemeColor(OlpakaThemeColor color);
 }
 

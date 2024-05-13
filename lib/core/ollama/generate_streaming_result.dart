@@ -1,4 +1,3 @@
-
 sealed class GenerateStreamingResult {}
 
 class GenerateStreamingResultSuccess extends GenerateStreamingResult {

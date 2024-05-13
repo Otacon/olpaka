@@ -14,17 +14,17 @@ class OlpakaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<AppViewModel>.reactive(
       viewModelBuilder: () => GetIt.I.get(),
-      onViewModelReady: (viewModel){
+      onViewModelReady: (viewModel) {
         viewModel.onCreate();
       },
       builder: (context, viewModel, child) {
         final state = viewModel.state;
-        final themeMode = switch(state.themeMode){
+        final themeMode = switch (state.themeMode) {
           OlpakaThemeMode.system => ThemeMode.system,
           OlpakaThemeMode.dark => ThemeMode.dark,
           OlpakaThemeMode.light => ThemeMode.light,
         };
-        final color = switch(state.themeColor){
+        final color = switch (state.themeColor) {
           OlpakaThemeColor.olpaka => const Color(0xFFF21368),
           OlpakaThemeColor.red => Colors.red,
           OlpakaThemeColor.purple => Colors.purple,

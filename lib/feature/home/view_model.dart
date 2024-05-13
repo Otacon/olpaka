@@ -6,7 +6,6 @@ import 'package:olpaka/feature/home/state.dart';
 import 'package:stacked/stacked.dart';
 
 class HomeViewModel extends BaseViewModel {
-
   final _events = StreamController<HomeEvent>.broadcast();
   final ModelStateHolder _modelStateHolder;
 
@@ -27,7 +26,7 @@ class HomeViewModel extends BaseViewModel {
   }
 
   onItemTapped(int index) async {
-    if(index == 1 && _downloadsState == DownloadsState.completed){
+    if (index == 1 && _downloadsState == DownloadsState.completed) {
       _downloadsState = DownloadsState.none;
     }
     state = switch (index) {
@@ -53,10 +52,10 @@ class HomeViewModel extends BaseViewModel {
 
   _onModelsChanged() {
     var downloadState = DownloadsState.none;
-    if(!state.downloads.isSelected){
-      if(_modelStateHolder.downloadingModels.value.isNotEmpty){
+    if (!state.downloads.isSelected) {
+      if (_modelStateHolder.downloadingModels.value.isNotEmpty) {
         downloadState = DownloadsState.downloading;
-      } else if(_downloadsState != DownloadsState.none){
+      } else if (_downloadsState != DownloadsState.none) {
         downloadState = DownloadsState.completed;
       }
     }
@@ -64,10 +63,8 @@ class HomeViewModel extends BaseViewModel {
     state = HomeState(
         state.chat,
         HomeTabDownloads(state.downloads.isSelected, downloadState),
-        state.settings
-    );
+        state.settings);
     notifyListeners();
-
   }
 
   @override
@@ -75,6 +72,4 @@ class HomeViewModel extends BaseViewModel {
     _modelStateHolder.cachedModels.removeListener(_onModelsChanged);
     super.dispose();
   }
-
 }
-

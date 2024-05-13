@@ -27,5 +27,4 @@ class SettingsViewModel extends BaseViewModel {
     state = SettingsState(state.themeMode, color);
     notifyListeners();
   }
-
 }

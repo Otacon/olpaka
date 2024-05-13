@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:olpaka/ui/markdown.dart';
 
 class EmptyScreen extends StatelessWidget {
-
   final String header;
   final String? body;
   final VoidCallback? onCtaClicked;
