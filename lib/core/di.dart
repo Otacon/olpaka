@@ -9,7 +9,6 @@ import 'package:olpaka/core/state/di.dart';
 import 'package:olpaka/feature/chat/di.dart';
 import 'package:olpaka/feature/home/di.dart';
 import 'package:olpaka/feature/models/di.dart';
-import 'package:olpaka/feature/onboarding/di.dart';
 import 'package:olpaka/feature/settings/di.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/core/preferences.dart';
@@ -38,7 +37,6 @@ void registerModules() {
   l.registerFactory(() => HttpClient(l.get(), l.get()));
   l.registerFactory(() => OllamaRepository(l.get()));
   registerApp();
-  registerOnboarding();
   registerHome();
   registerChat();
   registerModels();

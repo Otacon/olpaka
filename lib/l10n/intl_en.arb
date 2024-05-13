@@ -3,47 +3,18 @@
 
   "chat_text_input_hint": "Message Olpaka",
   "chat_model_dropdown_hint": "Selected model",
-
-  "chat_assistant_name" : "Assistant",
-  "chat_user_name" : "You",
-
-  "chat_missing_model_error_title" : "You've got no AI models installed.",
-  "chat_missing_model_error_message" : "To start a new conversation, make sure you've got at least one model installed.\n\nHead to the \"Models\" tab to download your first model.",
-  "chat_missing_model_error_positive" : "Try again",
-
-  "chat_empty_screen_title" : "...Howdy...",
-  "chat_empty_screen_message" : "How can I help you today?",
-
+  "chat_assistant_name": "Assistant",
+  "chat_user_name": "You",
+  "chat_missing_model_error_title": "You've got no AI models installed.",
+  "chat_missing_model_error_message": "To start a new conversation, make sure you've got at least one model installed.\n\nHead to the \"Models\" tab to download your first model.",
+  "chat_missing_model_error_positive": "Try again",
+  "chat_empty_screen_title": "...Howdy...",
+  "chat_empty_screen_message": "How can I help you today?",
   "chat_message_error": "Whooops...something went wrong when genereating the answer...",
 
   "home_tab_name_chat": "Chat",
   "home_tab_name_models": "Models",
   "home_tab_name_settings": "Settings",
-
-  "onboarding_title": "Get Started with Olpaka!",
-  "onboarding_loading": "Loading...",
-  "onboarding_action_next": "Done",
-
-  "onboarding_install_ollama_title": "Install Ollama",
-  "onboarding_install_ollama_subtitle": "Get the Backbone Ready",
-  "onboarding_install_ollama_intro": "To kickstart your journey with Olpaka, you'll need to install Ollama, the powerful backend that fuels this app.\n\nDon't worry, Ollama is completely free and open-source, ensuring transparency and flexibility.\nClick here to download and install Ollama on your system.",
-  "onboarding_install_ollama_action": "Install Ollama",
-  "onboarding_install_ollama_outro": "Once installed, ensure that the Ollama service is running on its default port (11434).\n\nThis step is crucial for seamless integration with Olpaka.",
-
-  "onboarding_configure_cors_title": "Setup CORS",
-  "onboarding_configure_cors_subtitle": "Enable Local Access",
-  "onboarding_configure_cors_intro": "Now that Ollama is up and running on your local machine, it's time to ensure seamless communication between Olpaka and Ollama.\n\nYou might have encountered the term \"CORS\" (Cross-Origin Resource Sharing) before.\nEssentially, CORS is a security feature implemented by web browsers to restrict resources (e.g., data or services) from being requested from another domain.\n\nSince this is hosted on GitHub Pages is a different domain from your local machine, CORS needs to be configured to allow communication between them.",
-  "onboarding_configure_cors_action": "Configure CORS",
-  "onboarding_configure_cors_outro": "By setting up CORS correctly, you'll allow Olpaka to seamlessly interact with Ollama running on your local machine.\n\nLet's ensure a smooth sailing for your AI journey!",
-  "onboarding_configure_cors_error": "Can't connect to the Ollama Service. Please make sure you've setup CORS and Ollama is running. Alternatively, try to restart it.",
-
-  "onboarding_install_model_title": "Install Model",
-  "onboarding_install_model_subtitle": "Power Up with AI",
-  "onboarding_install_model_intro": "Now, it's time to infuse your life with the magic of AI by installing a model of your choice into Ollama.\n\nWith Ollama, you have access to a diverse range of AI models provided by renowned entities like Meta, Google, Microsoft, OpenAI, and more.\nEach model boasts unique capabilities, skills, and characteristics, allowing you to tailor your AI experience to your preferences and needs.\n\nTo get started, pick a model from the ollama models library",
-  "onboarding_install_model_action": "Featured Models",
-  "onboarding_install_model_outro_1": "Once you've chosen a model that resonates with you, simply open your shell or command prompt and run the following command:",
-  "onboarding_install_model_outro_2": "Not sure which one to choose? Just use llama3!",
-  "onboarding_install_model_error": "Can't find any model installed. Please install one before you proceed.",
 
   "models_title": "Models",
   "models_state_download": "Downloading...",
@@ -52,30 +23,23 @@
   "models_dialog_download_model_text_hint": "e.g. \"llama3:latest\" or just \"llama3\"",
   "models_dialog_download_model_action_positive": "Download",
   "models_dialog_download_model_action_negative": "Cancel",
-
   "models_dialog_remove_model_title": "Remove downloaded model",
   "models_dialog_remove_model_description": "Do you really want to remove the model {model}?",
   "models_dialog_remove_model_action_positive": "Yes",
   "models_dialog_remove_model_action_negative": "No",
-
   "models_dialog_download_model_error_title": "Unable to download model",
   "models_dialog_download_model_error_message": "Please check that Ollama is running, configured correctly, the model exists in the Ollama library and has not been already downloaded",
-
   "models_dialog_delete_model_error_title": "Unable to delete model",
   "models_dialog_delete_model_error_message": "Please check that Ollama is running, configured correctly, the model exists in the Ollama library and has not been already downloaded",
-
   "models_error_no_models_title": "This is empty...",
   "models_error_no_models_message": "Download your first model by tapping the button below.",
-
   "models_action_remove_model": "Remove",
 
   "settings_title": "Settings",
-
   "settings_theme_mode": "Theme mode",
   "settings_theme_mode_system": "System",
   "settings_theme_mode_light": "Light",
   "settings_theme_mode_dark": "Dark",
-
   "settings_theme_color": "Theme color",
 
   "loading": "Loading...",
@@ -83,7 +47,6 @@
   "error_missing_ollama_title": "Connection failed",
   "error_missing_ollama_message": "Olpaka is not able to communicate with Ollama.\n\nYou could try to fix it by:\n\t• Making sure [Ollama is installed](https://ollama.com/download);\n\t• Checking it is running on port 11434;\n\t• Checking that [CORS is configured correctly](https://github.com/Otacon/olpaka/blob/main/docs/setup_cors.md);\n\nAs a last resort, you could try to restart the app.",
   "error_missing_ollama_positive": "Try again",
-
   "error_generic_title": "Error",
   "error_generic_message": "Whoops...Something didn't work. Maybe try to restart Olpaka.",
   "error_generic_positive": "OK"
