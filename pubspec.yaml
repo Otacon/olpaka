@@ -41,6 +41,9 @@ dependencies:
   # Shared Preferences
   shared_preferences: ^2.2.3
 
+  # App version
+  package_info_plus: ^8.0.0
+
 flutter_localizations:
   sdk: flutter
   intl_utils: ^2.8.7
