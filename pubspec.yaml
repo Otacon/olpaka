@@ -14,10 +14,10 @@ dependencies:
   markdown_widget: ^2.3.2+6
 
   # Dependency Injection
-  get_it: ^7.6.7
+  get_it: ^7.7.0
 
   # Navigation
-  go_router: ^14.1.0
+  go_router: ^14.1.1
 
   # Google Fonts
   google_fonts: ^6.2.1
@@ -44,6 +44,10 @@ dependencies:
   # App version
   package_info_plus: ^8.0.0
 
+  # Firebase
+  firebase_analytics: ^10.10.5
+  firebase_core: ^2.31.0
+
 flutter_localizations:
   sdk: flutter
   intl_utils: ^2.8.7
@@ -55,7 +59,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   translations_cleaner: ^0.0.5
-  flutter_lints: ^3.0.2
+  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true

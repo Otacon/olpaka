@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:olpaka/core/analytics/analytics.dart';
+import 'package:olpaka/core/analytics/event.dart';
+import 'package:olpaka/core/analytics/screen_view.dart';
 import 'package:olpaka/core/ollama/list_models_result.dart';
 import 'package:olpaka/core/state/chat/chat_message_domain.dart';
 import 'package:olpaka/core/state/chat/chat_state_holder.dart';
@@ -14,8 +17,9 @@ class ChatViewModel extends BaseViewModel {
   final ModelStateHolder _modelsState;
   final ChatStateHolder _chatState;
   final S _s;
+  final Analytics _analytics;
 
-  ChatViewModel(this._modelsState, this._chatState, this._s);
+  ChatViewModel(this._modelsState, this._chatState, this._s, this._analytics);
 
   ChatState state = ChatStateLoading();
 
@@ -24,6 +28,7 @@ class ChatViewModel extends BaseViewModel {
   Stream<ChatEvent> get events => _events.stream.map((val) => val);
 
   onCreate() async {
+    _analytics.screenView(ScreenViewChat());
     _modelsState.cachedModels.addListener(_onModelsChanged);
     _chatState.messages.addListener(_onChatChanged);
     await _load();
@@ -71,6 +76,7 @@ class ChatViewModel extends BaseViewModel {
       isGeneratingMessage: true,
     );
     notifyListeners();
+    _analytics.event(EventSendMessage(currentState.selectedModel.id));
     await _chatState.sendMessage(message, currentState.selectedModel.id);
     state = ChatStateContent(
       selectedModel: currentState.selectedModel,

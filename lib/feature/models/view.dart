@@ -44,20 +44,17 @@ class ModelsScreen extends StatelessWidget {
       builder: (context, viewModel, child) {
         final state = viewModel.state;
         final Widget content;
-        final Widget? fab;
+        final bool showFab;
         switch (state) {
           case ModelsStateLoading():
             content = const Loading();
-            fab = null;
+            showFab = false;
           case ModelsStateContent():
             content = _content(
               state.models,
               viewModel.onRemoveModel,
             );
-            fab = FloatingActionButton(
-              onPressed: viewModel.onAddModelClicked,
-              child: const Icon(Icons.add),
-            );
+            showFab = true;
           case ModelsStateError():
             final String ctaText = state.ctaText ?? "";
             final Function()? onCtaClicked;
@@ -72,26 +69,33 @@ class ModelsScreen extends StatelessWidget {
               ctaText: ctaText,
               onCtaClicked: onCtaClicked,
             );
-            fab = null;
+            showFab = state.showFab;
         }
         return Scaffold(
-            appBar: AppBar(
-              elevation: 4,
-              shadowColor: Theme.of(context).shadowColor,
-              centerTitle: true,
-              actions: [
-                IconButton(
-                  onPressed: viewModel.onRefreshClicked,
-                  icon: const Icon(Icons.refresh),
-                ),
-              ],
-              title: Text(
-                S.current.models_title,
-                style: Theme.of(context).textTheme.headlineMedium,
+          appBar: AppBar(
+            elevation: 4,
+            shadowColor: Theme.of(context).shadowColor,
+            centerTitle: true,
+            actions: [
+              IconButton(
+                onPressed: viewModel.onRefreshClicked,
+                icon: const Icon(Icons.refresh),
               ),
+            ],
+            title: Text(
+              S.current.models_title,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-            body: content,
-            floatingActionButton: fab);
+          ),
+          body: content,
+          floatingActionButton: Visibility(
+            visible: showFab,
+            child: FloatingActionButton(
+              onPressed: viewModel.onAddModelClicked,
+              child: const Icon(Icons.add),
+            ),
+          ),
+        );
       },
     );
   }
