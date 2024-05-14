@@ -43,13 +43,19 @@ class ModelsScreen extends StatelessWidget {
       builder: (context, viewModel, child) {
         final state = viewModel.state;
         final Widget content;
+        final Widget? fab;
         switch (state) {
           case ModelsStateLoading():
             content = const Loading();
+            fab = null;
           case ModelsStateContent():
             content = _content(
               state.models,
               viewModel.onRemoveModel,
+            );
+            fab = FloatingActionButton(
+              onPressed: viewModel.onAddModelClicked,
+              child: const Icon(Icons.add),
             );
           case ModelsStateError():
             final String ctaText = state.ctaText ?? "";
@@ -65,28 +71,26 @@ class ModelsScreen extends StatelessWidget {
               ctaText: ctaText,
               onCtaClicked: onCtaClicked,
             );
+            fab = null;
         }
         return Scaffold(
-          appBar: AppBar(
-            elevation: 4,
-            shadowColor: Theme.of(context).shadowColor,
-            centerTitle: true,
-            actions: [
-              IconButton(
-                onPressed: viewModel.onRefreshClicked,
-                icon: const Icon(Icons.refresh),
+            appBar: AppBar(
+              elevation: 4,
+              shadowColor: Theme.of(context).shadowColor,
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  onPressed: viewModel.onRefreshClicked,
+                  icon: const Icon(Icons.refresh),
+                ),
+              ],
+              title: Text(
+                S.current.models_title,
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-            ],
-            title: Text(
-              S.current.models_title,
-              style: Theme.of(context).textTheme.headlineMedium,
             ),
-          ),
-          body: content,
-          floatingActionButton: FloatingActionButton(
-              onPressed: viewModel.onAddModelClicked,
-              child: const Icon(Icons.add)),
-        );
+            body: content,
+            floatingActionButton: fab);
       },
     );
   }
@@ -102,41 +106,77 @@ class ModelsScreen extends StatelessWidget {
             itemCount: models.length,
             itemBuilder: (context, index) {
               final model = models[index];
-              final Widget leading;
-              final Widget? trailing;
               if (model.isLoading) {
-                leading = SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    value: model.progress,
-                  ),
-                );
-                trailing = null;
+                return _modelItemDownloading(context, model);
               } else {
-                leading = const Icon(Icons.storage);
-                trailing = FilledButton(
-                  onPressed: () => onRemoveModel(model),
-                  child: Text(S.current.models_action_remove_model),
-                );
+                return _modelItemAvailable(context, model, onRemoveModel);
               }
-              return Column(
-                children: [
-                  ListTile(
-                    title: Text(model.title),
-                    subtitle: Text(model.subtitle),
-                    leading: leading,
-                    trailing: trailing,
-                    tileColor: Theme.of(context).colorScheme.surface,
-                  ),
-                  const Divider(
-                    height: 0,
-                  )
-                ],
-              );
             },
           ),
         ),
+      ],
+    );
+  }
+
+  _modelItemAvailable(
+    BuildContext context,
+    ModelItem model,
+    Function(ModelItem) onRemoveModel,
+  ) {
+    return Column(
+      children: [
+        ListTile(
+          title: Text(model.title),
+          subtitle: Text(model.subtitle),
+          leading: const Icon(Icons.storage),
+          trailing: FilledButton(
+            onPressed: () => onRemoveModel(model),
+            child: Text(S.current.models_action_remove_model),
+          ),
+          tileColor: Theme.of(context).colorScheme.surface,
+        ),
+        const Divider(
+          height: 0,
+        )
+      ],
+    );
+  }
+
+  Widget _modelItemDownloading(BuildContext context, ModelItem model) {
+    final Widget? percentageWidget;
+    final doubleProgress = model.progress;
+    final theme = Theme.of(context);
+    if (doubleProgress != null) {
+      int percentage = (doubleProgress * 100).round();
+      percentageWidget = Text(
+        "$percentage",
+        style: theme.textTheme.labelSmall,
+      );
+    } else {
+      percentageWidget = null;
+    }
+
+    return Column(
+      children: [
+        ListTile(
+          title: Text(model.title),
+          subtitle: Text(model.subtitle),
+          leading: SizedBox(
+            width: 24,
+            height: 24,
+            child: Stack(
+              alignment: AlignmentDirectional.center,
+              children: [
+                CircularProgressIndicator(value: doubleProgress),
+                if (percentageWidget != null) percentageWidget
+              ],
+            ),
+          ),
+          tileColor: theme.colorScheme.surface,
+        ),
+        const Divider(
+          height: 0,
+        )
       ],
     );
   }
