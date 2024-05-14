@@ -42,6 +42,9 @@
   "settings_theme_mode_dark": "Dark",
   "settings_theme_color": "Theme color",
 
+  "settings_about_subtitle": "Learn more about Olpaka",
+  "settings_about_author": "Made with love by Cyanotic (Orfeo Ciano)",
+
   "loading": "Loading...",
 
   "error_missing_ollama_title": "Connection failed",
