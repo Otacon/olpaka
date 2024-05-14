@@ -19,36 +19,43 @@ class SettingsScreen extends StatelessWidget {
         final state = viewModel.state;
         return Scaffold(
           appBar: _appBar(context),
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _themeMode(
-                  context: context,
-                  themeMode: state.themeMode,
-                  onThemeModeChanged: viewModel.onThemeModeChanged,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
                 ),
-                const SizedBox(height: 16),
-                _themeColor(
-                  context: context,
-                  selectedColor: state.themeColor,
-                  onThemeColorChanged: viewModel.onSeedColorChanged,
+                child: Text(
+                  S.current.settings_theme_section,
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
-                const Spacer(),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.question_mark_outlined),
-                  title: Text(state.appVersion),
-                  subtitle: Text(S.current.settings_about_subtitle),
-                  onTap: () => showAboutDialog(
+              ),
+              _themeMode(
+                context: context,
+                themeMode: state.themeMode,
+                onThemeModeChanged: viewModel.onThemeModeChanged,
+              ),
+              _themeColor(
+                context: context,
+                selectedColor: state.themeColor,
+                onThemeColorChanged: viewModel.onSeedColorChanged,
+              ),
+              const SizedBox(height: 8.0),
+              const Divider(height: 1),
+              const Spacer(),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.question_mark_outlined),
+                title: Text(state.appVersion),
+                subtitle: Text(S.current.settings_about_subtitle),
+                onTap: () => showAboutDialog(
                     context: context,
                     applicationVersion: state.appVersion,
-                    applicationLegalese: S.current.settings_about_author
-                  ),
-                )
-              ],
-            ),
+                    applicationLegalese: S.current.settings_about_author),
+              )
+            ],
           ),
         );
       },
@@ -72,34 +79,40 @@ class SettingsScreen extends StatelessWidget {
     required OlpakaThemeMode themeMode,
     required Function(OlpakaThemeMode) onThemeModeChanged,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(S.current.settings_theme_mode),
-        SegmentedButton<OlpakaThemeMode>(
-            segments: <ButtonSegment<OlpakaThemeMode>>[
-              ButtonSegment<OlpakaThemeMode>(
-                value: OlpakaThemeMode.system,
-                label: Text(S.current.settings_theme_mode_system),
-                icon: const Icon(Icons.brightness_auto),
-              ),
-              ButtonSegment<OlpakaThemeMode>(
-                value: OlpakaThemeMode.dark,
-                label: Text(S.current.settings_theme_mode_dark),
-                icon: const Icon(Icons.dark_mode),
-              ),
-              ButtonSegment<OlpakaThemeMode>(
-                value: OlpakaThemeMode.light,
-                label: Text(S.current.settings_theme_mode_light),
-                icon: const Icon(Icons.light_mode),
-              )
-            ],
-            selected: <OlpakaThemeMode>{
-              themeMode
-            },
-            onSelectionChanged: (selection) =>
-                onThemeModeChanged(selection.first))
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 8.0,
+        horizontal: 16.0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(S.current.settings_theme_mode),
+          SegmentedButton<OlpakaThemeMode>(
+              segments: <ButtonSegment<OlpakaThemeMode>>[
+                ButtonSegment<OlpakaThemeMode>(
+                  value: OlpakaThemeMode.system,
+                  label: Text(S.current.settings_theme_mode_system),
+                  icon: const Icon(Icons.brightness_auto),
+                ),
+                ButtonSegment<OlpakaThemeMode>(
+                  value: OlpakaThemeMode.dark,
+                  label: Text(S.current.settings_theme_mode_dark),
+                  icon: const Icon(Icons.dark_mode),
+                ),
+                ButtonSegment<OlpakaThemeMode>(
+                  value: OlpakaThemeMode.light,
+                  label: Text(S.current.settings_theme_mode_light),
+                  icon: const Icon(Icons.light_mode),
+                )
+              ],
+              selected: <OlpakaThemeMode>{
+                themeMode
+              },
+              onSelectionChanged: (selection) =>
+                  onThemeModeChanged(selection.first))
+        ],
+      ),
     );
   }
 
@@ -121,7 +134,13 @@ class SettingsScreen extends StatelessWidget {
           const Spacer(),
         ] +
         colorItems;
-    return Row(children: children);
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 8.0,
+      ),
+      child: Row(children: children),
+    );
   }
 
   StatelessWidget _colorItem({
