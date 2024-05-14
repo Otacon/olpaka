@@ -52,6 +52,7 @@ class SettingsScreen extends StatelessWidget {
                 subtitle: Text(S.current.settings_about_subtitle),
                 onTap: () => showAboutDialog(
                     context: context,
+                    applicationIcon: const Image(image: AssetImage("assets/appIcon.png")),
                     applicationVersion: state.appVersion,
                     applicationLegalese: S.current.settings_about_author),
               )

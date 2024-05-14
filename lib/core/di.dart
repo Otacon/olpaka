@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart';
 import 'package:olpaka/app/di.dart';
+import 'package:olpaka/core/analytics/di.dart';
 import 'package:olpaka/core/http_client/http_client.dart';
 import 'package:olpaka/core/http_client/url_provider.dart';
 import 'package:olpaka/core/preferences.dart';
@@ -13,7 +14,6 @@ import 'package:olpaka/feature/models/di.dart';
 import 'package:olpaka/feature/settings/di.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'ollama/repository.dart';
 
 void registerModules() {
@@ -35,6 +35,7 @@ void registerModules() {
   });
   l.registerFactory(() => HttpClient(l.get(), l.get()));
   l.registerFactory(() => OllamaRepository(l.get()));
+  registerAnalytics();
   registerApp();
   registerHome();
   registerChat();

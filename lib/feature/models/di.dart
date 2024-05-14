@@ -3,5 +3,5 @@ import 'package:olpaka/feature/models/view_model.dart';
 
 registerModels() {
   final l = GetIt.instance;
-  l.registerFactory(() => ModelsViewModel(l.get()));
+  l.registerFactory(() => ModelsViewModel(l.get(), l.get()));
 }

@@ -12,8 +12,9 @@ class ModelsStateError extends ModelsState {
   final String title;
   final String message;
   final String? ctaText;
+  final bool showFab;
 
-  ModelsStateError(this.title, this.message, {this.ctaText});
+  ModelsStateError(this.title, this.message, {required this.showFab, this.ctaText});
 }
 
 class ModelItem {

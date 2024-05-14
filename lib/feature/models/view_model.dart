@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:olpaka/core/analytics/analytics.dart';
+import 'package:olpaka/core/analytics/event.dart';
+import 'package:olpaka/core/analytics/screen_view.dart';
 import 'package:olpaka/core/ollama/delete_model_result.dart';
 import 'package:olpaka/core/ollama/list_models_result.dart';
 import 'package:olpaka/core/state/models/download_model_response.dart';
@@ -13,15 +16,17 @@ import 'package:stacked/stacked.dart';
 
 class ModelsViewModel extends BaseViewModel {
   final ModelStateHolder _modelManager;
+  final Analytics _analytics;
 
   ModelsState state = ModelsStateLoading();
   final _events = StreamController<ModelsEvent>.broadcast();
 
   Stream<ModelsEvent> get events => _events.stream.map((val) => val);
 
-  ModelsViewModel(this._modelManager);
+  ModelsViewModel(this._modelManager, this._analytics);
 
   onCreate() async {
+    _analytics.screenView(ScreenViewModels());
     _modelManager.downloadingModels.addListener(_onModelsChanged);
     _modelManager.cachedModels.addListener(_onModelsChanged);
     await _loadData();
@@ -41,6 +46,7 @@ class ModelsViewModel extends BaseViewModel {
           message: S.current.models_dialog_download_model_error_message,
         ));
       case DownloadModelResponseSuccess():
+        _analytics.event(EventDownloadModel(model));
     }
   }
 
@@ -58,6 +64,7 @@ class ModelsViewModel extends BaseViewModel {
           message: S.current.models_dialog_delete_model_error_message,
         ));
       case RemoveModelResponseSuccess():
+        _analytics.event(EventRemoveModel(modelId));
     }
   }
 
@@ -75,6 +82,7 @@ class ModelsViewModel extends BaseViewModel {
         state = ModelsStateError(
           S.current.error_missing_ollama_title,
           S.current.error_missing_ollama_message,
+          showFab: false,
           ctaText: S.current.error_missing_ollama_positive,
         );
         notifyListeners();
@@ -85,8 +93,11 @@ class ModelsViewModel extends BaseViewModel {
   _onModelsChanged() {
     final models = _getAllModels();
     if (models.isEmpty) {
-      state = ModelsStateError(S.current.models_error_no_models_title,
-          S.current.models_error_no_models_message);
+      state = ModelsStateError(
+        S.current.models_error_no_models_title,
+        S.current.models_error_no_models_message,
+        showFab: true,
+      );
     } else {
       state = ModelsStateContent(models.map(_toModelItem).toList());
     }
