@@ -3,7 +3,7 @@
     "short_name": "olpaka",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
+    "background_color": "#F21368",
     "theme_color": "#F21368",
     "description": "A Flutter frontend app for Ollama",
     "orientation": "landscape-primary",
