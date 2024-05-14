@@ -6,6 +6,7 @@ import 'package:olpaka/feature/models/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/ui/empty_screen.dart';
 import 'package:olpaka/ui/loading.dart';
+import 'package:olpaka/ui/markdown.dart';
 import 'package:stacked/stacked.dart';
 
 class ModelsScreen extends StatelessWidget {
@@ -292,7 +293,7 @@ class _DownloadModelDialogState extends State<_DownloadModelDialog> {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(S.current.models_dialog_download_model_description),
+          Markdown(S.current.models_dialog_download_model_description),
           const SizedBox(height: 16),
           TextField(
             controller: _controller,
