@@ -31,7 +31,7 @@ class HttpClient {
 
   Future<HttpStreamingResponse> postStreaming(
     String endpoint, {
-    required Map<String, Object>? data,
+    required Map<String, Object?>? data,
   }) async {
     final url = _urlProvider.forPath(endpoint);
     final request = Request("POST", url);

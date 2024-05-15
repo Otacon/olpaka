@@ -79,12 +79,17 @@ class OllamaRepository {
     }
   }
 
-  Future<GenerateStreamingResult> generate(String model, String prompt) async {
+  Future<GenerateStreamingResult> generate(
+    String model,
+    String prompt,
+    List<int>? context,
+  ) async {
     logger.i("Generating answer...");
     final payload = {
       "model": model,
       "prompt": prompt,
       "stream": true,
+      "context": context,
     };
     final response = await _client.postStreaming("/generate", data: payload);
     switch (response) {

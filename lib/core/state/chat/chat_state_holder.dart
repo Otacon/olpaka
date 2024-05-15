@@ -9,14 +9,20 @@ class ChatStateHolder {
   final OllamaRepository _ollama;
 
   final messages = ValueNotifier<List<ChatMessageDomain>>(List.empty());
+  String? latestModel;
+  List<int>? context;
 
   ChatStateHolder(this._ollama);
 
   Future<SendMessageResult> sendMessage(String text, String model) async {
     _addMessage(ChatMessageUserDomain(text));
+    if(latestModel != model) {
+      latestModel = model;
+      context = null;
+    }
     final responseIndex = _addMessage(ChatMessageAssistantDomain("...", false));
 
-    final response = await _ollama.generate(model, text);
+    final response = await _ollama.generate(model, text, context);
     final Stream<GenerateChunk> stream;
     switch (response) {
       case GenerateStreamingResultSuccess():
@@ -31,6 +37,9 @@ class ChatStateHolder {
     String message = "";
     await for (final chunkResult in stream) {
       message += chunkResult.message;
+      if(chunkResult.context != null){
+        context = chunkResult.context;
+      }
       _updateMessage(responseIndex, message, chunkResult.done);
     }
     return SendMessageResultSuccess();
