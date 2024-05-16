@@ -74,11 +74,11 @@ class AnalyticsGoogle extends Analytics {
     final analytics = FirebaseAnalytics.instance;
     switch (screenView) {
       case ScreenViewChat():
-        analytics.logScreenView(screenName: "chat");
+        analytics.logScreenView(screenClass: "chat", screenName: "chat");
       case ScreenViewModels():
-        analytics.logScreenView(screenName: "models");
+        analytics.logScreenView(screenClass: "models", screenName: "models");
       case ScreenViewSettings():
-        analytics.logScreenView(screenName: "settings");
+        analytics.logScreenView(screenClass: "settings", screenName: "settings");
     }
   }
 }
