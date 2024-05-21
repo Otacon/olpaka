@@ -27,8 +27,7 @@ class ModelsViewModel extends BaseViewModel {
 
   onCreate() async {
     _analytics.screenView(ScreenViewModels());
-    _modelManager.downloadingModels.addListener(_onModelsChanged);
-    _modelManager.cachedModels.addListener(_onModelsChanged);
+    _modelManager.allModels.addListener(_onModelsChanged);
     await _loadData();
   }
 
@@ -91,7 +90,7 @@ class ModelsViewModel extends BaseViewModel {
   }
 
   _onModelsChanged() {
-    final models = _getAllModels();
+    final models = _modelManager.allModels.value;
     if (models.isEmpty) {
       state = ModelsStateError(
         S.current.models_error_no_models_title,
@@ -102,20 +101,6 @@ class ModelsViewModel extends BaseViewModel {
       state = ModelsStateContent(models.map(_toModelItem).toList());
     }
     notifyListeners();
-  }
-
-  List<ModelDomain> _getAllModels() {
-    return _getCachedModels() + _getDownloadingModels();
-  }
-
-  List<ModelDomain> _getCachedModels() {
-    var cachedModels = _modelManager.cachedModels.value;
-    return cachedModels.map<ModelDomain>((e) => e).toList();
-  }
-
-  List<ModelDomain> _getDownloadingModels() {
-    var downloadedingModels = _modelManager.downloadingModels.value;
-    return downloadedingModels.map<ModelDomain>((e) => e).toList();
   }
 
   ModelItem _toModelItem(ModelDomain model) {
@@ -155,8 +140,7 @@ class ModelsViewModel extends BaseViewModel {
 
   @override
   void dispose() {
-    _modelManager.cachedModels.removeListener(_onModelsChanged);
-    _modelManager.downloadingModels.removeListener(_onModelsChanged);
+    _modelManager.allModels.removeListener(_onModelsChanged);
     super.dispose();
   }
 }

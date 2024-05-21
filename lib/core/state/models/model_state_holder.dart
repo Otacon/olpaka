@@ -12,6 +12,7 @@ import 'package:olpaka/core/state/models/model_domain.dart';
 class ModelStateHolder {
   final OllamaRepository _ollama;
 
+  final allModels = ValueNotifier<List<ModelDomain>>(List.empty());
   final cachedModels = ValueNotifier<List<ModelDomainAvailable>>(List.empty());
   final downloadingModels =
       ValueNotifier<List<ModelDomainDownloading>>(List.empty());
@@ -24,7 +25,7 @@ class ModelStateHolder {
     switch (response) {
       case ListModelsResultSuccess():
         final ollamaModels = response.models.map(_toDomainAvailable).toList();
-        cachedModels.value = ollamaModels;
+        _updateAvailableModels(ollamaModels);
       case ListModelResultConnectionError():
       case ListModelResultError():
     }
@@ -32,7 +33,8 @@ class ModelStateHolder {
   }
 
   Future<DownloadModelResponse> download(String modelName) async {
-    final result = await _ollama.downloadModel(modelName);
+    final modelId = modelName.toModelId();
+    final result = await _ollama.downloadModel(modelId);
     final Stream<DownloadChunk> stream;
     switch (result) {
       case DownloadModelStreamingResultSuccess():
@@ -42,43 +44,50 @@ class ModelStateHolder {
         return DownloadModelResponseError();
     }
     final downloadingModel = ModelDomainDownloading(
-      id: modelName,
-      name: modelName,
+      id: modelId,
+      name: modelId,
     );
     _addDownloadingModel(downloadingModel);
 
     await for (final downloadChunk in stream) {
       switch (downloadChunk) {
         case DownloadChunkError():
-          _removeDownloadingModel(modelName);
+          _removeDownloadingModel(modelId);
           await refresh();
           return DownloadModelResponseError();
         case DownloadChunkProgress():
-          _updateDownloadingModel(modelName, downloadChunk);
+          _updateDownloadingModel(modelId, downloadChunk);
       }
     }
-    _removeDownloadingModel(modelName);
+    _removeDownloadingModel(modelId);
     await refresh();
     return DownloadModelResponseSuccess();
   }
 
   Future<RemoveModelResponse> delete(String modelName) async {
+    final modelId = modelName.toModelId();
     //TODO map between layers
-    final response = await _ollama.removeModel(modelName);
+    final response = await _ollama.removeModel(modelId);
     await refresh();
     return response;
   }
 
-  void _addDownloadingModel(ModelDomainDownloading model) {
-    final downloadingPlusNew = downloadingModels.value.toList(growable: true);
-    downloadingPlusNew.add(model);
-    downloadingModels.value = downloadingPlusNew;
+  void _addDownloadingModel(ModelDomain model) {
+    final downloadingPlusNew = _getAllModels();
+    final existingModelIndex = _getDownloadingModelIndex(model.id);
+    if(existingModelIndex == null) {
+      downloadingPlusNew.add(model);
+      _updateModels(downloadingPlusNew);
+    } else {
+      downloadingPlusNew[existingModelIndex] = ModelDomainDownloading(id: model.id, name: model.name);
+      _updateModels(downloadingPlusNew);
+    }
   }
 
-  int? _getDownloadingModelIndex(String modelName) {
+  int? _getDownloadingModelIndex(String modelId) {
     var index = 0;
-    for (final model in downloadingModels.value) {
-      if (model.id == modelName) {
+    for (final model in _getAllModels()) {
+      if (model.id == modelId) {
         return index;
       }
       index++;
@@ -91,9 +100,9 @@ class ModelStateHolder {
     if (index == null) {
       return;
     }
-    final currentModels = downloadingModels.value.toList(growable: true);
+    final currentModels = _getAllModels();
     currentModels.removeAt(index);
-    downloadingModels.value = currentModels;
+    _updateModels(currentModels);
   }
 
   void _updateDownloadingModel(String id, DownloadChunkProgress chunk) {
@@ -101,7 +110,7 @@ class ModelStateHolder {
     if (index == null) {
       return;
     }
-    final currentModels = downloadingModels.value.toList(growable: true);
+    final currentModels = _getAllModels();
     final downloadingModel = currentModels.elementAt(index);
     currentModels.remove(downloadingModel);
 
@@ -120,7 +129,26 @@ class ModelStateHolder {
     );
 
     currentModels.insert(index, updatedModel);
-    downloadingModels.value = currentModels;
+    _updateModels(currentModels);
+  }
+
+  void _updateModels(List<ModelDomain> models) {
+    cachedModels.value = models.whereType<ModelDomainAvailable>().toList();
+    downloadingModels.value =
+        models.whereType<ModelDomainDownloading>().toList();
+    allModels.value = models;
+  }
+
+  void _updateAvailableModels(List<ModelDomainAvailable> models) {
+    final pendingModels = downloadingModels.value.toList();
+    final updatedModels = List<ModelDomain>.empty(growable: true);
+    updatedModels.addAll(models);
+    updatedModels.addAll(pendingModels);
+    _updateModels(updatedModels);
+  }
+
+  List<ModelDomain> _getAllModels() {
+    return allModels.value.map<ModelDomain>((e) => e).toList(growable: true);
   }
 
   ModelDomainAvailable _toDomainAvailable(Model model) {
@@ -131,5 +159,15 @@ class ModelStateHolder {
         size: model.size,
         params: model.parameterSize,
         quantization: model.quantizationLevel);
+  }
+}
+
+extension ModelNameFixer on String {
+  String toModelId() {
+    if (contains(":")) {
+      return this;
+    } else {
+      return "$this:latest";
+    }
   }
 }
