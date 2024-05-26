@@ -50,3 +50,6 @@ footer:
     - label: "Github"
       icon: "fab fa-fw fa-github"
       url: "https://github.com/Otacon/olpaka"
+    - label: "Discord"
+      icon: "fab fa-brands fa-discord"
+      url: "https://discord.gg/sutmaxKy"
