@@ -2,7 +2,6 @@ sealed class ScreenView {}
 
 class ScreenViewChat extends ScreenView {
 
-
   @override
   String toString() {
     return 'ScreenViewChat{}';
@@ -29,6 +28,6 @@ class ScreenViewGettingStarted extends ScreenView {
 
   @override
   String toString() {
-    return 'ScreenViewSettings{}';
+    return 'ScreenViewGettingStarted{}';
   }
 }

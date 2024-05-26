@@ -53,6 +53,7 @@ class GettingStartedViewModel extends BaseViewModel {
       case ListModelResultError():
         connected = false;
     }
+    _analytics.event(EventCheckConnectionPressed(connected));
     state = GettingStartedState(
       state.currentStep,
       state.showPrevious,
@@ -60,6 +61,16 @@ class GettingStartedViewModel extends BaseViewModel {
       connected,
     );
     notifyListeners();
+  }
+
+  onDownloadOllamaClicked() async {
+    _analytics.event(EventDownloadOllamaPressed());
+    _events.add(OpenDownloadOllamaGettingStartedEvent());
+  }
+
+  onSetupCorsClicked() async {
+    _analytics.event(EventCorsLinkPressed());
+    _events.add(OpenSetupCorsGettingStartedEvent());
   }
 
   _updateState(int potentialNextStep) {
@@ -88,4 +99,5 @@ class GettingStartedViewModel extends BaseViewModel {
       state.isConnected,
     );
   }
+
 }

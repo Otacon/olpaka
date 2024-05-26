@@ -7,7 +7,6 @@ import 'package:olpaka/feature/home/state.dart';
 import 'package:stacked/stacked.dart';
 
 class HomeViewModel extends BaseViewModel {
-  final _events = StreamController<HomeEvent>.broadcast();
   final ModelStateHolder _modelStateHolder;
   final Preferences _preferences;
 
@@ -17,6 +16,7 @@ class HomeViewModel extends BaseViewModel {
     HomeTabSettings(false),
   );
 
+  final _events = StreamController<HomeEvent>.broadcast();
   Stream<HomeEvent> get events => _events.stream.map((val) => val);
 
   DownloadsState _downloadsState = DownloadsState.none;

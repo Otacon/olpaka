@@ -79,6 +79,10 @@ class AnalyticsGoogle extends Analytics {
         analytics.logEvent(
           name: "finish_pressed",
         );
+      case EventGettingStarted():
+        analytics.logEvent(
+          name: "getting_started_pressed",
+        );
       case EventAboutPressed():
         analytics.logEvent(
           name: "about_pressed",
@@ -87,12 +91,25 @@ class AnalyticsGoogle extends Analytics {
         analytics.logEvent(
           name: "launch_getting_started_pressed",
         );
+      case EventCheckConnectionPressed():
+        analytics.logEvent(
+          name: "check_connection_pressed",
+          parameters: {"success": event.success},
+        );
+      case EventCorsLinkPressed():
+        analytics.logEvent(
+          name: "setup_cors_pressed",
+        );
+      case EventDownloadOllamaPressed():
+        analytics.logEvent(
+          name: "download_ollama_pressed",
+        );
     }
   }
 
   @override
   void screenView(ScreenView screenView) {
-    logger.i("ScreenView: $event");
+    logger.i("ScreenView: $screenView");
     final analytics = FirebaseAnalytics.instance;
     switch (screenView) {
       case ScreenViewChat():
@@ -115,6 +132,6 @@ class AnalyticsNoop extends Analytics {
 
   @override
   void screenView(ScreenView screenView) {
-    logger.i("ScreenView: $event");
+    logger.i("ScreenView: $screenView");
   }
 }

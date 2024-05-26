@@ -28,6 +28,11 @@ class GettingStartedView extends StatelessWidget {
           switch (event) {
             case CloseGettingStartedEvent():
               Navigator.of(context).pop(false);
+            case OpenDownloadOllamaGettingStartedEvent():
+              launchUrlString("https://ollama.com/download");
+            case OpenSetupCorsGettingStartedEvent():
+              launchUrlString(
+                  "https://github.com/Otacon/olpaka/blob/main/docs/setup_cors.md");
           }
         });
         viewModel.onCreate();
@@ -38,8 +43,13 @@ class GettingStartedView extends StatelessWidget {
           widthFactor: 0.75,
           child: AlertDialog(
             title: _title(context, state),
-            content:
-                _content(context, state, viewModel.onCheckConnectionClicked),
+            content: _content(
+              context,
+              state,
+              viewModel.onCheckConnectionClicked,
+              viewModel.onDownloadOllamaClicked,
+              viewModel.onSetupCorsClicked,
+            ),
             actions: _actions(
               context,
               state,
@@ -64,6 +74,8 @@ class GettingStartedView extends StatelessWidget {
     BuildContext context,
     GettingStartedState state,
     Function() onCheckConnectionClicked,
+    Function() onDownloadOllamaClicked,
+    Function() onSetupCorsClicked,
   ) {
     final currentStep = state.currentStep;
     final Widget stepView;
@@ -71,9 +83,13 @@ class GettingStartedView extends StatelessWidget {
       case 0:
         stepView = _step1();
       case 1:
-        stepView = _step2();
+        stepView = _step2(onDownloadOllamaClicked);
       case 2:
-        stepView = _step3(onCheckConnectionClicked, state.isConnected);
+        stepView = _step3(
+          onCheckConnectionClicked,
+          onSetupCorsClicked,
+          state.isConnected,
+        );
       default:
         throw UnimplementedError();
     }
@@ -84,14 +100,14 @@ class GettingStartedView extends StatelessWidget {
     return Text(S.current.onboarding_step_1);
   }
 
-  Widget _step2() {
+  Widget _step2(Function() onDownloadOllamaClicked) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(S.current.onboarding_step_2_a),
         const SizedBox(height: 16),
         FilledButton(
-          onPressed: () => launchUrlString("https://ollama.com/download"),
+          onPressed: onDownloadOllamaClicked,
           child: Text(S.current.onboarding_download_ollama),
         ),
         const SizedBox(height: 16),
@@ -100,7 +116,11 @@ class GettingStartedView extends StatelessWidget {
     );
   }
 
-  Widget _step3(Function() onCheckConnectionClicked, bool? isConnected) {
+  Widget _step3(
+    Function() onCheckConnectionClicked,
+    Function() onSetupCorsClicked,
+    bool? isConnected,
+  ) {
     final String connectionText;
     final IconData connectionIcon;
     if (isConnected == null) {
@@ -119,8 +139,7 @@ class GettingStartedView extends StatelessWidget {
         Text(S.current.onboarding_step_3_a),
         const SizedBox(height: 16),
         FilledButton(
-          onPressed: () => launchUrlString(
-              "https://github.com/Otacon/olpaka/blob/main/docs/setup_cors.md"),
+          onPressed: onSetupCorsClicked,
           child: Text(S.current.onboarding_setup_cors),
         ),
         const SizedBox(height: 16),
