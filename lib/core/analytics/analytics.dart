@@ -79,17 +79,13 @@ class AnalyticsGoogle extends Analytics {
         analytics.logEvent(
           name: "finish_pressed",
         );
-      case EventGettingStarted():
-        analytics.logEvent(
-          name: "getting_started_pressed",
-        );
       case EventAboutPressed():
         analytics.logEvent(
           name: "about_pressed",
         );
       case EventLaunchGettingStarted():
         analytics.logEvent(
-          name: "launch_getting_started_pressed",
+          name: "getting_started_pressed",
         );
       case EventCheckConnectionPressed():
         analytics.logEvent(

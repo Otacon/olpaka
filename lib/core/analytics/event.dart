@@ -80,7 +80,6 @@ class EventGettingStartedPrevious extends Event {
 }
 
 class EventGettingStartedFinish extends Event {
-
   @override
   String toString() {
     return 'EventGettingStartedFinish{}';
@@ -94,32 +93,21 @@ class EventCheckConnectionPressed extends Event {
 
   @override
   String toString() {
-    return 'EventCheckConnectionClicked{}';
+    return 'EventCheckConnectionPressed{success: $success}';
   }
 }
 
 class EventCorsLinkPressed extends Event {
-
   @override
   String toString() {
     return 'EventCorsLinkClicked{}';
   }
 }
 
-
 class EventDownloadOllamaPressed extends Event {
-
   @override
   String toString() {
     return 'EventDownloadOllamaPressed{}';
-  }
-}
-
-class EventGettingStarted extends Event {
-
-  @override
-  String toString() {
-    return 'EventGettingStarted{}';
   }
 }
 
