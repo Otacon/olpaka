@@ -4,15 +4,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 abstract class Preferences {
   abstract final OlpakaThemeMode themeMode;
   abstract final OlpakaThemeColor themeColor;
+  abstract final bool isGettingStartedViewed;
 
   Future<void> setThemeMode(OlpakaThemeMode mode);
 
   Future<void> setThemeColor(OlpakaThemeColor color);
+
+  Future<void> setGettingStartedViewed();
 }
 
 class PreferenceDefault extends Preferences {
   static const String _keyThemeColor = "themeColor";
   static const String _keyThemeMode = "themeMode";
+  static const String _keyGettingStartedViewed = "gettingStartedViewed";
 
   final SharedPreferences _sharedPreferences;
 
@@ -45,6 +49,10 @@ class PreferenceDefault extends Preferences {
   }
 
   @override
+  bool get isGettingStartedViewed =>
+      _sharedPreferences.getBool(_keyGettingStartedViewed) ?? false;
+
+  @override
   Future<void> setThemeColor(OlpakaThemeColor color) async {
     final colorString = switch (color) {
       OlpakaThemeColor.olpaka => "olpaka",
@@ -66,5 +74,10 @@ class PreferenceDefault extends Preferences {
       OlpakaThemeMode.light => "light",
     };
     await _sharedPreferences.setString(_keyThemeMode, modeString);
+  }
+
+  @override
+  Future<void> setGettingStartedViewed() async {
+    await _sharedPreferences.setBool(_keyGettingStartedViewed, true);
   }
 }

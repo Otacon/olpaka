@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:olpaka/feature/chat/view.dart';
+import 'package:olpaka/feature/getting_started/view.dart';
+import 'package:olpaka/feature/home/events.dart';
 import 'package:olpaka/feature/home/state.dart';
 import 'package:olpaka/feature/home/view_model.dart';
 import 'package:olpaka/feature/models/view.dart';
@@ -17,7 +19,10 @@ class HomeView extends StatelessWidget {
       viewModelBuilder: () => GetIt.I.get(),
       onViewModelReady: (viewModel) {
         viewModel.events.listen((event) {
-          switch (event) {}
+          switch (event) {
+            case ShowGettingStarted():
+              showGettingStartedDialog(context: context);
+          }
         });
         viewModel.onCreate();
       },

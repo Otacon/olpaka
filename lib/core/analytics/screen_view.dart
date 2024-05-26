@@ -24,3 +24,11 @@ class ScreenViewSettings extends ScreenView {
     return 'ScreenViewSettings{}';
   }
 }
+
+class ScreenViewGettingStarted extends ScreenView {
+
+  @override
+  String toString() {
+    return 'ScreenViewSettings{}';
+  }
+}

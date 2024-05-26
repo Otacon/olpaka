@@ -65,6 +65,28 @@ class AnalyticsGoogle extends Analytics {
             "color": color,
           },
         );
+      case EventGettingStartedNext():
+        analytics.logEvent(
+          name: "next_pressed",
+          parameters: {"current_step": event.currentStep},
+        );
+      case EventGettingStartedPrevious():
+        analytics.logEvent(
+          name: "prev_pressed",
+          parameters: {"current_step": event.currentStep},
+        );
+      case EventGettingStartedFinish():
+        analytics.logEvent(
+          name: "finish_pressed",
+        );
+      case EventAboutPressed():
+        analytics.logEvent(
+          name: "about_pressed",
+        );
+      case EventLaunchGettingStarted():
+        analytics.logEvent(
+          name: "launch_getting_started_pressed",
+        );
     }
   }
 
@@ -79,6 +101,8 @@ class AnalyticsGoogle extends Analytics {
         analytics.logScreenView(screenName: "models");
       case ScreenViewSettings():
         analytics.logScreenView(screenName: "settings");
+      case ScreenViewGettingStarted():
+        analytics.logScreenView(screenName: "getting_started");
     }
   }
 }

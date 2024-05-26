@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:olpaka/core/state/theme/theme_domain.dart';
+import 'package:olpaka/feature/getting_started/view.dart';
 import 'package:olpaka/feature/settings/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
@@ -47,7 +48,12 @@ class SettingsScreen extends StatelessWidget {
               const Spacer(),
               const Divider(height: 1),
               ListTile(
-                leading: const Icon(Icons.question_mark_outlined),
+                title: Text(S.current.settings_onboarding_title),
+                subtitle: Text(S.current.settings_onboarding_subtitle),
+                onTap: () => showGettingStartedDialog(context: context),
+              ),
+              const Divider(height: 1),
+              ListTile(
                 title: Text(state.appVersion),
                 subtitle: Text(S.current.settings_about_subtitle),
                 onTap: () => showAboutDialog(

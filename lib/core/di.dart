@@ -6,15 +6,16 @@ import 'package:olpaka/app/di.dart';
 import 'package:olpaka/core/analytics/di.dart';
 import 'package:olpaka/core/http_client/http_client.dart';
 import 'package:olpaka/core/http_client/url_provider.dart';
+import 'package:olpaka/core/ollama/repository.dart';
 import 'package:olpaka/core/preferences.dart';
 import 'package:olpaka/core/state/di.dart';
 import 'package:olpaka/feature/chat/di.dart';
+import 'package:olpaka/feature/getting_started/di.dart';
 import 'package:olpaka/feature/home/di.dart';
 import 'package:olpaka/feature/models/di.dart';
 import 'package:olpaka/feature/settings/di.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'ollama/repository.dart';
 
 void registerModules() {
   final l = GetIt.instance;
@@ -35,10 +36,13 @@ void registerModules() {
   });
   l.registerFactory(() => HttpClient(l.get(), l.get()));
   l.registerFactory(() => OllamaRepository(l.get()));
+
   registerAnalytics();
+
   registerApp();
-  registerHome();
   registerChat();
+  registerGettingStarted();
+  registerHome();
   registerModels();
   registerSettings();
 }
