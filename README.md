@@ -1,4 +1,5 @@
 # Olpaka
+[![Discord](https://dcbadge.vercel.app/api/server/ollama?style=flat&compact=true)](https://discord.gg/sutmaxKy)
 Olpaka is a Flutter frontend for [Ollama](https://ollama.com/).
 
 Checkout the [latest WebAssembly version](https://otacon.github.io/olpaka/) of the app.
