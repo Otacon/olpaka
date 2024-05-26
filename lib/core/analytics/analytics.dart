@@ -65,12 +65,47 @@ class AnalyticsGoogle extends Analytics {
             "color": color,
           },
         );
+      case EventGettingStartedNext():
+        analytics.logEvent(
+          name: "next_pressed",
+          parameters: {"current_step": event.currentStep},
+        );
+      case EventGettingStartedPrevious():
+        analytics.logEvent(
+          name: "prev_pressed",
+          parameters: {"current_step": event.currentStep},
+        );
+      case EventGettingStartedFinish():
+        analytics.logEvent(
+          name: "finish_pressed",
+        );
+      case EventAboutPressed():
+        analytics.logEvent(
+          name: "about_pressed",
+        );
+      case EventLaunchGettingStarted():
+        analytics.logEvent(
+          name: "getting_started_pressed",
+        );
+      case EventCheckConnectionPressed():
+        analytics.logEvent(
+          name: "check_connection_pressed",
+          parameters: {"success": event.success},
+        );
+      case EventCorsLinkPressed():
+        analytics.logEvent(
+          name: "setup_cors_pressed",
+        );
+      case EventDownloadOllamaPressed():
+        analytics.logEvent(
+          name: "download_ollama_pressed",
+        );
     }
   }
 
   @override
   void screenView(ScreenView screenView) {
-    logger.i("ScreenView: $event");
+    logger.i("ScreenView: $screenView");
     final analytics = FirebaseAnalytics.instance;
     switch (screenView) {
       case ScreenViewChat():
@@ -79,6 +114,8 @@ class AnalyticsGoogle extends Analytics {
         analytics.logScreenView(screenName: "models");
       case ScreenViewSettings():
         analytics.logScreenView(screenName: "settings");
+      case ScreenViewGettingStarted():
+        analytics.logScreenView(screenName: "getting_started");
     }
   }
 }
@@ -91,6 +128,6 @@ class AnalyticsNoop extends Analytics {
 
   @override
   void screenView(ScreenView screenView) {
-    logger.i("ScreenView: $event");
+    logger.i("ScreenView: $screenView");
   }
 }

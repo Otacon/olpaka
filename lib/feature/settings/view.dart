@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:olpaka/core/state/theme/theme_domain.dart';
+import 'package:olpaka/feature/getting_started/view.dart';
+import 'package:olpaka/feature/settings/events.dart';
 import 'package:olpaka/feature/settings/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
@@ -13,6 +15,21 @@ class SettingsScreen extends StatelessWidget {
     return ViewModelBuilder<SettingsViewModel>.reactive(
       viewModelBuilder: () => GetIt.I.get(),
       onViewModelReady: (viewModel) {
+        viewModel.events.listen((event) {
+          switch (event) {
+            case OpenAboutSettingsEvent():
+              showAboutDialog(
+                context: context,
+                applicationIcon: const Image(
+                  image: AssetImage("assets/appIcon.png"),
+                ),
+                applicationVersion: viewModel.state.appVersion,
+                applicationLegalese: S.current.settings_about_author,
+              );
+            case OpenGettingStartedSettingsEvent():
+              showGettingStartedDialog(context: context);
+          }
+        });
         viewModel.onCreate();
       },
       builder: (context, viewModel, child) {
@@ -47,14 +64,15 @@ class SettingsScreen extends StatelessWidget {
               const Spacer(),
               const Divider(height: 1),
               ListTile(
-                leading: const Icon(Icons.question_mark_outlined),
+                title: Text(S.current.settings_onboarding_title),
+                subtitle: Text(S.current.settings_onboarding_subtitle),
+                onTap: viewModel.onShowOnboardingClicked,
+              ),
+              const Divider(height: 1),
+              ListTile(
                 title: Text(state.appVersion),
                 subtitle: Text(S.current.settings_about_subtitle),
-                onTap: () => showAboutDialog(
-                    context: context,
-                    applicationIcon: const Image(image: AssetImage("assets/appIcon.png")),
-                    applicationVersion: state.appVersion,
-                    applicationLegalese: S.current.settings_about_author),
+                onTap: viewModel.onAboutClicked,
               )
             ],
           ),

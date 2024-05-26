@@ -19,8 +19,8 @@ class ModelsViewModel extends BaseViewModel {
   final Analytics _analytics;
 
   ModelsState state = ModelsStateLoading();
-  final _events = StreamController<ModelsEvent>.broadcast();
 
+  final _events = StreamController<ModelsEvent>.broadcast();
   Stream<ModelsEvent> get events => _events.stream.map((val) => val);
 
   ModelsViewModel(this._modelManager, this._analytics);

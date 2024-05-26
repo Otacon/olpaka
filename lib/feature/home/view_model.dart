@@ -1,13 +1,14 @@
 import 'dart:async';
 
+import 'package:olpaka/core/preferences.dart';
 import 'package:olpaka/core/state/models/model_state_holder.dart';
 import 'package:olpaka/feature/home/events.dart';
 import 'package:olpaka/feature/home/state.dart';
 import 'package:stacked/stacked.dart';
 
 class HomeViewModel extends BaseViewModel {
-  final _events = StreamController<HomeEvent>.broadcast();
   final ModelStateHolder _modelStateHolder;
+  final Preferences _preferences;
 
   HomeState state = HomeState(
     HomeTabChat(true),
@@ -15,14 +16,18 @@ class HomeViewModel extends BaseViewModel {
     HomeTabSettings(false),
   );
 
+  final _events = StreamController<HomeEvent>.broadcast();
   Stream<HomeEvent> get events => _events.stream.map((val) => val);
 
   DownloadsState _downloadsState = DownloadsState.none;
 
-  HomeViewModel(this._modelStateHolder);
+  HomeViewModel(this._modelStateHolder, this._preferences);
 
   onCreate() async {
     _modelStateHolder.cachedModels.addListener(_onModelsChanged);
+    if(!_preferences.isGettingStartedViewed) {
+      _events.add(ShowGettingStarted());
+    }
   }
 
   onItemTapped(int index) async {
