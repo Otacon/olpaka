@@ -3,11 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:olpaka/app/olpaka_app.dart';
 import 'package:olpaka/core/di.dart';
+import 'package:olpaka/core/logger.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initLogger();
   await _configureLocalization();
   registerModules();
   await _configureFirebase();

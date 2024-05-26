@@ -75,9 +75,9 @@ class HomeView extends StatelessWidget {
   _downloadsIcon(BuildContext context, bool isSelected, DownloadsState state) {
     final Icon icon;
     if (isSelected) {
-      icon = const Icon(Icons.smart_toy);
+      icon = const Icon(Icons.assistant);
     } else {
-      icon = const Icon(Icons.smart_toy_outlined);
+      icon = const Icon(Icons.assistant_outlined);
     }
 
     return switch (state) {

@@ -6,6 +6,17 @@ sealed class ModelDomain {
     required this.id,
     required this.name,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ModelDomain &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name;
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode;
 }
 
 class ModelDomainDownloading extends ModelDomain {
@@ -18,6 +29,18 @@ class ModelDomainDownloading extends ModelDomain {
     this.status,
     this.progress,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      super == other &&
+          other is ModelDomainDownloading &&
+          runtimeType == other.runtimeType &&
+          status == other.status &&
+          progress == other.progress;
+
+  @override
+  int get hashCode => super.hashCode ^ status.hashCode ^ progress.hashCode;
 }
 
 class ModelDomainAvailable extends ModelDomain {
@@ -34,6 +57,25 @@ class ModelDomainAvailable extends ModelDomain {
     this.size,
     this.quantization,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      super == other &&
+          other is ModelDomainAvailable &&
+          runtimeType == other.runtimeType &&
+          friendlyName == other.friendlyName &&
+          params == other.params &&
+          size == other.size &&
+          quantization == other.quantization;
+
+  @override
+  int get hashCode =>
+      super.hashCode ^
+      friendlyName.hashCode ^
+      params.hashCode ^
+      size.hashCode ^
+      quantization.hashCode;
 }
 
 class ModelDomainError extends ModelDomain {
@@ -44,4 +86,15 @@ class ModelDomainError extends ModelDomain {
     required super.name,
     required this.error,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      super == other &&
+          other is ModelDomainError &&
+          runtimeType == other.runtimeType &&
+          error == other.error;
+
+  @override
+  int get hashCode => super.hashCode ^ error.hashCode;
 }
