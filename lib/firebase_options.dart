@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 class DefaultFirebaseOptions {
+
+  static const String WEB_API_KEY = String.fromEnvironment("FIREBASE_WEB_API_KEY", defaultValue: "");
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
@@ -43,7 +46,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDs4lCn4F81I8kXLkIiKl7jBLemKFedVu0',
+    apiKey: WEB_API_KEY,
     appId: '1:910588861383:web:cebd843b189f7d67d0d7e2',
     messagingSenderId: '910588861383',
     projectId: 'olpaka-8879f',
