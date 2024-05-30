@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:olpaka/feature/chat/state.dart';
-import 'package:olpaka/feature/chat_sessions/events.dart';
-import 'package:olpaka/feature/chat_sessions/state.dart';
-import 'package:olpaka/feature/chat_sessions/view_model.dart';
+import 'package:olpaka/feature/chat/conversation/state.dart';
+import 'package:olpaka/feature/chat/personas/state.dart';
+import 'package:olpaka/feature/chat/personas/events.dart';
+import 'package:olpaka/feature/chat/personas/view_model.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
 
-class ChatSessionsScreen extends StatelessWidget {
-  const ChatSessionsScreen({super.key});
+class PersonasScreen extends StatelessWidget {
+  const PersonasScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ChatSessionsViewModel>.reactive(
+    return ViewModelBuilder<PersonasViewModel>.reactive(
       viewModelBuilder: () => GetIt.I.get(),
       onViewModelReady: (viewModel) {
         viewModel.events.listen((event) {
           switch (event) {
-            case ChatSessionsEventShowCreateChatDialog():
-              _showCreateChatDialog(
+            case PersonasEventShowCreateChatDialog():
+              _showCreatePersonaDialog(
                 context: context,
                 models: event.models,
                 positiveAction: (modelName) =>
@@ -47,7 +47,7 @@ class ChatSessionsScreen extends StatelessWidget {
     );
   }
 
-  Widget _conversationList(List<ChatSession> items) {
+  Widget _conversationList(List<Persona> items) {
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
@@ -61,7 +61,7 @@ class ChatSessionsScreen extends StatelessWidget {
     );
   }
 
-  _showCreateChatDialog({
+  _showCreatePersonaDialog({
     required BuildContext context,
     required List<ChatModel> models,
     required Function(String) positiveAction,
@@ -99,11 +99,18 @@ class _CreateChatDialogState extends State<_CreateChatDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final Function()? callback;
+    final actualSelectedModel = selectedModel;
+    if(actualSelectedModel == null){
+      callback = null;
+    } else {
+      callback = () { _onOkPressed(actualSelectedModel); };
+    }
     return AlertDialog(
-      title: Text("Star a new chat"),
+      title: const Text("Start a new chat"),
       content: DropdownButton<ChatModel>(
         hint: Text(S.current.chat_model_dropdown_hint),
-        value: selectedModel,
+        value: actualSelectedModel,
         onChanged: (chatModel) {
           setState(() {
             selectedModel = chatModel;
@@ -117,14 +124,19 @@ class _CreateChatDialogState extends State<_CreateChatDialog> {
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(false);
-            final modelToCreate = selectedModel;
-            if (modelToCreate != null) {
-              widget.positiveAction(modelToCreate.id);
-            }
           },
+          child: const Text("Cancel"),
+        ),
+        FilledButton(
+          onPressed: callback,
           child: const Text("Ok"),
         ),
       ],
     );
+  }
+
+  _onOkPressed(ChatModel model) {
+    Navigator.of(context).pop(false);
+    widget.positiveAction(model.id);
   }
 }

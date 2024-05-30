@@ -9,7 +9,7 @@ import 'package:olpaka/core/state/chat/send_message_result.dart';
 class ChatStateHolder {
   final OllamaRepository _ollama;
 
-  final conversations = ValueNotifier<List<ChatConversationDomain>>(List.empty());
+  final personas = ValueNotifier<List<ChatPersonaDomain>>(List.empty());
   final messages = ValueNotifier<List<ChatMessageDomain>>(List.empty());
   String? latestModel;
   List<int>? context;
@@ -17,9 +17,9 @@ class ChatStateHolder {
   ChatStateHolder(this._ollama);
 
   startConversation(String model, String title){
-    final newConversations = conversations.value.toList(growable: true);
-    newConversations.add(ChatConversationDomain.create(model));
-    conversations.value = newConversations;
+    final newConversations = personas.value.toList(growable: true);
+    newConversations.add(ChatPersonaDomain.create(model, title));
+    personas.value = newConversations;
   }
 
   Future<SendMessageResult> sendMessage(String text, String model) async {

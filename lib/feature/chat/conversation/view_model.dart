@@ -8,24 +8,24 @@ import 'package:olpaka/core/state/chat/chat_message_domain.dart';
 import 'package:olpaka/core/state/chat/chat_state_holder.dart';
 import 'package:olpaka/core/state/models/model_domain.dart';
 import 'package:olpaka/core/state/models/model_state_holder.dart';
-import 'package:olpaka/feature/chat/events.dart';
-import 'package:olpaka/feature/chat/state.dart';
+import 'package:olpaka/feature/chat/conversation/events.dart';
+import 'package:olpaka/feature/chat/conversation/state.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:stacked/stacked.dart';
 
-class ChatViewModel extends BaseViewModel {
+class ConversationViewModel extends BaseViewModel {
   final ModelStateHolder _modelsState;
   final ChatStateHolder _chatState;
   final S _s;
   final Analytics _analytics;
 
-  ChatViewModel(this._modelsState, this._chatState, this._s, this._analytics);
+  ConversationViewModel(this._modelsState, this._chatState, this._s, this._analytics);
 
-  ChatState state = ChatStateLoading();
+  ConversationState state = ConversationStateLoading();
 
-  final _events = StreamController<ChatEvent>.broadcast();
+  final _events = StreamController<ConversationEvent>.broadcast();
 
-  Stream<ChatEvent> get events => _events.stream.map((val) => val);
+  Stream<ConversationEvent> get events => _events.stream.map((val) => val);
 
   onCreate() async {
     _analytics.screenView(ScreenViewChat());
@@ -45,13 +45,13 @@ class ChatViewModel extends BaseViewModel {
 
     final currentState = state;
     switch (currentState) {
-      case ChatStateLoading():
-      case ChatStateError():
+      case ConversationStateLoading():
+      case ConversationStateError():
         return;
-      case ChatStateContent():
+      case ConversationStateContent():
     }
 
-    state = ChatStateContent(
+    state = ConversationStateContent(
       selectedModel: model,
       models: _getModels(),
       messages: _getMessages(),
@@ -63,13 +63,13 @@ class ChatViewModel extends BaseViewModel {
   onSendMessage(String message) async {
     final currentState = state;
     switch (currentState) {
-      case ChatStateError():
-      case ChatStateLoading():
+      case ConversationStateError():
+      case ConversationStateLoading():
         return;
-      case ChatStateContent():
+      case ConversationStateContent():
     }
 
-    state = ChatStateContent(
+    state = ConversationStateContent(
       selectedModel: currentState.selectedModel,
       models: _getModels(),
       messages: _getMessages(),
@@ -78,7 +78,7 @@ class ChatViewModel extends BaseViewModel {
     notifyListeners();
     _analytics.event(EventSendMessage(currentState.selectedModel.id));
     await _chatState.sendMessage(message, currentState.selectedModel.id);
-    state = ChatStateContent(
+    state = ConversationStateContent(
       selectedModel: currentState.selectedModel,
       models: _getModels(),
       messages: _getMessages(),
@@ -88,13 +88,13 @@ class ChatViewModel extends BaseViewModel {
   }
 
   _load() async {
-    state = ChatStateLoading();
+    state = ConversationStateLoading();
     notifyListeners();
     final response = await _modelsState.refresh();
     switch (response) {
       case ListModelResultError():
       case ListModelResultConnectionError():
-        state = ChatStateError(
+        state = ConversationStateError(
           _s.error_missing_ollama_title,
           _s.error_missing_ollama_message,
           _s.error_missing_ollama_positive,
@@ -105,13 +105,13 @@ class ChatViewModel extends BaseViewModel {
     }
     final models = _getModels();
     if (models.isEmpty) {
-      state = ChatStateError(
+      state = ConversationStateError(
         _s.chat_missing_model_error_title,
         _s.chat_missing_model_error_message,
         _s.chat_missing_model_error_positive,
       );
     } else {
-      state = ChatStateContent(
+      state = ConversationStateContent(
         isGeneratingMessage: false,
         selectedModel: models.first,
         models: models,
@@ -125,24 +125,24 @@ class ChatViewModel extends BaseViewModel {
     final models = _getModels();
     final currentState = state;
     switch (currentState) {
-      case ChatStateError():
-      case ChatStateLoading():
+      case ConversationStateError():
+      case ConversationStateLoading():
         if (models.isEmpty) {
-          state = ChatStateError(
+          state = ConversationStateError(
             _s.chat_missing_model_error_title,
             _s.chat_missing_model_error_message,
             _s.chat_missing_model_error_positive,
           );
         } else {
-          state = ChatStateContent(
+          state = ConversationStateContent(
             isGeneratingMessage: false,
             selectedModel: models.first,
             models: models,
             messages: _getMessages(),
           );
         }
-      case ChatStateContent():
-        state = ChatStateContent(
+      case ConversationStateContent():
+        state = ConversationStateContent(
           selectedModel: currentState.selectedModel,
           models: models,
           messages: _getMessages(),
@@ -155,12 +155,12 @@ class ChatViewModel extends BaseViewModel {
   _onChatChanged() {
     final currentState = state;
     switch (currentState) {
-      case ChatStateLoading():
-      case ChatStateError():
+      case ConversationStateLoading():
+      case ConversationStateError():
         return;
-      case ChatStateContent():
+      case ConversationStateContent():
     }
-    state = ChatStateContent(
+    state = ConversationStateContent(
       isGeneratingMessage: currentState.isGeneratingMessage,
       selectedModel: currentState.selectedModel,
       models: _getModels(),
@@ -173,7 +173,7 @@ class ChatViewModel extends BaseViewModel {
     return _modelsState.cachedModels.value.map(_domainToChatModel).toList();
   }
 
-  List<ChatMessage> _getMessages() {
+  List<ConversationMessage> _getMessages() {
     return _chatState.messages.value.map(_domainToChatMessage).toList();
   }
 
@@ -181,16 +181,16 @@ class ChatViewModel extends BaseViewModel {
     return ChatModel(model.id, model.name);
   }
 
-  ChatMessage _domainToChatMessage(ChatMessageDomain message) {
-    final ChatMessage chatMessage;
+  ConversationMessage _domainToChatMessage(ChatMessageDomain message) {
+    final ConversationMessage chatMessage;
     switch (message) {
       case ChatMessageUserDomain():
-        chatMessage = ChatMessageUser(message.message);
+        chatMessage = ConversationMessageUser(message.message);
       case ChatMessageAssistantDomain():
-        chatMessage = ChatMessageAssistant(message.message,
+        chatMessage = ConversationMessageAssistant(message.message,
             isLoading: !message.isFinalised);
       case ChatMessageErrorDomain():
-        chatMessage = ChatMessageError(_s.chat_message_error);
+        chatMessage = ConversationMessageError(_s.chat_message_error);
     }
     return chatMessage;
   }
