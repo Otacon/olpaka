@@ -44,7 +44,10 @@ jobs:
           flutter pub global run intl_utils:generate
 
       - name: Build web app
-        run: flutter build web --release --base-href "/olpaka/"
+        env:
+          FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+        run: |
+          flutter build web --release --base-href "/olpaka/" --dart-define=FIREBASE_WEB_API_KEY="$FIREBASE_WEB_API_KEY"
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@8575951200e472d5f2d95c625da0c7bec8217c42 # v1.161.0
