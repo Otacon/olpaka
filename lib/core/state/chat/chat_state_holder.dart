@@ -2,17 +2,25 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:olpaka/core/ollama/generate_streaming_result.dart';
 import 'package:olpaka/core/ollama/repository.dart';
+import 'package:olpaka/core/state/chat/chat_conversation_domain.dart';
 import 'package:olpaka/core/state/chat/chat_message_domain.dart';
 import 'package:olpaka/core/state/chat/send_message_result.dart';
 
 class ChatStateHolder {
   final OllamaRepository _ollama;
 
+  final conversations = ValueNotifier<List<ChatConversationDomain>>(List.empty());
   final messages = ValueNotifier<List<ChatMessageDomain>>(List.empty());
   String? latestModel;
   List<int>? context;
 
   ChatStateHolder(this._ollama);
+
+  startConversation(String model, String title){
+    final newConversations = conversations.value.toList(growable: true);
+    newConversations.add(ChatConversationDomain.create(model));
+    conversations.value = newConversations;
+  }
 
   Future<SendMessageResult> sendMessage(String text, String model) async {
     _addMessage(ChatMessageUserDomain(text));

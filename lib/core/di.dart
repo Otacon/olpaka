@@ -10,6 +10,7 @@ import 'package:olpaka/core/ollama/repository.dart';
 import 'package:olpaka/core/preferences.dart';
 import 'package:olpaka/core/state/di.dart';
 import 'package:olpaka/feature/chat/di.dart';
+import 'package:olpaka/feature/chat_sessions/di.dart';
 import 'package:olpaka/feature/getting_started/di.dart';
 import 'package:olpaka/feature/home/di.dart';
 import 'package:olpaka/feature/models/di.dart';
@@ -41,6 +42,7 @@ void registerModules() {
 
   registerApp();
   registerChat();
+  registerChatSessions();
   registerGettingStarted();
   registerHome();
   registerModels();

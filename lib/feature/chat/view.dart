@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 import 'package:olpaka/feature/chat/state.dart';
 import 'package:olpaka/feature/chat/view_model.dart';
+import 'package:olpaka/feature/chat_sessions/view.dart';
 import 'package:olpaka/generated/l10n.dart';
 import 'package:olpaka/ui/empty_screen.dart';
 import 'package:olpaka/ui/loading.dart';
@@ -106,17 +107,30 @@ class ChatScreen extends StatelessWidget {
         },
       );
     }
-    return Column(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(child: content),
-        FractionallySizedBox(
-          widthFactor: 0.9,
-          child: _MessageInputBar(
-            isEnabled: isEnabled,
-            onSendMessage: onSendMessage,
-            onModelSelected: onModelSelected,
-            selectedModel: selectedModel,
-            models: models,
+        Container(
+          constraints: BoxConstraints.loose(const Size(180, double.infinity)),
+          child: const ChatSessionsScreen(),
+        ),
+        const VerticalDivider(),
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(child: content),
+              FractionallySizedBox(
+                widthFactor: 0.9,
+                child: _MessageInputBar(
+                  isEnabled: isEnabled,
+                  onSendMessage: onSendMessage,
+                  onModelSelected: onModelSelected,
+                  selectedModel: selectedModel,
+                  models: models,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -250,14 +264,6 @@ class _MessageInputBarState extends State<_MessageInputBar> {
 
   @override
   Widget build(BuildContext context) {
-    final Function(ChatModel?)? dropdownCallback;
-    if (widget.isEnabled) {
-      _focusNode.requestFocus();
-      dropdownCallback = widget.onModelSelected;
-    } else {
-      dropdownCallback = null;
-    }
-
     final Function(String)? submitCallback;
     final Function()? sendPressedCallback;
     final Icon sendIcon;
@@ -272,37 +278,21 @@ class _MessageInputBarState extends State<_MessageInputBar> {
     }
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: TextField(
-              maxLines: 3,
-              minLines: 1,
-              focusNode: _focusNode,
-              controller: _controller,
-              enabled: widget.isEnabled,
-              onSubmitted: submitCallback,
-              decoration: InputDecoration(
-                suffixIcon: IconButton(
-                  onPressed: sendPressedCallback,
-                  icon: sendIcon,
-                ),
-                border: const OutlineInputBorder(),
-                hintText: S.current.chat_text_input_hint,
-              ),
-            ),
+      child: TextField(
+        maxLines: 3,
+        minLines: 1,
+        focusNode: _focusNode,
+        controller: _controller,
+        enabled: widget.isEnabled,
+        onSubmitted: submitCallback,
+        decoration: InputDecoration(
+          suffixIcon: IconButton(
+            onPressed: sendPressedCallback,
+            icon: sendIcon,
           ),
-          const SizedBox(width: 16.0),
-          DropdownButton<ChatModel>(
-            hint: Text(S.current.chat_model_dropdown_hint),
-            onChanged: dropdownCallback,
-            value: widget.selectedModel,
-            items: widget.models
-                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                .toList(),
-          ),
-        ],
+          border: const OutlineInputBorder(),
+          hintText: S.current.chat_text_input_hint,
+        ),
       ),
     );
   }

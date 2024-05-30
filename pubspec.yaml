@@ -38,6 +38,9 @@ dependencies:
   # Url launcher
   url_launcher: ^6.2.6
 
+  # UUID
+  uuid: ^4.4.0
+
   # Shared Preferences
   shared_preferences: ^2.2.3
 
