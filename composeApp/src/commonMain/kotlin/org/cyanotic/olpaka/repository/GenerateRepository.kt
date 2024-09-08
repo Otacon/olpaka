@@ -15,11 +15,11 @@ class GenerateRepository(
     private val decoder: Json
 ) {
 
-    fun generate(query: String) = flow {
+    fun generate(query: String, model: String) = flow {
         val request = GenerateRequestDTO(
             stream = true,
             system = "",
-            model = "llama3",
+            model = model,
             temperature = 0.8,
             prompt = query
         )

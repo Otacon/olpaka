@@ -1,8 +1,8 @@
 package org.cyanotic.olpaka.feature.models
 
-import org.koin.core.module.dsl.viewModel
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val modelsModule = module {
-    viewModel { ModelsViewModel(get()) }
+    viewModelOf(::ModelsViewModel)
 }

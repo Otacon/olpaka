@@ -3,6 +3,7 @@ package org.cyanotic.olpaka
 import androidx.compose.runtime.*
 import org.cyanotic.olpaka.core.ThemeState
 import org.cyanotic.olpaka.core.coreModule
+import org.cyanotic.olpaka.feature.chat.chatModule
 import org.cyanotic.olpaka.feature.main.MainScreen
 import org.cyanotic.olpaka.feature.main.mainModule
 import org.cyanotic.olpaka.feature.models.modelsModule
@@ -37,6 +38,7 @@ private fun koinConfiguration() = koinApplication {
         networkModule,
         repositoryModule,
         mainModule,
+        chatModule,
         modelsModule,
         settingsModule,
     )
