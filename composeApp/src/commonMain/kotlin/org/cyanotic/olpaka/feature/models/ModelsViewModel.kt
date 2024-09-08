@@ -89,7 +89,6 @@ class ModelsViewModel(
     }
 
     private suspend fun refreshModels() {
-        println("Refreshing models...")
         val models = repository.getModels().map {
             ModelUI.Available(
                 key = it.tag,

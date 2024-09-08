@@ -19,7 +19,6 @@ class ChatViewModel(
     private val _events = MutableSharedFlow<ChatEvent>()
     val event = _events.asSharedFlow()
 
-
     fun onCreate() = viewModelScope.launch(Dispatchers.Default) {
         _state.value = _state.value.copy(isLoading = true)
         val models = modelsRepository.getModels().map { ChatModelUI(it.tag, it.name) }
