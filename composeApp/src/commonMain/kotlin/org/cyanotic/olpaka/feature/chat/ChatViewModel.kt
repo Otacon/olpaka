@@ -1,17 +1,14 @@
 package org.cyanotic.olpaka.feature.chat
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import org.cyanotic.olpaka.core.OlpakaViewModel
 import org.cyanotic.olpaka.repository.GenerateRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
 
 class ChatViewModel(
     private val generateRepository: GenerateRepository,
     private val modelsRepository: ModelsRepository,
-) : ViewModel() {
+) : OlpakaViewModel() {
 
     private val _state = MutableStateFlow(ChatState())
     val state = _state.asStateFlow()
@@ -19,14 +16,14 @@ class ChatViewModel(
     private val _events = MutableSharedFlow<ChatEvent>()
     val event = _events.asSharedFlow()
 
-    fun onCreate() = viewModelScope.launch(Dispatchers.Default) {
+    override fun onCreate() = inBackground {
         _state.value = _state.value.copy(isLoading = true)
         val models = modelsRepository.getModels().map { ChatModelUI(it.tag, it.name) }
         _state.value = _state.value.copy(models = models, isLoading = false)
     }
 
-    fun sendMessage(message: String) = viewModelScope.launch(Dispatchers.Default) {
-        val selectedModel = _state.value.selectedModel ?: return@launch
+    fun sendMessage(message: String) = inBackground {
+        val selectedModel = _state.value.selectedModel ?: return@inBackground
         var assistantMessage = ChatMessageUI.AssistantMessage("", true)
         generateRepository.generate(message, selectedModel.key)
             .onStart {

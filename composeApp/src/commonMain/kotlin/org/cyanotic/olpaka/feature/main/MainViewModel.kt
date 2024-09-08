@@ -1,17 +1,14 @@
 package org.cyanotic.olpaka.feature.main
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import org.cyanotic.olpaka.core.OlpakaViewModel
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.ThemeState
 
 class MainViewModel(
     private val preferences: Preferences,
     private val themeState: ThemeState,
-) : ViewModel() {
+) : OlpakaViewModel() {
 
     private val _state = MutableStateFlow(MainState())
     val state = _state.asStateFlow()
@@ -19,12 +16,12 @@ class MainViewModel(
     private val _events = MutableSharedFlow<MainEvent>()
     val event = _events.asSharedFlow()
 
-    fun onCreate() {
+    override fun onCreate() {
         themeState.themeMode.value = preferences.themeMode
         themeState.color.value = preferences.themeColor
     }
 
-    fun onTabChanged(index: Int) = viewModelScope.launch(Dispatchers.Default) {
+    fun onTabChanged(index: Int) = inBackground {
         _state.getAndUpdate { current ->
             val navigationEvent = when (index) {
                 1 -> MainEvent.OpenModels

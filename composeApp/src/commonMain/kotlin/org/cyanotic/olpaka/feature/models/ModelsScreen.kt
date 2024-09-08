@@ -23,11 +23,10 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 @Preview
 fun ModelsScreen() {
-    val viewModel = koinViewModel<ModelsViewModel>()
+    val viewModel = koinViewModel<ModelsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
     var openAddModelDialog by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        viewModel.onCreate()
         viewModel.event.collect { event ->
             when (event) {
                 ModelsEvent.ShowAddModelDialog -> openAddModelDialog = true

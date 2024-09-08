@@ -16,14 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import olpaka.composeapp.generated.resources.*
 import org.cyanotic.olpaka.ui.OlpakaAppBar
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 @Preview
 fun ChatScreen() {
-    val viewModel = koinViewModel<ChatViewModel>()
+    val viewModel = koinViewModel<ChatViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
     val chatListState = rememberLazyListState()
     LaunchedEffect(Unit) {
@@ -36,7 +38,7 @@ fun ChatScreen() {
         chatListState.animateScrollToItem(chatListState.layoutInfo.totalItemsCount)
     }
     Scaffold(
-        topBar = { OlpakaAppBar("Olpaka") },
+        topBar = { OlpakaAppBar(stringResource(Res.string.app_name)) },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -97,7 +99,7 @@ private fun MessageInputBar(
             minLines = 1,
             maxLines = 3,
             onValueChange = { text = it },
-            placeholder = { Text("Message Olpaka") },
+            placeholder = { Text(stringResource(Res.string.chat_text_input_hint)) },
             trailingIcon = {
                 IconButton(
                     onClick = { onSubmitQuery(text) }
@@ -140,7 +142,7 @@ private fun DropDown(
             value = selectedModel?.name ?: "",
             enabled = false,
             onValueChange = { },
-            placeholder = { Text("Model") },
+            placeholder = { Text(stringResource(Res.string.chat_model_dropdown_hint)) },
             singleLine = true,
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
@@ -180,7 +182,7 @@ private fun OwnMessage(modifier: Modifier = Modifier, message: ChatMessageUI.Own
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text("Own", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(Res.string.chat_user_name), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(8.dp))
             Text(message.text)
         }
@@ -197,7 +199,7 @@ private fun AssistantMessage(modifier: Modifier = Modifier, message: ChatMessage
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text("Assistant", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(Res.string.chat_assistant_name), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(8.dp))
             Text(message.text)
         }

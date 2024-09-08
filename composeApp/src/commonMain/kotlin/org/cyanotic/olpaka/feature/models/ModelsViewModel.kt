@@ -1,17 +1,16 @@
 package org.cyanotic.olpaka.feature.models
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.cyanotic.olpaka.core.OlpakaViewModel
 import org.cyanotic.olpaka.repository.DownloadModelProgress
 import org.cyanotic.olpaka.repository.ModelsRepository
 
 class ModelsViewModel(
     private val repository: ModelsRepository,
-) : ViewModel() {
+) : OlpakaViewModel() {
 
     private val _state = MutableStateFlow(ModelsState())
     val state = _state.asStateFlow()
@@ -21,19 +20,19 @@ class ModelsViewModel(
 
     private var cancelDownload: Boolean = false
 
-    fun onCreate() = viewModelScope.launch(Dispatchers.Default) {
+    override fun onCreate() = inBackground {
         refreshModels()
     }
 
-    fun onRefreshClicked() = viewModelScope.launch(Dispatchers.Default) {
+    fun onRefreshClicked() = inBackground {
         refreshModels()
     }
 
-    fun onAddModelClicked() = viewModelScope.launch(Dispatchers.Default) {
+    fun onAddModelClicked() = inBackground {
         _events.emit(ModelsEvent.ShowAddModelDialog)
     }
 
-    fun onAddModel(tag: String) = viewModelScope.launch(Dispatchers.Default) {
+    fun onAddModel(tag: String) = inBackground {
         repository.downloadModel(tag)
             .onStart {
                 cancelDownload = false
@@ -81,7 +80,7 @@ class ModelsViewModel(
         cancelDownload = true
     }
 
-    fun onRemoveModel(model: ModelUI.Available) = viewModelScope.launch(Dispatchers.Default) {
+    fun onRemoveModel(model: ModelUI.Available) = inBackground {
         val removed = repository.removeModel(tag = model.title)
         if (removed) {
             refreshModels()

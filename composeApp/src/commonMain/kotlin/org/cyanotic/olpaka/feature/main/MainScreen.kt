@@ -22,7 +22,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 @Preview
 fun MainScreen() {
-    val viewModel = koinViewModel<MainViewModel>()
+    val viewModel = koinViewModel<MainViewModel>().also { it.init() }
     val navController = rememberNavController()
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {

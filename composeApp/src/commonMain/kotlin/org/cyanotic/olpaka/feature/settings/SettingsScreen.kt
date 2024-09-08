@@ -29,13 +29,13 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 @Preview
 fun SettingsScreen() {
-    val viewModel = koinViewModel<SettingsViewModel>().also { it.onCreate() }
+    val viewModel = koinViewModel<SettingsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
     Scaffold(topBar = { OlpakaAppBar("Settings") }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             SettingSection("Theme")
             SettingItem("Mode") {
-                SingleChoiceSegmentedButtonRow() {
+                SingleChoiceSegmentedButtonRow {
                     SegmentedButton(
                         icon = {
                             Icon(
