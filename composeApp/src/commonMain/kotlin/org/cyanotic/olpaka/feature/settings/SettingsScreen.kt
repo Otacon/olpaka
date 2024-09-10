@@ -26,6 +26,7 @@ import org.cyanotic.olpaka.ui.theme.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun SettingsScreen() {

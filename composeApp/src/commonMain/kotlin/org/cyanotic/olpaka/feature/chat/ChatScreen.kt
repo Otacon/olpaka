@@ -83,7 +83,6 @@ fun ChatScreen() {
 }
 
 @Composable
-@Preview
 private fun MessageInputBar(
     models: List<ChatModelUI>,
     onSubmitQuery: (String) -> Unit,
@@ -127,7 +126,6 @@ private fun MessageInputBar(
 }
 
 @Composable
-@Preview
 private fun DropDown(
     modifier: Modifier = Modifier,
     options: List<ChatModelUI> = emptyList(),
@@ -176,7 +174,6 @@ private fun DropDown(
 }
 
 @Composable
-@Preview
 private fun OwnMessage(modifier: Modifier = Modifier, message: ChatMessageUI.OwnMessage) {
     OutlinedCard(
         modifier = modifier.padding(16.dp)
@@ -192,7 +189,6 @@ private fun OwnMessage(modifier: Modifier = Modifier, message: ChatMessageUI.Own
 }
 
 @Composable
-@Preview
 private fun AssistantMessage(modifier: Modifier = Modifier, message: ChatMessageUI.AssistantMessage) {
     OutlinedCard(
         modifier = modifier

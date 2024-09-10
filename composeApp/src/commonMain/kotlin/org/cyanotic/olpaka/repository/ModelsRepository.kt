@@ -22,7 +22,7 @@ class ModelsRepository(
             contentType(ContentType.Application.Json)
         }
         return if (response.status.isSuccess()) {
-            response.body<GetModelResponseDTO>().models
+            response.body<GetModelResponseDTO>().models ?: emptyList()
         } else {
             emptyList()
         }
@@ -67,7 +67,7 @@ class ModelsRepository(
 
 @Serializable
 data class GetModelResponseDTO(
-    @SerialName("models") val models: List<ModelDTO>,
+    @SerialName("models") val models: List<ModelDTO>? = null,
 )
 
 @Serializable
