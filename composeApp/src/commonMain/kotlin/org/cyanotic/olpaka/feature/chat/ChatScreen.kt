@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.mikepenz.markdown.m3.Markdown
 import olpaka.composeapp.generated.resources.*
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.jetbrains.compose.resources.stringResource
@@ -184,7 +186,7 @@ private fun OwnMessage(modifier: Modifier = Modifier, message: ChatMessageUI.Own
         ) {
             Text(stringResource(Res.string.chat_user_name), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(8.dp))
-            Text(message.text)
+            SelectionContainer { Markdown(message.text) }
         }
     }
 }
@@ -201,7 +203,7 @@ private fun AssistantMessage(modifier: Modifier = Modifier, message: ChatMessage
         ) {
             Text(stringResource(Res.string.chat_assistant_name), style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(8.dp))
-            Text(message.text)
+            SelectionContainer { Markdown(message.text) }
         }
     }
 }

@@ -17,8 +17,10 @@ val networkModule = module {
 
     single {
         HttpClient {
-            install(HttpTimeout){
-                requestTimeoutMillis = null
+            install(HttpTimeout) {
+                requestTimeoutMillis = REQUEST_TIMEOUT
+                connectTimeoutMillis = CONNECT_TIMEOUT
+                socketTimeoutMillis = SOCKET_TIMEOUT
             }
             install(ContentNegotiation) {
                 json(get())
@@ -26,3 +28,10 @@ val networkModule = module {
         }
     }
 }
+
+const val SECOND = 1_000L
+const val MINUTE = 60 * SECOND
+const val REQUEST_TIMEOUT = 10 * MINUTE
+const val CONNECT_TIMEOUT = 10 * MINUTE
+const val SOCKET_TIMEOUT = 10 * MINUTE
+

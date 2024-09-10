@@ -66,14 +66,10 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation(compose.runtime)
             implementation(compose.ui)
-
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.serialization.json)
 
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
@@ -83,11 +79,18 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.koin.compose.viewmodel.navigation)
 
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.content)
             implementation(libs.ktor.content.json)
 
+            implementation(libs.markdownRenderer)
+            implementation(libs.markdownRenderer.m3)
+
             implementation(libs.materialKolor)
+
             implementation(libs.settings)
         }
 
