@@ -20,11 +20,9 @@ import olpaka.composeapp.generated.resources.*
 import org.cyanotic.olpaka.ui.EmptyScreen
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-@Preview
 fun ModelsScreen() {
     val viewModel = koinViewModel<ModelsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
@@ -202,65 +200,57 @@ private fun ModelAvailable(
     onRemoveClicked: () -> Unit,
     removeEnabled: Boolean
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Icon(
-            modifier = Modifier.align(Alignment.CenterVertically),
-            imageVector = Icons.Outlined.DownloadForOffline,
-            contentDescription = null
-        )
-        Column(
-            Modifier.weight(1.0f)
-                .padding(horizontal = 16.dp)
-        ) {
+    ListItem(
+        leadingContent = {
+            Icon(
+                imageVector = Icons.Outlined.DownloadForOffline,
+                contentDescription = null
+            )
+        },
+        headlineContent = {
             Text(model.title)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(model.subtitle, style = MaterialTheme.typography.labelSmall)
+        },
+        supportingContent = {
+            Text(model.subtitle)
+        },
+        trailingContent = {
+            FilledTonalButton(
+                enabled = removeEnabled,
+                onClick = onRemoveClicked
+            ) {
+                Text(stringResource(Res.string.models_action_remove_model))
+            }
         }
-        Button(
-            enabled = removeEnabled,
-            onClick = onRemoveClicked
-        ) {
-            Text(stringResource(Res.string.models_action_remove_model))
-        }
-    }
+    )
 }
 
 @Composable
 private fun ModelDownloading(model: ModelUI.Downloading, onCancelClicked: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        if (model.progress != null) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .size(24.dp)
-                    .align(Alignment.CenterVertically),
-                progress = { model.progress }
-            )
-        } else {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .size(24.dp)
-                    .align(Alignment.CenterVertically)
-            )
-        }
-        Column(
-            Modifier.weight(1.0f)
-                .padding(horizontal = 16.dp)
-        ) {
+    ListItem(
+        leadingContent = {
+            if (model.progress != null) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    progress = { model.progress }
+                )
+            } else {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        },
+        headlineContent = {
             Text(model.title)
+        },
+        supportingContent = {
             Text(model.subtitle)
+        },
+        trailingContent = {
+            FilledTonalButton(onClick = onCancelClicked) {
+                Text(stringResource(Res.string.models_action_cancel_download))
+            }
         }
-        Button(onClick = onCancelClicked) {
-            Text(stringResource(Res.string.models_action_cancel_download))
-        }
-    }
+    )
 }
 
 

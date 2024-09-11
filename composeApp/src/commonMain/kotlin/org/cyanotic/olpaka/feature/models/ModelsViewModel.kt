@@ -12,6 +12,8 @@ import org.cyanotic.olpaka.repository.DownloadModelProgress
 import org.cyanotic.olpaka.repository.GetModelsResult
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
+import kotlin.math.ln
+import kotlin.math.pow
 
 class ModelsViewModel(
     private val repository: ModelsRepository,
@@ -105,7 +107,7 @@ class ModelsViewModel(
 
     fun onConfirmRemoveModel(model: ModelUI.Available) = inBackground {
         _state.getAndUpdate { current -> current.copy(isLoading = true) }
-        val removed = repository.removeModel(tag = model.title)
+        val removed = repository.removeModel(tag = model.key)
         if (removed) {
             refreshModels()
         }
@@ -115,10 +117,15 @@ class ModelsViewModel(
     private suspend fun refreshModels() {
         val models = when (val result = repository.getModels()) {
             is GetModelsResult.Success -> result.models.map {
+                val subtitle = listOfNotNull(
+                    it.size.toHumanReadableByteCount(),
+                    it.details.quantization,
+                    it.details.parameters
+                ).joinToString(" • ")
                 ModelUI.Available(
                     key = it.tag,
-                    title = it.name,
-                    subtitle = "${it.tag} ${it.details.quantization}"
+                    title = "${it.tag.modelFriendlyName()} (${it.tag})",
+                    subtitle = subtitle
                 )
             }
 
@@ -164,4 +171,19 @@ sealed interface ModelUI {
         val title: String,
         val subtitle: String,
     ) : ModelUI
+}
+
+private fun Long.toHumanReadableByteCount(): String {
+    val unit = 1000
+    if (this < unit) return "$this B"
+    val exp = (ln(this.toDouble()) / ln(unit.toDouble())).toInt()
+    val prefixes = "kMGTPE"
+    val pre = prefixes[exp - 1]
+    val result = this / unit.toDouble().pow(exp)
+    val roundedResult = (result * 10).toInt() / 10.0
+    return "$roundedResult ${pre}B"
+}
+
+private fun String.modelFriendlyName(): String {
+    return this.split(":").first()
 }
