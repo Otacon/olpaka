@@ -10,7 +10,7 @@ abstract class OlpakaViewModel : ViewModel() {
 
     private var firstInit = false
 
-    fun init() {
+    fun init() = viewModelScope.launch(Dispatchers.Main) {
         if (!firstInit) {
             firstInit = true
             onCreate()

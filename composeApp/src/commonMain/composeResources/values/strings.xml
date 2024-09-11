@@ -40,16 +40,18 @@
     <string name="onboarding_title">Getting started</string>
     <string name="onboarding_step_1">Olpaka is a powerful and intuitive frontend application designed to help you interact seamlessly with AI models powered by Ollama.\n\nWhether you're a developer, data scientist, or just curious about AI, Olpaka provides an easy-to-use interface to load, manage, and interact with various AI models.\n\nWith Olpaka, harnessing the power of AI has never been easier. Let’s get started on this exciting journey!</string>
     <string name="onboarding_step_2_a">To get started, you'll need to download and install Ollama.</string>
-    <string name="onboarding_step_2_b">Click on \"next\" once you're done.</string>
+    <string name="onboarding_step_2_b">Click on "Next" once you're done.</string>
     <string name="onboarding_step_3_a">To allow Olpaka to communicate with Ollama, you'll need to set up CORS.</string>
     <string name="onboarding_step_3_b">Once you've configured CORS, you can check whether Olpaka is able to communicate with Olpaka by using the button below.</string>
     <string name="onboarding_step_3_c">If it still doesn't work try to restart Ollama before continuing.</string>
-    <string name="onboarding_step_4">Olpaka is now ready to rock!\n\nYou can access this screen from the Settings tab.</string>
     <string name="onboarding_download_ollama">Download Ollama</string>
     <string name="onboarding_setup_cors">Setup CORS</string>
     <string name="onboarding_check_connection_unknown">Check connection</string>
     <string name="onboarding_check_connection_success">Success - check again</string>
     <string name="onboarding_check_connection_failure">Failed - retry</string>
+    <string name="onboarding_cta_previous">Previous</string>
+    <string name="onboarding_cta_next">Next</string>
+    <string name="onboarding_cta_finish">Finish</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_theme_section">Theme</string>
@@ -59,7 +61,7 @@
     <string name="settings_theme_mode_dark">Dark</string>
     <string name="settings_theme_color">Color</string>
     <string name="settings_onboarding_title">Troubleshooting</string>
-    <string name="settings_onboarding_subtitle">Launch the \"Getting Started\" wizard</string>
+    <string name="settings_onboarding_subtitle">Launch the "Getting Started" wizard</string>
     <string name="settings_about_subtitle">Learn more about Olpaka</string>
     <string name="settings_about_author">Made with love by Cyanotic (Orfeo Ciano)</string>
 

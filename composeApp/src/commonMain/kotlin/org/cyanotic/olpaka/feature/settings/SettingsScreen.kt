@@ -21,15 +21,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import org.cyanotic.olpaka.core.Routes
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.cyanotic.olpaka.ui.theme.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun SettingsScreen() {
+fun SettingsScreen(navHostController: NavHostController) {
     val viewModel = koinViewModel<SettingsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
     Scaffold(topBar = { OlpakaAppBar("Settings") }) { padding ->
@@ -87,7 +88,13 @@ fun SettingsScreen() {
                 }
             }
             Spacer(Modifier.weight(1.0f))
-            SettingLink(title = "Troubleshooting", subtitle = "Launch the \"Getting Started\" wizard", onClick = {})
+            SettingLink(
+                title = "Troubleshooting",
+                subtitle = "Launch the \"Getting Started\" wizard",
+                onClick = {
+                    navHostController.navigate(Routes.ONBOARDING)
+                }
+            )
             SettingLink(title = "Olpaka v0.4.0", subtitle = "Learn more about Olpaka", onClick = {})
         }
     }

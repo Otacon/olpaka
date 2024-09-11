@@ -6,14 +6,17 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import org.cyanotic.olpaka.feature.chat.ChatScreen
 import org.cyanotic.olpaka.feature.models.ModelsScreen
+import org.cyanotic.olpaka.feature.onboarding.OnboardingScreen
 import org.cyanotic.olpaka.feature.settings.SettingsScreen
 
 object Routes {
     const val CHAT = "Chat"
     const val MODELS = "Models"
     const val SETTINGS = "Settings"
+    const val ONBOARDING = "Onboarding"
 }
 
 @Composable
@@ -25,6 +28,7 @@ fun OlpakaNavHost(navController: NavHostController) {
     ) {
         composable(Routes.CHAT) { ChatScreen() }
         composable(Routes.MODELS) { ModelsScreen() }
-        composable(Routes.SETTINGS) { SettingsScreen() }
+        composable(Routes.SETTINGS) { SettingsScreen(navController) }
+        dialog(Routes.ONBOARDING) { OnboardingScreen(navController) }
     }
 }

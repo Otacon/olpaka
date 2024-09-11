@@ -16,9 +16,10 @@ class MainViewModel(
     private val _events = MutableSharedFlow<MainEvent>()
     val event = _events.asSharedFlow()
 
-    override fun onCreate() {
+    override fun onCreate() = inBackground {
         themeState.themeMode.value = preferences.themeMode
         themeState.color.value = preferences.themeColor
+        _events.emit(MainEvent.OpenOnboarding)
     }
 
     fun onTabChanged(index: Int) = inBackground {
@@ -43,4 +44,5 @@ sealed interface MainEvent {
     data object OpenChat : MainEvent
     data object OpenModels : MainEvent
     data object OpenSettings : MainEvent
+    data object OpenOnboarding : MainEvent
 }

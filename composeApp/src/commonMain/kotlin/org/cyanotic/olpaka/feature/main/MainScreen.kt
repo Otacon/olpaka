@@ -13,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.cyanotic.olpaka.core.OlpakaNavHost
 import org.cyanotic.olpaka.core.Routes
@@ -26,21 +27,7 @@ fun MainScreen() {
     val navController = rememberNavController()
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) {
-        viewModel.onCreate()
-        viewModel.event.collect { event ->
-            val route = when (event) {
-                MainEvent.OpenChat -> Routes.CHAT
-                MainEvent.OpenModels -> Routes.MODELS
-                MainEvent.OpenSettings -> Routes.SETTINGS
-            }
-            navController.navigate(route) {
-                launchSingleTop = true
-                restoreState = true
-                popUpTo(navController.graph.startDestinationId) {
-                    saveState = true
-                }
-            }
-        }
+        viewModel.event.collect { handleEvent(it, navController) }
     }
     Row(
         modifier = Modifier.fillMaxSize(),
@@ -77,5 +64,45 @@ fun MainScreen() {
         }
         VerticalDivider(Modifier.width(1.dp))
         OlpakaNavHost(navController)
+    }
+}
+
+private fun handleEvent(event: MainEvent, navController: NavController) {
+    when (event) {
+        MainEvent.OpenChat -> {
+            navController.navigate(Routes.CHAT) {
+                launchSingleTop = true
+                restoreState = true
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+            }
+        }
+
+        MainEvent.OpenModels -> {
+            navController.navigate(Routes.MODELS) {
+                launchSingleTop = true
+                restoreState = true
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+            }
+        }
+
+        MainEvent.OpenSettings -> {
+            navController.navigate(Routes.SETTINGS) {
+                launchSingleTop = true
+                restoreState = true
+                popUpTo(navController.graph.startDestinationId) {
+                    saveState = true
+                }
+            }
+        }
+
+        MainEvent.OpenOnboarding -> {
+            navController.navigate(Routes.ONBOARDING) {
+                popUpTo(navController.graph.startDestinationId)
+            }
+        }
     }
 }
