@@ -88,7 +88,7 @@ fun OnboardingScreen(navController: NavHostController) {
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                 }
-                TextButton(
+                Button(
                     onClick = viewModel::onNextPressed
                 ) {
                     Text(state.nextText)
@@ -108,7 +108,7 @@ private fun StepTwo(
     onDownloadOllamaClicked: () -> Unit
 ) {
     Text(stringResource(Res.string.onboarding_step_2_a))
-    Button(
+    FilledTonalButton(
         onClick = onDownloadOllamaClicked,
         modifier = Modifier.padding(vertical = 8.dp)
     ) {
@@ -124,14 +124,14 @@ private fun StepThree(
     onCheckConnectionClicked: () -> Unit,
 ) {
     Text(stringResource(Res.string.onboarding_step_3_a))
-    Button(
+    FilledTonalButton(
         onClick = onSetupCorsClicked,
         modifier = Modifier.padding(vertical = 8.dp)
     ) {
         Text(stringResource(Res.string.onboarding_setup_cors))
     }
     Text(stringResource(Res.string.onboarding_step_3_b))
-    Button(
+    FilledTonalButton(
         onClick = onCheckConnectionClicked,
         modifier = Modifier.padding(vertical = 8.dp),
     ) {
