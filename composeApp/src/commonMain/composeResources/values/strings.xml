@@ -25,7 +25,7 @@
     <string name="models_dialog_download_model_action_positive">Download</string>
     <string name="models_dialog_download_model_action_negative">Cancel</string>
     <string name="models_dialog_remove_model_title">Remove downloaded model</string>
-    <string name="models_dialog_remove_model_description">Do you really want to remove the model {model}?</string>
+    <string name="models_dialog_remove_model_description">Do you really want to remove the model %1$s?</string>
     <string name="models_dialog_remove_model_action_positive">Yes</string>
     <string name="models_dialog_remove_model_action_negative">No</string>
     <string name="models_dialog_download_model_error_title">Unable to download model</string>

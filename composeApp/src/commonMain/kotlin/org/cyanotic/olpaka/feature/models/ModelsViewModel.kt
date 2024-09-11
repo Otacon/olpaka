@@ -99,7 +99,11 @@ class ModelsViewModel(
         cancelDownload = true
     }
 
-    fun onRemoveModel(model: ModelUI.Available) = inBackground {
+    fun onRemoveModelClicked(model: ModelUI.Available) = inBackground {
+        _events.emit(ModelsEvent.ShowRemoveModelDialog(model))
+    }
+
+    fun onConfirmRemoveModel(model: ModelUI.Available) = inBackground {
         _state.getAndUpdate { current -> current.copy(isLoading = true) }
         val removed = repository.removeModel(tag = model.title)
         if (removed) {
@@ -109,7 +113,7 @@ class ModelsViewModel(
     }
 
     private suspend fun refreshModels() {
-        val models = when(val result = repository.getModels()){
+        val models = when (val result = repository.getModels()) {
             is GetModelsResult.Success -> result.models.map {
                 ModelUI.Available(
                     key = it.tag,
@@ -117,6 +121,7 @@ class ModelsViewModel(
                     subtitle = "${it.tag} ${it.details.quantization}"
                 )
             }
+
             GetModelsResult.Failure -> emptyList()
         }
         _state.getAndUpdate { current ->
@@ -129,6 +134,7 @@ class ModelsViewModel(
 
 sealed interface ModelsEvent {
     data object ShowAddModelDialog : ModelsEvent
+    data class ShowRemoveModelDialog(val model: ModelUI.Available) : ModelsEvent
 }
 
 data class ModelsState(

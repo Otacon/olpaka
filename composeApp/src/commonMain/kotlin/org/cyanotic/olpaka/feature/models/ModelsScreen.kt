@@ -29,10 +29,16 @@ fun ModelsScreen() {
     val viewModel = koinViewModel<ModelsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
     var openAddModelDialog by remember { mutableStateOf(false) }
+    var openRemoveModelDialog by remember { mutableStateOf(false) }
+    var modelToRemove by remember { mutableStateOf<ModelUI.Available?>(null) }
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
             when (event) {
                 ModelsEvent.ShowAddModelDialog -> openAddModelDialog = true
+                is ModelsEvent.ShowRemoveModelDialog -> {
+                    modelToRemove = event.model
+                    openRemoveModelDialog = true
+                }
             }
         }
     }
@@ -42,6 +48,15 @@ fun ModelsScreen() {
             onConfirm = { model ->
                 openAddModelDialog = false
                 viewModel.onAddModel(model)
+            }
+        )
+    } else if (openRemoveModelDialog) {
+        RemoveModelDialog(
+            modelName = modelToRemove?.key ?: "",
+            onDismiss = { openRemoveModelDialog = false },
+            onConfirm = {
+                openRemoveModelDialog = false
+                modelToRemove?.let { viewModel.onConfirmRemoveModel(it) }
             }
         )
     }
@@ -72,7 +87,7 @@ fun ModelsScreen() {
             }
         }
     ) { padding ->
-        if(state.models.isEmpty()){
+        if (state.models.isEmpty()) {
             EmptyScreen(
                 modifier = Modifier.padding(padding),
                 title = stringResource(Res.string.models_error_no_models_title),
@@ -87,7 +102,7 @@ fun ModelsScreen() {
                     when (val model = state.models[index]) {
                         is ModelUI.Available -> ModelAvailable(
                             model = model,
-                            onRemoveClicked = { viewModel.onRemoveModel(model) },
+                            onRemoveClicked = { viewModel.onRemoveModelClicked(model) },
                             removeEnabled = !state.isLoading
                         )
 
@@ -147,6 +162,35 @@ private fun AddModelDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(Res.string.models_dialog_download_model_action_negative))
+            }
+        }
+    )
+}
+
+@Composable
+private fun RemoveModelDialog(
+    modelName: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        title = {
+            Text(text = stringResource(Res.string.models_dialog_remove_model_title))
+        },
+        text = {
+            Text(stringResource(Res.string.models_dialog_remove_model_description, modelName))
+        },
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm
+            ) {
+                Text(stringResource(Res.string.models_dialog_remove_model_action_positive))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(Res.string.models_dialog_remove_model_action_negative))
             }
         }
     )
