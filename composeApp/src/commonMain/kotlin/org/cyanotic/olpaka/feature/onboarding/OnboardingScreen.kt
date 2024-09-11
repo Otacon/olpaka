@@ -1,6 +1,10 @@
 package org.cyanotic.olpaka.feature.onboarding
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircleOutline
+import androidx.compose.material.icons.filled.QuestionMark
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -8,29 +12,28 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import olpaka.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 
 @Composable
-@Preview
 fun OnboardingScreen(navController: NavHostController) {
     val viewModel = koinViewModel<OnboardingViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
+    val uriHandler = LocalUriHandler.current
     LaunchedEffect(Unit) {
         viewModel.onCreate()
         viewModel.event.collect { event ->
             when (event) {
                 OnboardingEvent.Close -> navController.popBackStack()
-                is OnboardingEvent.OpenBrowser -> Unit
+                is OnboardingEvent.OpenBrowser -> uriHandler.openUri(event.url)
             }
         }
     }
-
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -58,9 +61,17 @@ fun OnboardingScreen(navController: NavHostController) {
             ) {
                 when (state.currentStep) {
                     0 -> StepOne()
-                    1 -> StepTwo()
-                    2 -> StepThree()
-                    else -> StepThree()
+                    1 -> StepTwo(
+                        onDownloadOllamaClicked = viewModel::onDownloadOllamaClicked
+                    )
+
+                    2 -> StepThree(
+                        connectionCheckState = state.connectionState,
+                        onSetupCorsClicked = viewModel::onSetupCorsClicked,
+                        onCheckConnectionClicked = viewModel::onCheckConnectionClicked
+                    )
+
+                    else -> throw IllegalStateException("Unknown onboarding step ${state.currentStep}")
                 }
             }
 
@@ -93,10 +104,12 @@ private fun StepOne() {
 }
 
 @Composable
-private fun StepTwo() {
+private fun StepTwo(
+    onDownloadOllamaClicked: () -> Unit
+) {
     Text(stringResource(Res.string.onboarding_step_2_a))
     Button(
-        onClick = {},
+        onClick = onDownloadOllamaClicked,
         modifier = Modifier.padding(vertical = 8.dp)
     ) {
         Text(stringResource(Res.string.onboarding_download_ollama))
@@ -105,20 +118,32 @@ private fun StepTwo() {
 }
 
 @Composable
-private fun StepThree() {
+private fun StepThree(
+    connectionCheckState: ConnectionCheckState,
+    onSetupCorsClicked: () -> Unit,
+    onCheckConnectionClicked: () -> Unit,
+) {
     Text(stringResource(Res.string.onboarding_step_3_a))
     Button(
-        onClick = {},
+        onClick = onSetupCorsClicked,
         modifier = Modifier.padding(vertical = 8.dp)
     ) {
         Text(stringResource(Res.string.onboarding_setup_cors))
     }
     Text(stringResource(Res.string.onboarding_step_3_b))
     Button(
-        onClick = {},
-        modifier = Modifier.padding(vertical = 8.dp)
+        onClick = onCheckConnectionClicked,
+        modifier = Modifier.padding(vertical = 8.dp),
     ) {
-        Text(stringResource(Res.string.onboarding_check_connection_unknown))
+        val (icon, text) = when (connectionCheckState) {
+            ConnectionCheckState.UNKNOWN -> Icons.Default.QuestionMark to stringResource(Res.string.onboarding_check_connection_unknown)
+            ConnectionCheckState.SUCCESS -> Icons.Default.CheckCircleOutline to stringResource(Res.string.onboarding_check_connection_success)
+            ConnectionCheckState.FAILURE -> Icons.Default.WarningAmber to stringResource(Res.string.onboarding_check_connection_failure)
+        }
+
+        Icon(imageVector = icon, contentDescription = null)
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(text)
     }
     Text(stringResource(Res.string.onboarding_step_3_c))
 }

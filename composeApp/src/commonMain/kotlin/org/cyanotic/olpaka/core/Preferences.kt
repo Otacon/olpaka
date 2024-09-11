@@ -1,11 +1,19 @@
 package org.cyanotic.olpaka.core
 
+import com.russhwolf.settings.Settings
 import org.cyanotic.olpaka.ui.theme.OlpakaColor
 import org.cyanotic.olpaka.ui.theme.OlpakaTheme
-import com.russhwolf.settings.Settings
 
 class Preferences {
     private val settings = Settings()
+
+    var hasSeenOnboarding: Boolean
+        set(value) {
+            settings.putBoolean(KEY_SEEN_ONBOARDING, value)
+        }
+        get() {
+            return settings.getBoolean(KEY_SEEN_ONBOARDING, false)
+        }
 
     var themeMode: OlpakaTheme
         set(value) {
@@ -56,6 +64,7 @@ class Preferences {
     companion object {
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_THEME_COLOR = "theme_color"
+        private const val KEY_SEEN_ONBOARDING = "key_seen_onboarding"
 
         private const val VALUE_THEME_AUTO = "auto"
         private const val VALUE_THEME_LIGHT = "light"

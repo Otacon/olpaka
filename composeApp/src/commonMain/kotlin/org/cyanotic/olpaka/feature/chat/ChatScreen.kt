@@ -21,11 +21,9 @@ import com.mikepenz.markdown.m3.Markdown
 import olpaka.composeapp.generated.resources.*
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-@Preview
 fun ChatScreen() {
     val viewModel = koinViewModel<ChatViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()

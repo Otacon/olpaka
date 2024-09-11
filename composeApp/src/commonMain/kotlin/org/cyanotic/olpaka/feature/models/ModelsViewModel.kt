@@ -9,6 +9,7 @@ import olpaka.composeapp.generated.resources.models_state_download
 import olpaka.composeapp.generated.resources.models_state_initializing
 import org.cyanotic.olpaka.core.OlpakaViewModel
 import org.cyanotic.olpaka.repository.DownloadModelProgress
+import org.cyanotic.olpaka.repository.GetModelsResult
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
 
@@ -108,12 +109,15 @@ class ModelsViewModel(
     }
 
     private suspend fun refreshModels() {
-        val models = repository.getModels().map {
-            ModelUI.Available(
-                key = it.tag,
-                title = it.name,
-                subtitle = "${it.tag} ${it.details.quantization}"
-            )
+        val models = when(val result = repository.getModels()){
+            is GetModelsResult.Success -> result.models.map {
+                ModelUI.Available(
+                    key = it.tag,
+                    title = it.name,
+                    subtitle = "${it.tag} ${it.details.quantization}"
+                )
+            }
+            GetModelsResult.Failure -> emptyList()
         }
         _state.getAndUpdate { current ->
             current.copy(models = models)

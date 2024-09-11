@@ -19,7 +19,10 @@ class MainViewModel(
     override fun onCreate() = inBackground {
         themeState.themeMode.value = preferences.themeMode
         themeState.color.value = preferences.themeColor
-        _events.emit(MainEvent.OpenOnboarding)
+        if (!preferences.hasSeenOnboarding) {
+            _events.emit(MainEvent.OpenOnboarding)
+            preferences.hasSeenOnboarding = true
+        }
     }
 
     fun onTabChanged(index: Int) = inBackground {

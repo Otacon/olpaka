@@ -1,13 +1,20 @@
 package org.cyanotic.olpaka.feature.onboarding
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.onboarding_cta_finish
 import olpaka.composeapp.generated.resources.onboarding_cta_next
 import org.cyanotic.olpaka.core.OlpakaViewModel
+import org.cyanotic.olpaka.repository.GetModelsResult
+import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
 
-class OnboardingViewModel : OlpakaViewModel() {
+class OnboardingViewModel(
+    private val repository: ModelsRepository,
+) : OlpakaViewModel() {
 
     private val _state = MutableStateFlow(OnboardingState())
     val state = _state.asStateFlow()
@@ -25,7 +32,6 @@ class OnboardingViewModel : OlpakaViewModel() {
 
     fun onNextPressed() = inBackground {
         updateStateForStep(_state.value.currentStep + 1)
-
     }
 
     fun onPreviousPressed() = inBackground {
@@ -41,21 +47,25 @@ class OnboardingViewModel : OlpakaViewModel() {
     }
 
     fun onCheckConnectionClicked() = inBackground {
-
+        val connectionState = when (repository.getModels()) {
+            GetModelsResult.Failure -> ConnectionCheckState.FAILURE
+            is GetModelsResult.Success -> ConnectionCheckState.SUCCESS
+        }
+        _state.value = _state.value.copy(connectionState = connectionState)
     }
 
     private suspend fun updateStateForStep(stepNumber: Int) {
-        if(stepNumber > 2){
+        if (stepNumber > 2) {
             _events.emit(OnboardingEvent.Close)
             return
         }
-        val fixedStepNumber = if(stepNumber < 0){
+        val fixedStepNumber = if (stepNumber < 0) {
             0
         } else {
             stepNumber
         }
         val isPreviousVisible = fixedStepNumber != 0
-        val nextText = if(fixedStepNumber <= 1){
+        val nextText = if (fixedStepNumber <= 1) {
             getString(Res.string.onboarding_cta_next)
         } else {
             getString(Res.string.onboarding_cta_finish)
@@ -73,7 +83,7 @@ data class OnboardingState(
     val currentStep: Int = 0,
     val isPreviousVisible: Boolean = false,
     val nextText: String = "",
-    val isConnectionSuccessful: Boolean = false,
+    val connectionState: ConnectionCheckState = ConnectionCheckState.UNKNOWN,
 )
 
 sealed interface OnboardingEvent {
@@ -81,4 +91,10 @@ sealed interface OnboardingEvent {
     data class OpenBrowser(
         val url: String
     ) : OnboardingEvent
+}
+
+enum class ConnectionCheckState {
+    UNKNOWN,
+    SUCCESS,
+    FAILURE
 }

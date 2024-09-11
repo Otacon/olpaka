@@ -3,6 +3,7 @@ package org.cyanotic.olpaka.feature.chat
 import kotlinx.coroutines.flow.*
 import org.cyanotic.olpaka.core.OlpakaViewModel
 import org.cyanotic.olpaka.repository.GenerateRepository
+import org.cyanotic.olpaka.repository.GetModelsResult
 import org.cyanotic.olpaka.repository.ModelsRepository
 
 class ChatViewModel(
@@ -18,7 +19,10 @@ class ChatViewModel(
 
     override fun onCreate() = inBackground {
         _state.value = _state.value.copy(isLoading = true)
-        val models = modelsRepository.getModels().map { ChatModelUI(it.tag, it.name) }
+        val models = when (val result = modelsRepository.getModels()) {
+            GetModelsResult.Failure -> emptyList()
+            is GetModelsResult.Success -> result.models.map { ChatModelUI(it.tag, it.name) }
+        }
         _state.value = _state.value.copy(models = models, isLoading = false)
     }
 

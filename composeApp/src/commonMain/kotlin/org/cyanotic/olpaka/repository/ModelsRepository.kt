@@ -7,6 +7,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.flow
+import kotlinx.io.IOException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -16,15 +17,21 @@ class ModelsRepository(
     private val decoder: Json
 ) {
 
-    suspend fun getModels(): List<ModelDTO> {
-        val response = client.get {
-            url("http://localhost:11434/api/tags")
-            contentType(ContentType.Application.Json)
-        }
-        return if (response.status.isSuccess()) {
-            response.body<GetModelResponseDTO>().models ?: emptyList()
-        } else {
-            emptyList()
+    suspend fun getModels(): GetModelsResult {
+        return try {
+            val response = client.get {
+                url("http://localhost:11434/api/tags")
+                contentType(ContentType.Application.Json)
+            }
+
+            if (response.status.isSuccess()) {
+                val models = response.body<GetModelResponseDTO>().models ?: emptyList()
+                GetModelsResult.Success(models)
+            } else {
+                GetModelsResult.Failure
+            }
+        } catch (e: IOException) {
+            GetModelsResult.Failure
         }
     }
 
@@ -63,6 +70,11 @@ class ModelsRepository(
     }
 
 
+}
+
+sealed interface GetModelsResult {
+    data class Success(val models: List<ModelDTO>) : GetModelsResult
+    data object Failure : GetModelsResult
 }
 
 @Serializable
