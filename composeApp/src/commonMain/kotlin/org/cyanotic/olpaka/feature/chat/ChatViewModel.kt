@@ -2,12 +2,13 @@ package org.cyanotic.olpaka.feature.chat
 
 import kotlinx.coroutines.flow.*
 import org.cyanotic.olpaka.core.OlpakaViewModel
-import org.cyanotic.olpaka.repository.GenerateRepository
+import org.cyanotic.olpaka.repository.ChatMessage
+import org.cyanotic.olpaka.repository.ChatRepository
 import org.cyanotic.olpaka.repository.GetModelsResult
 import org.cyanotic.olpaka.repository.ModelsRepository
 
 class ChatViewModel(
-    private val generateRepository: GenerateRepository,
+    private val chatRepository: ChatRepository,
     private val modelsRepository: ModelsRepository,
 ) : OlpakaViewModel() {
 
@@ -16,8 +17,6 @@ class ChatViewModel(
 
     private val _events = MutableSharedFlow<ChatEvent>()
     val event = _events.asSharedFlow()
-
-    private var context: List<Int>? = null
 
     override fun onCreate() = inBackground {
         _state.value = _state.value.copy(isLoading = true)
@@ -31,7 +30,13 @@ class ChatViewModel(
     fun sendMessage(message: String) = inBackground {
         val selectedModel = _state.value.selectedModel ?: return@inBackground
         var assistantMessage = ChatMessageUI.AssistantMessage("", true)
-        generateRepository.generate(query = message, model = selectedModel.key, context = context)
+        val history = _state.value.messages.map {
+            when (it) {
+                is ChatMessageUI.AssistantMessage -> ChatMessage.Assistant(it.text)
+                is ChatMessageUI.OwnMessage -> ChatMessage.User(it.text)
+            }
+        }
+        chatRepository.sendChatMessage(model = selectedModel.key, message = message, history = history)
             .onStart {
                 val newMessages = _state.value.messages +
                         ChatMessageUI.OwnMessage(message) +
@@ -42,9 +47,8 @@ class ChatViewModel(
                 _state.value = _state.value.copy(isLoading = false)
             }
             .collect { chunk ->
-                assistantMessage = assistantMessage.copy(text = assistantMessage.text + chunk.response)
+                assistantMessage = assistantMessage.copy(text = assistantMessage.text + chunk.message.content)
                 val newMessages = _state.value.messages.subList(0, _state.value.messages.size - 1) + assistantMessage
-                chunk.context?.let { context = it }
                 _state.value = _state.value.copy(messages = newMessages)
             }
 

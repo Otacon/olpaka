@@ -47,7 +47,7 @@ fun ChatScreen() {
                 .padding(padding)
                 .fillMaxWidth(),
         ) {
-            if(state.messages.isEmpty()){
+            if (state.messages.isEmpty()) {
                 EmptyScreen(
                     modifier = Modifier.fillMaxWidth().weight(1.0f),
                     title = stringResource(Res.string.chat_empty_screen_title),
@@ -192,7 +192,7 @@ private fun DropDown(
 
 @Composable
 private fun OwnMessage(modifier: Modifier = Modifier, message: ChatMessageUI.OwnMessage) {
-    OutlinedCard(
+    Card(
         modifier = modifier.padding(16.dp)
     ) {
         Column(
