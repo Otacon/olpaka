@@ -3,6 +3,7 @@ package org.cyanotic.olpaka.feature.chat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.mikepenz.markdown.m3.Markdown
 import olpaka.composeapp.generated.resources.*
+import org.cyanotic.olpaka.ui.EmptyScreen
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -45,37 +47,54 @@ fun ChatScreen() {
                 .padding(padding)
                 .fillMaxWidth(),
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1.0f)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                state = chatListState
-            ) {
-                items(
-                    state.messages.size,
-                    key = { index -> "$index" }
-                ) { index ->
-                    when (val item = state.messages[index]) {
-                        is ChatMessageUI.AssistantMessage -> AssistantMessage(
-                            modifier = Modifier
-                                .fillMaxWidth(0.75f),
-                            message = item
-                        )
-
-                        is ChatMessageUI.OwnMessage -> OwnMessage(
-                            modifier = Modifier
-                                .fillMaxWidth(0.75f),
-                            message = item
-                        )
-                    }
-                }
+            if(state.messages.isEmpty()){
+                EmptyScreen(
+                    modifier = Modifier.fillMaxWidth().weight(1.0f),
+                    title = stringResource(Res.string.chat_empty_screen_title),
+                    subtitle = stringResource(Res.string.chat_empty_screen_message)
+                )
+            } else {
+                Content(
+                    modifier = Modifier.fillMaxWidth().weight(1.0f),
+                    chatListState = chatListState,
+                    messages = state.messages
+                )
             }
             MessageInputBar(
                 models = state.models,
                 onSubmitQuery = viewModel::sendMessage,
                 onModelChanged = viewModel::onModelChanged,
             )
+        }
+    }
+}
+
+@Composable
+private fun Content(
+    modifier: Modifier,
+    chatListState: LazyListState,
+    messages: List<ChatMessageUI>
+) {
+    LazyColumn(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        state = chatListState
+    ) {
+        items(
+            messages.size,
+            key = { index -> "$index" }
+        ) { index ->
+            when (val item = messages[index]) {
+                is ChatMessageUI.AssistantMessage -> AssistantMessage(
+                    modifier = Modifier.fillMaxWidth(0.75f),
+                    message = item
+                )
+
+                is ChatMessageUI.OwnMessage -> OwnMessage(
+                    modifier = Modifier.fillMaxWidth(0.75f),
+                    message = item,
+                )
+            }
         }
     }
 }

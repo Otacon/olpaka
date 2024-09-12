@@ -87,12 +87,12 @@ fun ModelsScreen() {
     ) { padding ->
         if (state.models.isEmpty()) {
             EmptyScreen(
-                modifier = Modifier.padding(padding),
+                modifier = Modifier.fillMaxSize(),
                 title = stringResource(Res.string.models_error_no_models_title),
                 subtitle = stringResource(Res.string.models_error_no_models_message)
             )
         } else {
-            LazyColumn(Modifier.padding(padding)) {
+            LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                 items(
                     count = state.models.count(),
                     key = { index -> state.models[index].key }
