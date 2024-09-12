@@ -6,5 +6,6 @@ import org.koin.dsl.module
 
 val coreModule = module {
     singleOf(::ThemeState)
+    singleOf(::ModelDownloadState)
     factoryOf(::Preferences)
 }

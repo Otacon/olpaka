@@ -1,13 +1,12 @@
 package org.cyanotic.olpaka.feature.main
 
 import kotlinx.coroutines.flow.*
-import org.cyanotic.olpaka.core.OlpakaViewModel
-import org.cyanotic.olpaka.core.Preferences
-import org.cyanotic.olpaka.core.ThemeState
+import org.cyanotic.olpaka.core.*
 
 class MainViewModel(
     private val preferences: Preferences,
     private val themeState: ThemeState,
+    private val modelDownloadState: ModelDownloadState,
 ) : OlpakaViewModel() {
 
     private val _state = MutableStateFlow(MainState())
@@ -23,6 +22,14 @@ class MainViewModel(
             _events.emit(MainEvent.OpenOnboarding)
             preferences.hasSeenOnboarding = true
         }
+        inBackground {
+            modelDownloadState.currentDownloadState.collect { newState ->
+                val selectedTab = state.value.selectedTabIndex
+                if (selectedTab != 1) {
+                    _state.value = _state.value.copy(activityBadge = newState.toBadge())
+                }
+            }
+        }
     }
 
     fun onTabChanged(index: Int) = inBackground {
@@ -32,16 +39,44 @@ class MainViewModel(
                 2 -> MainEvent.OpenSettings
                 else -> MainEvent.OpenChat
             }
+            val currentState = modelDownloadState.currentDownloadState.value
+            val badge = when {
+                index != 1 -> currentState.toBadge()
+                currentState == DownloadState.COMPLETED -> {
+                    modelDownloadState.setInactive()
+                    Badge.NONE
+                }
+
+                else -> Badge.NONE
+            }
             _events.emit(navigationEvent)
-            current.copy(selectedTabIndex = index)
+            current.copy(
+                selectedTabIndex = index,
+                activityBadge = badge
+            )
         }
     }
 
 }
 
+private fun DownloadState.toBadge(): Badge {
+    return when (this) {
+        DownloadState.DOWNLOADING -> Badge.DOWNLOADING
+        DownloadState.COMPLETED -> Badge.COMPLETED
+        DownloadState.INACTIVE -> Badge.NONE
+    }
+}
+
 data class MainState(
-    val selectedTabIndex: Int = 0
+    val selectedTabIndex: Int = 0,
+    val activityBadge: Badge = Badge.NONE
 )
+
+enum class Badge {
+    DOWNLOADING,
+    COMPLETED,
+    NONE
+}
 
 sealed interface MainEvent {
     data object OpenChat : MainEvent

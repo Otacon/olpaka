@@ -3,7 +3,10 @@ package org.cyanotic.olpaka.feature.main
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.outlined.Chat
+import androidx.compose.material.icons.filled.Assistant
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Assistant
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
@@ -12,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -24,6 +28,9 @@ fun MainScreen() {
     val viewModel = koinViewModel<MainViewModel>().also { it.init() }
     val navController = rememberNavController()
     val state by viewModel.state.collectAsState()
+    val chatSelected = state.selectedTabIndex == 0
+    val modelsSelected = state.selectedTabIndex == 1
+    val settingsSelected = state.selectedTabIndex == 2
     LaunchedEffect(Unit) {
         viewModel.event.collect { handleEvent(it, navController) }
     }
@@ -41,20 +48,57 @@ fun MainScreen() {
             ) {
                 NavigationRailItem(
                     label = { Text("Chat") },
-                    icon = { Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = "") },
-                    selected = state.selectedTabIndex == 0,
+                    icon = {
+                        val icon = if (chatSelected) {
+                            Icons.AutoMirrored.Filled.Chat
+                        } else {
+                            Icons.AutoMirrored.Outlined.Chat
+                        }
+                        Icon(icon, contentDescription = "")
+                    },
+                    selected = chatSelected,
                     onClick = { viewModel.onTabChanged(0) }
                 )
                 NavigationRailItem(
                     label = { Text("Models") },
-                    icon = { Icon(Icons.Outlined.Assistant, contentDescription = "") },
-                    selected = state.selectedTabIndex == 1,
+                    icon = {
+                        Box {
+                            val icon = if (modelsSelected) {
+                                Icons.Filled.Assistant
+                            } else {
+                                Icons.Outlined.Assistant
+                            }
+                            Icon(icon, contentDescription = "")
+                            when (state.activityBadge) {
+                                Badge.DOWNLOADING -> Badge(
+                                    contentColor = LOADING_COLOR,
+                                    containerColor = LOADING_COLOR
+                                )
+
+                                Badge.COMPLETED -> Badge(
+                                    contentColor = SUCCESS_COLOR,
+                                    containerColor = SUCCESS_COLOR
+                                )
+
+                                Badge.NONE -> Unit
+                            }
+
+                        }
+                    },
+                    selected = modelsSelected,
                     onClick = { viewModel.onTabChanged(1) }
                 )
                 NavigationRailItem(
                     label = { Text("Settings") },
-                    icon = { Icon(Icons.Outlined.Settings, contentDescription = "") },
-                    selected = state.selectedTabIndex == 2,
+                    icon = {
+                        val icon = if (settingsSelected) {
+                            Icons.Filled.Settings
+                        } else {
+                            Icons.Outlined.Settings
+                        }
+                        Icon(icon, contentDescription = "")
+                    },
+                    selected = settingsSelected,
                     onClick = { viewModel.onTabChanged(2) }
                 )
             }
@@ -104,3 +148,6 @@ private fun handleEvent(event: MainEvent, navController: NavController) {
         }
     }
 }
+
+private val LOADING_COLOR = Color(0xFFFF9800)
+private val SUCCESS_COLOR = Color(0xFF4CAF50)

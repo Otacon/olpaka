@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.models_state_download
 import olpaka.composeapp.generated.resources.models_state_initializing
+import org.cyanotic.olpaka.core.ModelDownloadState
 import org.cyanotic.olpaka.core.OlpakaViewModel
 import org.cyanotic.olpaka.repository.DownloadModelProgress
 import org.cyanotic.olpaka.repository.GetModelsResult
@@ -17,6 +18,7 @@ import kotlin.math.pow
 
 class ModelsViewModel(
     private val repository: ModelsRepository,
+    private val modelDownloadState: ModelDownloadState
 ) : OlpakaViewModel() {
 
     private val _state = MutableStateFlow(ModelsState())
@@ -55,11 +57,13 @@ class ModelsViewModel(
                     progress = null
                 )
                 _state.value = _state.value.copy(models = newModels)
+                modelDownloadState.setDownloading()
             }
             .onCompletion {
                 viewModelScope.launch {
                     refreshModels()
                     _state.getAndUpdate { current -> current.copy(isLoading = false) }
+                    modelDownloadState.setCompleted()
                 }
             }
             .collect { chunk ->
