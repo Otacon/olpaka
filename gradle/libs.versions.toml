@@ -8,8 +8,7 @@ androidx-lifecycle = "2.8.2"
 compose-plugin = "1.7.0-beta02"
 coroutines = "1.8.1"
 junit = "4.13.2"
-koin-core = "4.0.0-RC2"
-koin-compose = "4.0.0-RC2"
+koin = "4.0.0-RC2"
 kotlin = "2.0.20"
 ktor = "3.0.0-rc-1"
 materialKolor = "1.7.0"
@@ -18,16 +17,17 @@ serialization-json = "1.7.2"
 settings = "1.2.0"
 
 [libraries]
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 
-koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin-core" }
-koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koin-compose" }
-koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin-compose" }
-koin-compose-viewmodel-navigation = { group = "io.insert-koin", name = "koin-compose-viewmodel-navigation", version.ref = "koin-compose" }
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin" }
+koin-compose-viewmodel-navigation = { group = "io.insert-koin", name = "koin-compose-viewmodel-navigation", version.ref = "koin" }
+
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
@@ -42,9 +42,10 @@ ktor-content-json = { module = "io.ktor:ktor-serialization-kotlinx-json", versio
 
 markdownRenderer = {module = "com.mikepenz:multiplatform-markdown-renderer", version.ref = "markdownRenderer"}
 markdownRenderer-m3 = {module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdownRenderer"}
-materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
-settings = { group = "com.russhwolf", name = "multiplatform-settings-no-arg", version.ref = "settings" }
 
+materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
+
+settings = { group = "com.russhwolf", name = "multiplatform-settings-no-arg", version.ref = "settings" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
