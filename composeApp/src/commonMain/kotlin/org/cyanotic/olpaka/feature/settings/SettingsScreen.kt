@@ -5,10 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BrightnessAuto
-import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.LightMode
@@ -39,7 +36,7 @@ fun SettingsScreen(navHostController: NavHostController) {
                     SegmentedButton(
                         icon = {
                             Icon(
-                                if (state.selectedTheme == OlpakaTheme.AUTO) Icons.Filled.BrightnessAuto else Icons.Outlined.BrightnessAuto,
+                                if (state.selectedTheme == OlpakaTheme.AUTO) Icons.Filled.Done else Icons.Outlined.BrightnessAuto,
                                 contentDescription = null
                             )
                         },
@@ -51,7 +48,7 @@ fun SettingsScreen(navHostController: NavHostController) {
                     SegmentedButton(
                         icon = {
                             Icon(
-                                if (state.selectedTheme == OlpakaTheme.DARK) Icons.Filled.DarkMode else Icons.Outlined.DarkMode,
+                                if (state.selectedTheme == OlpakaTheme.DARK) Icons.Filled.Done else Icons.Outlined.DarkMode,
                                 contentDescription = null
                             )
                         },
@@ -63,7 +60,7 @@ fun SettingsScreen(navHostController: NavHostController) {
                     SegmentedButton(
                         icon = {
                             Icon(
-                                if (state.selectedTheme == OlpakaTheme.LIGHT) Icons.Filled.LightMode else Icons.Outlined.LightMode,
+                                if (state.selectedTheme == OlpakaTheme.LIGHT) Icons.Filled.Done else Icons.Outlined.LightMode,
                                 contentDescription = null
                             )
                         },
@@ -93,7 +90,13 @@ fun SettingsScreen(navHostController: NavHostController) {
                     navHostController.navigate(Routes.ONBOARDING)
                 }
             )
-            SettingLink(title = "Olpaka v0.4.0", subtitle = "Learn more about Olpaka", onClick = {})
+            SettingLink(
+                title = "Olpaka v0.5.0",
+                subtitle = "Learn more about Olpaka",
+                onClick = {
+                    navHostController.navigate(Routes.ABOUT)
+                }
+            )
         }
     }
 }
