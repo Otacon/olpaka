@@ -17,6 +17,8 @@ class ChatViewModel(
     private val _events = MutableSharedFlow<ChatEvent>()
     val event = _events.asSharedFlow()
 
+    private var context: List<Int>? = null
+
     override fun onCreate() = inBackground {
         _state.value = _state.value.copy(isLoading = true)
         val models = when (val result = modelsRepository.getModels()) {
@@ -29,7 +31,7 @@ class ChatViewModel(
     fun sendMessage(message: String) = inBackground {
         val selectedModel = _state.value.selectedModel ?: return@inBackground
         var assistantMessage = ChatMessageUI.AssistantMessage("", true)
-        generateRepository.generate(message, selectedModel.key)
+        generateRepository.generate(query = message, model = selectedModel.key, context = context)
             .onStart {
                 val newMessages = _state.value.messages +
                         ChatMessageUI.OwnMessage(message) +
@@ -39,9 +41,10 @@ class ChatViewModel(
             .onCompletion {
                 _state.value = _state.value.copy(isLoading = false)
             }
-            .collect {
-                assistantMessage = assistantMessage.copy(text = assistantMessage.text + it.response)
+            .collect { chunk ->
+                assistantMessage = assistantMessage.copy(text = assistantMessage.text + chunk.response)
                 val newMessages = _state.value.messages.subList(0, _state.value.messages.size - 1) + assistantMessage
+                chunk.context?.let { context = it }
                 _state.value = _state.value.copy(messages = newMessages)
             }
 

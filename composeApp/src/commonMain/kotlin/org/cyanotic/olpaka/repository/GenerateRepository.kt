@@ -15,13 +15,14 @@ class GenerateRepository(
     private val decoder: Json
 ) {
 
-    fun generate(query: String, model: String) = flow {
+    fun generate(query: String, model: String, context: List<Int>?) = flow {
         val request = GenerateRequestDTO(
+            context = context,
+            model = model,
+            prompt = query,
             stream = true,
             system = "",
-            model = model,
             temperature = 0.8,
-            prompt = query
         )
         client.preparePost {
             url("http://localhost:11434/api/generate")
@@ -44,23 +45,25 @@ class GenerateRepository(
 
 @Serializable
 data class GenerateRequestDTO(
+    @SerialName("context") val context: List<Int>?,
+    @SerialName("model") val model: String,
+    @SerialName("prompt") val prompt: String,
     @SerialName("stream") val stream: Boolean,
     @SerialName("system") val system: String,
-    @SerialName("model") val model: String,
-    @SerialName("temperature") val temperature: Double,
-    @SerialName("prompt") val prompt: String
+    @SerialName("temperature") val temperature: Double
 )
 
 @Serializable
 data class GenerateResponseDTO(
-    @SerialName("model") val model: String,
+    @SerialName("context") val context: List<Int>? = null,
     @SerialName("created_at") val createdAt: String,
-    @SerialName("response") val response: String,
     @SerialName("done") val done: Boolean,
     @SerialName("done_reason") val doneReason: String? = null,
-    @SerialName("load_duration") val loadDuration: Long? = null,
-    @SerialName("prompt_eval_count") val promptEvalCount: Int? = null,
-    @SerialName("prompt_eval_duration") val promptEvalDuration: Long? = null,
     @SerialName("eval_count") val evalCount: Int? = null,
     @SerialName("eval_duration") val evalDuration: Long? = null,
+    @SerialName("load_duration") val loadDuration: Long? = null,
+    @SerialName("model") val model: String,
+    @SerialName("prompt_eval_count") val promptEvalCount: Int? = null,
+    @SerialName("prompt_eval_duration") val promptEvalDuration: Long? = null,
+    @SerialName("response") val response: String,
 )

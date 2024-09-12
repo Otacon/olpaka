@@ -3,6 +3,7 @@ package org.cyanotic.olpaka.network
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
@@ -24,6 +25,15 @@ val networkModule = module {
             }
             install(ContentNegotiation) {
                 json(get())
+            }
+            install(Logging) {
+                logger = object: Logger {
+                    override fun log(message: String) {
+                        println(message)
+                    }
+
+                }
+                level = LogLevel.BODY
             }
         }
     }

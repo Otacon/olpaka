@@ -85,6 +85,7 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.content)
             implementation(libs.ktor.content.json)
+            implementation(libs.ktor.logging)
 
             implementation(libs.markdownRenderer)
             implementation(libs.markdownRenderer.m3)
