@@ -17,11 +17,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.cyanotic.olpaka.core.OlpakaNavHost
 import org.cyanotic.olpaka.core.Routes
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-@Preview
 fun MainScreen() {
     val viewModel = koinViewModel<MainViewModel>().also { it.init() }
     val navController = rememberNavController()

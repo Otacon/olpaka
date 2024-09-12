@@ -25,11 +25,9 @@ import androidx.navigation.NavHostController
 import org.cyanotic.olpaka.core.Routes
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.cyanotic.olpaka.ui.theme.*
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-@Preview
 fun SettingsScreen(navHostController: NavHostController) {
     val viewModel = koinViewModel<SettingsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
@@ -101,7 +99,6 @@ fun SettingsScreen(navHostController: NavHostController) {
 }
 
 @Composable
-@Preview
 private fun color(color: OlpakaColor, selected: Boolean, onClick: (OlpakaColor) -> Unit) {
     val outlineColor = MaterialTheme.colorScheme.outline
     val fillColor = when (color) {
@@ -142,7 +139,6 @@ private fun color(color: OlpakaColor, selected: Boolean, onClick: (OlpakaColor) 
 }
 
 @Composable
-@Preview
 private fun SettingSection(title: String) {
     Text(
         title,
@@ -154,7 +150,6 @@ private fun SettingSection(title: String) {
 }
 
 @Composable
-@Preview
 private fun SettingItem(name: String, content: @Composable () -> Unit) {
     Row(
         modifier = Modifier
@@ -171,7 +166,6 @@ private fun SettingItem(name: String, content: @Composable () -> Unit) {
 }
 
 @Composable
-@Preview
 private fun SettingLink(title: String, subtitle: String, onClick: () -> Unit) {
     Column(Modifier.fillMaxWidth().clickable { onClick() }) {
         HorizontalDivider(Modifier.height(1.dp))

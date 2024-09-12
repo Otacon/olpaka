@@ -19,7 +19,6 @@ import olpaka.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-
 @Composable
 fun OnboardingScreen(navController: NavHostController) {
     val viewModel = koinViewModel<OnboardingViewModel>().also { it.init() }
