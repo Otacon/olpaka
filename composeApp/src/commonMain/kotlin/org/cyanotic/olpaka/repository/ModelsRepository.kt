@@ -1,74 +1,37 @@
 package org.cyanotic.olpaka.repository
 
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.flow
-import kotlinx.io.IOException
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import org.cyanotic.olpaka.network.OllamaRestClient
 
 class ModelsRepository(
-    private val client: HttpClient,
-    private val decoder: Json
+    private val restClient: OllamaRestClient,
 ) {
 
     suspend fun getModels(): GetModelsResult {
-        return try {
-            val response = client.get {
-                url("http://localhost:11434/api/tags")
-                contentType(ContentType.Application.Json)
-            }
-
-            if (response.status.isSuccess()) {
-                val models = response.body<GetModelResponseDTO>().models ?: emptyList()
-                GetModelsResult.Success(models)
-            } else {
-                GetModelsResult.Failure
-            }
-        } catch (e: IOException) {
-            GetModelsResult.Failure
-        }
+        return restClient.listModels()
     }
 
     suspend fun removeModel(tag: String): Boolean {
-        val request = RemoveModelRequestDTO(tag)
-        val response = client.delete {
-            url("http://localhost:11434/api/delete")
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
-        return response.status.isSuccess()
+        return restClient.removeModel(RemoveModelRequestDTO(tag))
     }
 
     fun downloadModel(tag: String) = flow {
         val request = DownloadModelRequestDTO(tag)
-        client.preparePost {
-            url("http://localhost:11434/api/pull")
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }.execute { resp ->
-            val channel = resp.bodyAsChannel()
-            while (!channel.isClosedForRead) {
-                val line = channel.readUTF8Line()
-                if (line != null) {
-                    val chunk = decoder.decodeFromString<DownloadModelResponseDTO>(line)
-                    when {
-                        chunk.total != null && chunk.completed != null -> {
-                            emit(DownloadModelProgress.Downloading(chunk.total, chunk.completed))
-                        }
-
-                        else -> emit(DownloadModelProgress.Processing(chunk.status ?: ""))
+        restClient.downloadModel(request)
+            .map { chunk ->
+                when {
+                    chunk.total != null && chunk.completed != null -> {
+                        DownloadModelProgress.Downloading(chunk.total, chunk.completed)
                     }
+
+                    else -> DownloadModelProgress.Processing(chunk.status ?: "")
                 }
             }
-        }
+            .collect(this)
     }
-
 
 }
 

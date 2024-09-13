@@ -6,6 +6,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
+import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
 val networkModule = module {
@@ -27,7 +28,7 @@ val networkModule = module {
                 json(get())
             }
             install(Logging) {
-                logger = object: Logger {
+                logger = object : Logger {
                     override fun log(message: String) {
                         println(message)
                     }
@@ -37,6 +38,17 @@ val networkModule = module {
             }
         }
     }
+
+    single {
+        EndpointProvider(
+            scheme = "http",
+            host = "localhost",
+            port = 11434,
+            baseUrl = "/api",
+        )
+    }
+
+    factoryOf(::OllamaRestClient)
 }
 
 const val SECOND = 1_000L
