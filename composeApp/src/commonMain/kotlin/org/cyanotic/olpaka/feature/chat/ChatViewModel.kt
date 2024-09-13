@@ -24,10 +24,14 @@ class ChatViewModel(
             GetModelsResult.Failure -> emptyList()
             is GetModelsResult.Success -> result.models.map { ChatModelUI(it.tag, it.name) }
         }
-        _state.value = _state.value.copy(models = models, isLoading = false)
+        _state.value = _state.value.copy(
+            models = models,
+            selectedModel = models.firstOrNull(),
+            isLoading = false
+        )
     }
 
-    fun sendMessage(message: String) = inBackground {
+    fun onSubmit(message: String) = inBackground {
         val selectedModel = _state.value.selectedModel ?: return@inBackground
         var assistantMessage = ChatMessageUI.AssistantMessage("", true)
         val history = _state.value.messages.map {

@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
@@ -16,7 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.input.key.*
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.mikepenz.markdown.m3.Markdown
 import olpaka.composeapp.generated.resources.*
@@ -62,7 +62,9 @@ fun ChatScreen() {
             }
             MessageInputBar(
                 models = state.models,
-                onSubmitQuery = viewModel::sendMessage,
+                selectedModel = state.selectedModel,
+                enabled = state.isLoading.not(),
+                onSubmit = viewModel::onSubmit,
                 onModelChanged = viewModel::onModelChanged,
             )
         }
@@ -102,25 +104,59 @@ private fun Content(
 @Composable
 private fun MessageInputBar(
     models: List<ChatModelUI>,
-    onSubmitQuery: (String) -> Unit,
+    selectedModel: ChatModelUI? = null,
+    enabled: Boolean = true,
+    onSubmit: (String) -> Unit,
     onModelChanged: (ChatModelUI) -> Unit,
 ) {
-    var text by remember { mutableStateOf("") }
+    var textState by remember { mutableStateOf(TextFieldValue("")) }
+    val sendIfNotBlank = {
+        val text = textState.text
+        if(text.isNotBlank()) {
+            onSubmit(text)
+            textState = TextFieldValue("")
+        }
+    }
     Row(
         modifier = Modifier
             .padding(16.dp)
             .fillMaxWidth()
     ) {
         OutlinedTextField(
-            modifier = Modifier.weight(1.0f),
-            value = text,
+            value = textState,
+            onValueChange = { newText -> textState = newText },
+            enabled = enabled,
+            modifier = Modifier
+                .weight(1.0f)
+                .onPreviewKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown) {
+                        return@onPreviewKeyEvent false
+                    }
+
+                    if (event.key != Key.Enter) {
+                        return@onPreviewKeyEvent false
+                    }
+
+                    if (event.isShiftPressed) {
+                        textState = textState.copy(
+                            text = textState.text + "\n",
+                            selection = TextRange(
+                                start = textState.selection.start + 1,
+                                end = textState.selection.end + 1
+                            )
+                        )
+                    } else {
+                        sendIfNotBlank()
+                    }
+                    true
+                },
             minLines = 1,
-            maxLines = 3,
-            onValueChange = { text = it },
+            maxLines = 5,
             placeholder = { Text(stringResource(Res.string.chat_text_input_hint)) },
             trailingIcon = {
                 IconButton(
-                    onClick = { onSubmitQuery(text) }
+                    enabled = enabled && textState.text.isNotBlank(),
+                    onClick = sendIfNotBlank
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.Send,
@@ -128,16 +164,14 @@ private fun MessageInputBar(
                     )
                 }
             },
-            keyboardActions = KeyboardActions(
-                onDone = { onSubmitQuery(text) }
-            ),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
         )
         Spacer(modifier = Modifier.width(16.dp))
         DropDown(
             modifier = Modifier.width(200.dp),
             options = models,
-            onOptionSelected = onModelChanged
+            selectedModel = selectedModel,
+            enabled = enabled,
+            onOptionSelected = onModelChanged,
         )
     }
 }
@@ -146,14 +180,20 @@ private fun MessageInputBar(
 private fun DropDown(
     modifier: Modifier = Modifier,
     options: List<ChatModelUI> = emptyList(),
+    selectedModel: ChatModelUI? = null,
+    enabled: Boolean = true,
     onOptionSelected: (ChatModelUI) -> Unit = {}
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedModel by remember { mutableStateOf<ChatModelUI?>(null) }
+    var model by remember { mutableStateOf(selectedModel) }
     Box(
         contentAlignment = Alignment.CenterStart,
         modifier = modifier
-            .clickable { expanded = !expanded },
+            .clickable {
+                if(enabled) {
+                    expanded = !expanded
+                }
+           },
     ) {
         TextField(
             value = selectedModel?.name ?: "",
@@ -181,7 +221,7 @@ private fun DropDown(
                     text = { Text(selectionOption.name) },
                     onClick = {
                         onOptionSelected(selectionOption)
-                        selectedModel = selectionOption
+                        model = selectedModel
                         expanded = false
                     }
                 )

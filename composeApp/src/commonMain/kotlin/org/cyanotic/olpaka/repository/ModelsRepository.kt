@@ -62,7 +62,7 @@ class ModelsRepository(
                             emit(DownloadModelProgress.Downloading(chunk.total, chunk.completed))
                         }
 
-                        else -> emit(DownloadModelProgress.Processing(chunk.status))
+                        else -> emit(DownloadModelProgress.Processing(chunk.status ?: ""))
                     }
                 }
             }
@@ -111,7 +111,7 @@ data class DownloadModelRequestDTO(
 @Serializable
 data class DownloadModelResponseDTO(
     @SerialName("error") val error: String? = null,
-    @SerialName("status") val status: String,
+    @SerialName("status") val status: String? = null,
     @SerialName("total") val total: Long? = null,
     @SerialName("completed") val completed: Long? = null,
 )
