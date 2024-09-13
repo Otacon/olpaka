@@ -45,8 +45,8 @@ fun AboutScreen(navController: NavHostController) {
                 }
                 Spacer(Modifier.width(24.dp))
                 Column {
-                    Text(stringResource(Res.string.about_title), style = MaterialTheme.typography.headlineSmall)
-                    Text(stringResource(Res.string.about_version), style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(Res.string.app_name), style = MaterialTheme.typography.headlineSmall)
+                    Text(stringResource(Res.string.app_version), style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(stringResource(Res.string.about_description), style = MaterialTheme.typography.bodySmall)
                 }

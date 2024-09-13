@@ -19,19 +19,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import olpaka.composeapp.generated.resources.*
+import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.settings_theme_mode
+import olpaka.composeapp.generated.resources.settings_theme_section
+import olpaka.composeapp.generated.resources.settings_title
 import org.cyanotic.olpaka.core.Routes
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.cyanotic.olpaka.ui.theme.*
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SettingsScreen(navHostController: NavHostController) {
     val viewModel = koinViewModel<SettingsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
-    Scaffold(topBar = { OlpakaAppBar("Settings") }) { padding ->
+    Scaffold(topBar = { OlpakaAppBar(stringResource(Res.string.settings_title)) }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            SettingSection("Theme")
-            SettingItem("Mode") {
+            SettingSection(stringResource(Res.string.settings_theme_section))
+            SettingItem(stringResource(Res.string.settings_theme_mode)) {
                 SingleChoiceSegmentedButtonRow {
                     SegmentedButton(
                         icon = {
@@ -40,7 +46,7 @@ fun SettingsScreen(navHostController: NavHostController) {
                                 contentDescription = null
                             )
                         },
-                        label = { Text("Auto") },
+                        label = { Text(stringResource(Res.string.settings_theme_mode_system)) },
                         selected = state.selectedTheme == OlpakaTheme.AUTO,
                         shape = SegmentedButtonDefaults.itemShape(0, 3),
                         onClick = { viewModel.onThemeChanged(OlpakaTheme.AUTO) },
@@ -52,7 +58,7 @@ fun SettingsScreen(navHostController: NavHostController) {
                                 contentDescription = null
                             )
                         },
-                        label = { Text("Dark") },
+                        label = { Text(stringResource(Res.string.settings_theme_mode_dark)) },
                         selected = state.selectedTheme == OlpakaTheme.DARK,
                         shape = SegmentedButtonDefaults.itemShape(1, 3),
                         onClick = { viewModel.onThemeChanged(OlpakaTheme.DARK) },
@@ -64,14 +70,14 @@ fun SettingsScreen(navHostController: NavHostController) {
                                 contentDescription = null
                             )
                         },
-                        label = { Text("Light") },
+                        label = { Text(stringResource(Res.string.settings_theme_mode_light)) },
                         selected = state.selectedTheme == OlpakaTheme.LIGHT,
                         shape = SegmentedButtonDefaults.itemShape(2, 3),
                         onClick = { viewModel.onThemeChanged(OlpakaTheme.LIGHT) },
                     )
                 }
             }
-            SettingItem("Color") {
+            SettingItem(stringResource(Res.string.settings_theme_color)) {
                 Row {
                     OlpakaColor.entries.forEach {
                         color(
@@ -84,15 +90,15 @@ fun SettingsScreen(navHostController: NavHostController) {
             }
             Spacer(Modifier.weight(1.0f))
             SettingLink(
-                title = "Troubleshooting",
-                subtitle = "Launch the \"Getting Started\" wizard",
+                title = stringResource(Res.string.settings_onboarding_title),
+                subtitle = stringResource(Res.string.settings_onboarding_subtitle),
                 onClick = {
                     navHostController.navigate(Routes.ONBOARDING)
                 }
             )
             SettingLink(
-                title = "Olpaka v0.5.0",
-                subtitle = "Learn more about Olpaka",
+                title = "${stringResource(Res.string.app_name)} ${stringResource(Res.string.app_version)}",
+                subtitle = stringResource(Res.string.settings_about_subtitle),
                 onClick = {
                     navHostController.navigate(Routes.ABOUT)
                 }
