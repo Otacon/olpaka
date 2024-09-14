@@ -5,6 +5,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.models_dialog_download_model_error_already_added
 import olpaka.composeapp.generated.resources.models_state_download
 import olpaka.composeapp.generated.resources.models_state_initializing
 import org.cyanotic.olpaka.core.ModelDownloadState
@@ -42,11 +43,35 @@ class ModelsViewModel(
     }
 
     fun onAddModelClicked() = inBackground {
-        _events.emit(ModelsEvent.ShowAddModelDialog)
+        _state.getAndUpdate { current -> current.copy(addModelDialogState = AddModelDialogState()) }
+    }
+
+    fun onAddModelTextChanged(text: String) = viewModelScope.launch {
+        _state.getAndUpdate { current ->
+            current.addModelDialogState?.let { dialogState ->
+                val alreadyDownloaded = current.models.any { it.key == text.trim() }
+                val isAddEnabled = text.isNotBlank() && !alreadyDownloaded
+                val error = if (alreadyDownloaded) {
+                    getString(Res.string.models_dialog_download_model_error_already_added)
+                } else {
+                    null
+                }
+                val newDialogState = dialogState.copy(
+                    text = text,
+                    isAddEnabled = isAddEnabled,
+                    error = error
+                )
+                current.copy(addModelDialogState = newDialogState)
+            } ?: current
+        }
+    }
+
+    fun onCloseAddModelDialog() {
+        _state.getAndUpdate { current -> current.copy(addModelDialogState = null) }
     }
 
     fun onAddModel(tag: String) = inBackground {
-        _state.getAndUpdate { current -> current.copy(isLoading = true) }
+        _state.getAndUpdate { current -> current.copy(isLoading = true, addModelDialogState = null) }
         repository.downloadModel(tag)
             .onStart {
                 cancelDownload = false
@@ -106,15 +131,18 @@ class ModelsViewModel(
     }
 
     fun onRemoveModelClicked(model: ModelUI.Available) = inBackground {
-        _events.emit(ModelsEvent.ShowRemoveModelDialog(model))
+        _state.getAndUpdate { current -> current.copy(removeModelDialogState = RemoveModelDialogState(model.key)) }
     }
 
-    fun onConfirmRemoveModel(model: ModelUI.Available) = inBackground {
-        _state.getAndUpdate { current -> current.copy(isLoading = true) }
-        val removed = repository.removeModel(tag = model.key)
-        if (removed) {
-            refreshModels()
+    fun onRemoveModelDialogResult(remove: Boolean) = inBackground {
+        val model = _state.value.removeModelDialogState?.model
+        _state.getAndUpdate { current -> current.copy(removeModelDialogState = null) }
+        if (!remove || model == null) {
+            return@inBackground
         }
+        _state.getAndUpdate { current -> current.copy(isLoading = true) }
+        repository.removeModel(tag = model)
+        refreshModels()
         _state.getAndUpdate { current -> current.copy(isLoading = false) }
     }
 
@@ -140,17 +168,25 @@ class ModelsViewModel(
         }
     }
 
-
 }
 
-sealed interface ModelsEvent {
-    data object ShowAddModelDialog : ModelsEvent
-    data class ShowRemoveModelDialog(val model: ModelUI.Available) : ModelsEvent
-}
+sealed interface ModelsEvent
 
 data class ModelsState(
     val models: List<ModelUI> = emptyList(),
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val addModelDialogState: AddModelDialogState? = null,
+    val removeModelDialogState: RemoveModelDialogState? = null,
+)
+
+data class AddModelDialogState(
+    val isAddEnabled: Boolean = false,
+    val error: String? = null,
+    val text: String = "",
+)
+
+data class RemoveModelDialogState(
+    val model: String,
 )
 
 sealed interface ModelUI {

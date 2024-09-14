@@ -27,6 +27,8 @@ class MainViewModel(
                 val selectedTab = state.value.selectedTabIndex
                 if (selectedTab != 1) {
                     _state.value = _state.value.copy(activityBadge = newState.toBadge())
+                } else if(newState == DownloadState.COMPLETED){
+                    modelDownloadState.setInactive()
                 }
             }
         }

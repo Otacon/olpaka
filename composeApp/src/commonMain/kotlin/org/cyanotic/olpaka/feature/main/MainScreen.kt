@@ -19,8 +19,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.home_tab_name_chat
+import olpaka.composeapp.generated.resources.home_tab_name_models
+import olpaka.composeapp.generated.resources.home_tab_name_settings
 import org.cyanotic.olpaka.core.OlpakaNavHost
 import org.cyanotic.olpaka.core.Routes
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -47,7 +52,7 @@ fun MainScreen() {
                 modifier = Modifier.weight(1f)
             ) {
                 NavigationRailItem(
-                    label = { Text("Chat") },
+                    label = { Text(stringResource(Res.string.home_tab_name_chat)) },
                     icon = {
                         val icon = if (chatSelected) {
                             Icons.AutoMirrored.Filled.Chat
@@ -60,7 +65,7 @@ fun MainScreen() {
                     onClick = { viewModel.onTabChanged(0) }
                 )
                 NavigationRailItem(
-                    label = { Text("Models") },
+                    label = { Text(stringResource(Res.string.home_tab_name_models)) },
                     icon = {
                         Box {
                             val icon = if (modelsSelected) {
@@ -89,7 +94,7 @@ fun MainScreen() {
                     onClick = { viewModel.onTabChanged(1) }
                 )
                 NavigationRailItem(
-                    label = { Text("Settings") },
+                    label = { Text(stringResource(Res.string.home_tab_name_settings)) },
                     icon = {
                         val icon = if (settingsSelected) {
                             Icons.Filled.Settings

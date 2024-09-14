@@ -13,7 +13,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.mikepenz.markdown.m3.Markdown
 import olpaka.composeapp.generated.resources.*
@@ -26,36 +29,36 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ModelsScreen() {
     val viewModel = koinViewModel<ModelsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
-    var openAddModelDialog by remember { mutableStateOf(false) }
-    var openRemoveModelDialog by remember { mutableStateOf(false) }
-    var modelToRemove by remember { mutableStateOf<ModelUI.Available?>(null) }
+    var addModelTextState by remember { mutableStateOf(TextFieldValue()) }
+    val focusRequester = remember { FocusRequester() }
+
     LaunchedEffect(Unit) {
-        viewModel.event.collect { event ->
-            when (event) {
-                ModelsEvent.ShowAddModelDialog -> openAddModelDialog = true
-                is ModelsEvent.ShowRemoveModelDialog -> {
-                    modelToRemove = event.model
-                    openRemoveModelDialog = true
-                }
-            }
-        }
+        viewModel.event.collect { }
     }
-    if (openAddModelDialog) {
+    val addModelDialogState = state.addModelDialogState
+    val removeModelDialogState = state.removeModelDialogState
+    if (addModelDialogState != null) {
         AddModelDialog(
-            onDismiss = { openAddModelDialog = false },
-            onConfirm = { model ->
-                openAddModelDialog = false
-                viewModel.onAddModel(model)
-            }
+            onDismiss = { viewModel.onCloseAddModelDialog() },
+            onConfirm = { viewModel.onAddModel(addModelTextState.text) },
+            textState = addModelTextState,
+            onTextValueChange = {
+                val newText = it.text.filter { char -> !char.isWhitespace() }
+                addModelTextState = it.copy(text = newText)
+                viewModel.onAddModelTextChanged(addModelTextState.text)
+            },
+            confirmEnabled = addModelDialogState.isAddEnabled,
+            error = addModelDialogState.error,
+            focusRequester = focusRequester,
         )
-    } else if (openRemoveModelDialog) {
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
+    } else if (removeModelDialogState != null) {
         RemoveModelDialog(
-            modelName = modelToRemove?.key ?: "",
-            onDismiss = { openRemoveModelDialog = false },
-            onConfirm = {
-                openRemoveModelDialog = false
-                modelToRemove?.let { viewModel.onConfirmRemoveModel(it) }
-            }
+            modelName = removeModelDialogState.model,
+            onDismiss = { viewModel.onRemoveModelDialogResult(false) },
+            onConfirm = { viewModel.onRemoveModelDialogResult(true) }
         )
     }
     Scaffold(
@@ -120,8 +123,15 @@ fun ModelsScreen() {
 }
 
 @Composable
-private fun AddModelDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    var text by remember { mutableStateOf("") }
+private fun AddModelDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    textState: TextFieldValue,
+    onTextValueChange: (TextFieldValue) -> Unit,
+    confirmEnabled: Boolean,
+    focusRequester: FocusRequester,
+    error: String?,
+) {
     AlertDialog(
         title = {
             Text(text = stringResource(Res.string.models_dialog_download_model_title))
@@ -136,13 +146,21 @@ private fun AddModelDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 TextField(
                     singleLine = true,
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
                     keyboardActions = KeyboardActions(
-                        onDone = { if (text.isNotBlank()) onConfirm(text) }
+                        onDone = {
+                            if (confirmEnabled) {
+                                onConfirm()
+                            }
+                        }
                     ),
+                    supportingText = {
+                        error?.let { Text(error, color = MaterialTheme.colorScheme.error) }
+                    },
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    value = text,
-                    onValueChange = { text = it },
+                    value = textState,
+                    onValueChange = onTextValueChange,
                     label = { Text(stringResource(Res.string.models_dialog_download_model_text_hint)) }
                 )
             }
@@ -151,8 +169,8 @@ private fun AddModelDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(
-                enabled = text.isNotBlank(),
-                onClick = { onConfirm(text) }
+                enabled = confirmEnabled,
+                onClick = onConfirm
             ) {
                 Text(stringResource(Res.string.models_dialog_download_model_action_positive))
             }
