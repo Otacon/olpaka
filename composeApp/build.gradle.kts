@@ -16,8 +16,6 @@ plugins {
 
 buildkonfig {
     packageName = "com.cyanotic.olpaka"
-    // objectName = 'YourAwesomeConfig'
-    // exposeObjectWithName = 'YourAwesomePublicConfig'
 
     defaultConfigs {
         buildConfigField(STRING, "appVersion", "0.5.0")
