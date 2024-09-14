@@ -5,6 +5,7 @@ android-minSdk = "24"
 android-targetSdk = "34"
 androidx-activityCompose = "1.9.2"
 androidx-lifecycle = "2.8.2"
+buildKonfig = "0.15.2"
 compose-plugin = "1.7.0-beta02"
 coroutines = "1.8.1"
 junit = "4.13.2"
@@ -13,6 +14,7 @@ kotlin = "2.0.20"
 ktor = "3.0.0-rc-1"
 materialKolor = "1.7.0"
 markdownRenderer = "0.26.0"
+napier = "2.7.1"
 serialization-json = "1.7.2"
 settings = "1.2.0"
 
@@ -45,6 +47,7 @@ markdownRenderer = { module = "com.mikepenz:multiplatform-markdown-renderer", ve
 markdownRenderer-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdownRenderer" }
 
 materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
+napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 
 settings = { group = "com.russhwolf", name = "multiplatform-settings-no-arg", version.ref = "settings" }
 
@@ -55,3 +58,4 @@ jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig"}

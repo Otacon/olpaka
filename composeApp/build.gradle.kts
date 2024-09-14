@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -10,6 +11,26 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.buildKonfig)
+}
+
+buildkonfig {
+    packageName = "com.cyanotic.olpaka"
+    // objectName = 'YourAwesomeConfig'
+    // exposeObjectWithName = 'YourAwesomePublicConfig'
+
+    defaultConfigs {
+        buildConfigField(STRING, "appVersion", "0.5.0")
+        buildConfigField(STRING, "appVariant", "debug")
+    }
+    defaultConfigs("debug"){
+        buildConfigField(STRING, "appVariant", "debug")
+        buildConfigField(STRING, "loggingLevel", "verbose")
+    }
+    defaultConfigs("release"){
+        buildConfigField(STRING, "appVariant", "release")
+        buildConfigField(STRING, "loggingLevel", "none")
+    }
 }
 
 kotlin {
@@ -91,6 +112,8 @@ kotlin {
             implementation(libs.markdownRenderer.m3)
 
             implementation(libs.materialKolor)
+
+            implementation(libs.napier)
 
             implementation(libs.settings)
         }

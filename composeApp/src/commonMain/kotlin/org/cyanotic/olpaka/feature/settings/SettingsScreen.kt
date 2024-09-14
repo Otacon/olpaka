@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.cyanotic.olpaka.BuildKonfig
 import olpaka.composeapp.generated.resources.*
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.settings_theme_mode
@@ -97,7 +98,7 @@ fun SettingsScreen(navHostController: NavHostController) {
                 }
             )
             SettingLink(
-                title = "${stringResource(Res.string.app_name)} ${stringResource(Res.string.app_version)}",
+                title = "${stringResource(Res.string.app_name)} (${BuildKonfig.appVersion}+${BuildKonfig.appVariant})",
                 subtitle = stringResource(Res.string.settings_about_subtitle),
                 onClick = {
                     navHostController.navigate(Routes.ABOUT)

@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.cyanotic.olpaka.BuildKonfig
 import olpaka.composeapp.generated.resources.*
 import org.cyanotic.olpaka.ui.theme.olpakaColorOlpaka
 import org.jetbrains.compose.resources.stringResource
@@ -46,7 +47,7 @@ fun AboutScreen(navController: NavHostController) {
                 Spacer(Modifier.width(24.dp))
                 Column {
                     Text(stringResource(Res.string.app_name), style = MaterialTheme.typography.headlineSmall)
-                    Text(stringResource(Res.string.app_version), style = MaterialTheme.typography.bodyMedium)
+                    Text("${BuildKonfig.appVersion}+${BuildKonfig.appVariant}")
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(stringResource(Res.string.about_description), style = MaterialTheme.typography.bodySmall)
                 }

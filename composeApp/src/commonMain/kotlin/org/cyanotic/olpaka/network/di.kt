@@ -1,5 +1,6 @@
 package org.cyanotic.olpaka.network
 
+import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -30,7 +31,7 @@ val networkModule = module {
             install(Logging) {
                 logger = object : Logger {
                     override fun log(message: String) {
-                        println(message)
+                        Napier.i(tag = "Network") { message }
                     }
 
                 }
