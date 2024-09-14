@@ -45,6 +45,7 @@ class ChatViewModel(
                 val newMessages = _state.value.messages +
                         ChatMessageUI.OwnMessage(message) +
                         assistantMessage
+                _events.emit(ChatEvent.ClearTextInput)
                 _state.value = _state.value.copy(messages = newMessages, isLoading = true)
             }
             .onCompletion {
@@ -66,7 +67,9 @@ class ChatViewModel(
 }
 
 
-sealed interface ChatEvent
+sealed interface ChatEvent {
+    data object ClearTextInput : ChatEvent
+}
 
 data class ChatState(
     val messages: List<ChatMessageUI> = emptyList(),

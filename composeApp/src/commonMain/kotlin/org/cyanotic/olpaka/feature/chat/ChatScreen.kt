@@ -29,11 +29,14 @@ import org.koin.compose.viewmodel.koinViewModel
 fun ChatScreen() {
     val viewModel = koinViewModel<ChatViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
+    var textState by remember { mutableStateOf(TextFieldValue()) }
     val chatListState = rememberLazyListState()
     LaunchedEffect(Unit) {
         viewModel.onCreate()
-        viewModel.event.collect { _ ->
-
+        viewModel.event.collect { event ->
+            when (event) {
+                ChatEvent.ClearTextInput -> textState = TextFieldValue("")
+            }
         }
     }
     LaunchedEffect(state.messages) {
@@ -60,13 +63,41 @@ fun ChatScreen() {
                     messages = state.messages
                 )
             }
-            MessageInputBar(
-                models = state.models,
-                selectedModel = state.selectedModel,
-                enabled = state.isLoading.not(),
-                onSubmit = viewModel::onSubmit,
-                onModelChanged = viewModel::onModelChanged,
-            )
+
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            ) {
+                MessageInputBar(
+                    modifier = Modifier
+                        .weight(1.0f)
+                        .onPreviewKeyEvent { e ->
+                        if (e.type == KeyEventType.KeyDown && (e.key == Key.Enter || e.key == Key.NumPadEnter)) {
+                            if (e.isShiftPressed) {
+                                textState = textState.addNewLine()
+                            } else {
+                                viewModel.onSubmit(textState.text)
+                            }
+                            true
+                        } else {
+                            false
+                        }
+                    },
+                    value = textState,
+                    onValueChange = { textState = it },
+                    enabled = state.isLoading.not(),
+                    onSubmit = viewModel::onSubmit,
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                DropDown(
+                    modifier = Modifier.width(200.dp),
+                    options = state.models,
+                    selectedModel = state.selectedModel,
+                    enabled = state.isLoading.not(),
+                    onOptionSelected = viewModel::onModelChanged,
+                )
+            }
         }
     }
 }
@@ -103,77 +134,32 @@ private fun Content(
 
 @Composable
 private fun MessageInputBar(
-    models: List<ChatModelUI>,
-    selectedModel: ChatModelUI? = null,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
     onSubmit: (String) -> Unit,
-    onModelChanged: (ChatModelUI) -> Unit,
 ) {
-    var textState by remember { mutableStateOf(TextFieldValue("")) }
-    val sendIfNotBlank = {
-        val text = textState.text
-        if(text.isNotBlank()) {
-            onSubmit(text)
-            textState = TextFieldValue("")
-        }
-    }
-    Row(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-    ) {
-        OutlinedTextField(
-            value = textState,
-            onValueChange = { newText -> textState = newText },
-            enabled = enabled,
-            modifier = Modifier
-                .weight(1.0f)
-                .onPreviewKeyEvent { event ->
-                    if (event.type != KeyEventType.KeyDown) {
-                        return@onPreviewKeyEvent false
-                    }
-
-                    if (event.key != Key.Enter) {
-                        return@onPreviewKeyEvent false
-                    }
-
-                    if (event.isShiftPressed) {
-                        textState = textState.copy(
-                            text = textState.text + "\n",
-                            selection = TextRange(
-                                start = textState.selection.start + 1,
-                                end = textState.selection.end + 1
-                            )
-                        )
-                    } else {
-                        sendIfNotBlank()
-                    }
-                    true
-                },
-            minLines = 1,
-            maxLines = 5,
-            placeholder = { Text(stringResource(Res.string.chat_text_input_hint)) },
-            trailingIcon = {
-                IconButton(
-                    enabled = enabled && textState.text.isNotBlank(),
-                    onClick = sendIfNotBlank
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.Send,
-                        contentDescription = null
-                    )
-                }
-            },
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        DropDown(
-            modifier = Modifier.width(200.dp),
-            options = models,
-            selectedModel = selectedModel,
-            enabled = enabled,
-            onOptionSelected = onModelChanged,
-        )
-    }
+    OutlinedTextField(
+        modifier = modifier,
+        value = value,
+        onValueChange = onValueChange,
+        enabled = enabled,
+        minLines = 1,
+        maxLines = 5,
+        placeholder = { Text(stringResource(Res.string.chat_text_input_hint)) },
+        trailingIcon = {
+            IconButton(
+                enabled = enabled,
+                onClick = { onSubmit(value.text) }
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.Send,
+                    contentDescription = null
+                )
+            }
+        },
+    )
 }
 
 @Composable
@@ -190,10 +176,10 @@ private fun DropDown(
         contentAlignment = Alignment.CenterStart,
         modifier = modifier
             .clickable {
-                if(enabled) {
+                if (enabled) {
                     expanded = !expanded
                 }
-           },
+            },
     ) {
         TextField(
             value = selectedModel?.name ?: "",
@@ -259,4 +245,10 @@ private fun AssistantMessage(modifier: Modifier = Modifier, message: ChatMessage
             SelectionContainer { Markdown(message.text) }
         }
     }
+}
+
+private fun TextFieldValue.addNewLine(): TextFieldValue {
+    val newText = this.text + "\n"
+    val newSelection = TextRange(newText.length)
+    return this.copy(newText, selection = newSelection)
 }
