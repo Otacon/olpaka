@@ -19,7 +19,41 @@
     <link type="text/css" rel="stylesheet" href="styles.css">
     <script type="application/javascript" src="composeApp.js"></script>
     <link rel="manifest" href="manifest.json">
+
+    <style>
+        #loadingScreen {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            background-color: #F21368;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        #logo {
+            width: 200px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: normal;
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
+
+<div id="loadingScreen">
+    <img id="logo" src="olpaka.svg" alt="Olpaka Logo">
+    <h1>Loading Olpaka...</h1>
+</div>
+
 </body>
 </html>
