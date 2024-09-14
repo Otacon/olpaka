@@ -17,8 +17,10 @@ plugins {
 buildkonfig {
     packageName = "com.cyanotic.olpaka"
 
+    val versionName: String = System.getenv("VERSION_NAME") ?: "local"
+
     defaultConfigs {
-        buildConfigField(STRING, "appVersion", "0.5.0")
+        buildConfigField(STRING, "appVersion", versionName)
         buildConfigField(STRING, "appVariant", "debug")
     }
     defaultConfigs("debug"){
@@ -177,4 +179,24 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
+}
+
+tasks.register("replaceBaseHref") {
+    doLast {
+        val buildDirectory = layout.buildDirectory.get()
+        val indexHtmlFile = File("$buildDirectory/dist/wasmJs/productionExecutable/index.html")
+        val baseHref: String = System.getenv("BASE_HREF") ?: "/"
+        if (indexHtmlFile.exists()) {
+            val content = indexHtmlFile.readText()
+            val updatedContent = content.replace("\$BASE_HREF", baseHref)
+            indexHtmlFile.writeText(updatedContent)
+        } else {
+            println("index.html not found!")
+        }
+    }
+}
+
+// Make sure the replacement runs after wasmJsBrowserDistribution is generated
+tasks.named("wasmJsBrowserDistribution") {
+    finalizedBy("replaceBaseHref")
 }
