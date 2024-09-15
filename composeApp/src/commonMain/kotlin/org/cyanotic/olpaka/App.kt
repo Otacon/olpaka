@@ -6,6 +6,8 @@ import com.cyanotic.olpaka.BuildKonfig
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.LogLevel
 import io.github.aakira.napier.Napier
+import io.ktor.http.*
+import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.ThemeState
 import org.cyanotic.olpaka.core.coreModule
 import org.cyanotic.olpaka.feature.chat.chatModule
@@ -14,6 +16,7 @@ import org.cyanotic.olpaka.feature.main.mainModule
 import org.cyanotic.olpaka.feature.models.modelsModule
 import org.cyanotic.olpaka.feature.onboarding.onboardingModule
 import org.cyanotic.olpaka.feature.settings.settingsModule
+import org.cyanotic.olpaka.network.EndpointProvider
 import org.cyanotic.olpaka.network.networkModule
 import org.cyanotic.olpaka.repository.repositoryModule
 import org.cyanotic.olpaka.ui.theme.AppTheme
@@ -43,7 +46,15 @@ fun App() {
     }
 
     KoinApplication(::koinConfiguration) {
-        val themeState = getKoin().get<ThemeState>()
+
+        val koin = getKoin()
+        val themeState = koin.get<ThemeState>()
+        val preferences = koin.get<Preferences>()
+        val endpointProvider = koin.get<EndpointProvider>()
+        themeState.themeMode.value = preferences.themeMode
+        themeState.color.value = preferences.themeColor
+        parseUrl(preferences.connectionHost)?.let { endpointProvider.baseUrl = it }
+
         val isDark = themeState.themeMode.collectAsState()
         val seedColor = themeState.color.collectAsState()
         AppTheme(

@@ -3,8 +3,11 @@ package org.cyanotic.olpaka.feature.settings
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.material.icons.outlined.DarkMode
@@ -21,95 +24,162 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.cyanotic.olpaka.BuildKonfig
 import olpaka.composeapp.generated.resources.*
-import olpaka.composeapp.generated.resources.Res
-import olpaka.composeapp.generated.resources.settings_theme_mode
-import olpaka.composeapp.generated.resources.settings_theme_section
-import olpaka.composeapp.generated.resources.settings_title
 import org.cyanotic.olpaka.core.Routes
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.cyanotic.olpaka.ui.theme.*
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SettingsScreen(navHostController: NavHostController) {
     val viewModel = koinViewModel<SettingsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
-    Scaffold(topBar = { OlpakaAppBar(stringResource(Res.string.settings_title)) }) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            SettingSection(stringResource(Res.string.settings_theme_section))
-            SettingItem(stringResource(Res.string.settings_theme_mode)) {
-                SingleChoiceSegmentedButtonRow {
-                    SegmentedButton(
-                        icon = {
-                            Icon(
-                                if (state.selectedTheme == OlpakaTheme.AUTO) Icons.Filled.Done else Icons.Outlined.BrightnessAuto,
-                                contentDescription = null
-                            )
-                        },
-                        label = { Text(stringResource(Res.string.settings_theme_mode_system)) },
-                        selected = state.selectedTheme == OlpakaTheme.AUTO,
-                        shape = SegmentedButtonDefaults.itemShape(0, 3),
-                        onClick = { viewModel.onThemeChanged(OlpakaTheme.AUTO) },
-                    )
-                    SegmentedButton(
-                        icon = {
-                            Icon(
-                                if (state.selectedTheme == OlpakaTheme.DARK) Icons.Filled.Done else Icons.Outlined.DarkMode,
-                                contentDescription = null
-                            )
-                        },
-                        label = { Text(stringResource(Res.string.settings_theme_mode_dark)) },
-                        selected = state.selectedTheme == OlpakaTheme.DARK,
-                        shape = SegmentedButtonDefaults.itemShape(1, 3),
-                        onClick = { viewModel.onThemeChanged(OlpakaTheme.DARK) },
-                    )
-                    SegmentedButton(
-                        icon = {
-                            Icon(
-                                if (state.selectedTheme == OlpakaTheme.LIGHT) Icons.Filled.Done else Icons.Outlined.LightMode,
-                                contentDescription = null
-                            )
-                        },
-                        label = { Text(stringResource(Res.string.settings_theme_mode_light)) },
-                        selected = state.selectedTheme == OlpakaTheme.LIGHT,
-                        shape = SegmentedButtonDefaults.itemShape(2, 3),
-                        onClick = { viewModel.onThemeChanged(OlpakaTheme.LIGHT) },
+
+    SettingsScreenContent(
+        state = state,
+        onColorChanged = viewModel::onColorChanged,
+        onThemeChanged = viewModel::onThemeChanged,
+        onConnectionHostChanged = viewModel::onConnectionUrlChanged,
+        onResetHostClicked = viewModel::revertDefaultConnectionUrl,
+        onOnboardingClicked = { navHostController.navigate(Routes.ONBOARDING) },
+        onAboutClicked = { navHostController.navigate(Routes.ABOUT) }
+    )
+}
+
+@Composable
+@Preview
+private fun SettingsScreenContent(
+    state: SettingsState = SettingsState(),
+    onColorChanged: (OlpakaColor) -> Unit = {},
+    onThemeChanged: (OlpakaTheme) -> Unit = {},
+    onConnectionHostChanged: (String) -> Unit = {},
+    onResetHostClicked: () -> Unit = {},
+    onOnboardingClicked: () -> Unit = {},
+    onAboutClicked: () -> Unit = {}
+) {
+    val scrollState = rememberScrollState()
+    Scaffold(
+        topBar = { OlpakaAppBar(stringResource(Res.string.settings_title)) }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+        ) {
+            Column(
+                modifier = Modifier
+                    .verticalScroll(scrollState)
+            ) {
+                SettingSection(stringResource(Res.string.settings_theme_section))
+                SettingItem(stringResource(Res.string.settings_theme_mode)) {
+                    ThemeSelector(
+                        selectedTheme = state.selectedTheme,
+                        onThemeChanged = onThemeChanged
                     )
                 }
-            }
-            SettingItem(stringResource(Res.string.settings_theme_color)) {
-                Row {
-                    OlpakaColor.entries.forEach {
-                        color(
-                            color = it,
-                            selected = state.selectedColor == it,
-                            onClick = viewModel::onColorChanged
-                        )
-                    }
+                SettingItem(stringResource(Res.string.settings_theme_color)) {
+                    ColorSelector(
+                        selectedColor = state.selectedColor,
+                        onColorChanged = onColorChanged
+                    )
+                }
+                SettingSection(stringResource(Res.string.settings_connection_section))
+                SettingItem(stringResource(Res.string.settings_connection_url)) {
+                    TextField(
+                        value = state.connectionHost,
+                        onValueChange = onConnectionHostChanged,
+                        singleLine = true,
+                        supportingText = {
+                            state.hostError?.let {
+                                Text(it, color = MaterialTheme.colorScheme.error)
+                            }
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = onResetHostClicked) {
+                                Icon(
+                                    Icons.AutoMirrored.Outlined.Undo,
+                                    contentDescription = "Reset to default",
+                                )
+                            }
+                        }
+                    )
                 }
             }
             Spacer(Modifier.weight(1.0f))
             SettingLink(
                 title = stringResource(Res.string.settings_onboarding_title),
                 subtitle = stringResource(Res.string.settings_onboarding_subtitle),
-                onClick = {
-                    navHostController.navigate(Routes.ONBOARDING)
-                }
+                onClick = onOnboardingClicked
             )
             SettingLink(
                 title = "${stringResource(Res.string.app_name)} (${BuildKonfig.appVersion}+${BuildKonfig.appVariant})",
                 subtitle = stringResource(Res.string.settings_about_subtitle),
-                onClick = {
-                    navHostController.navigate(Routes.ABOUT)
-                }
+                onClick = onAboutClicked
             )
         }
     }
 }
 
 @Composable
-private fun color(color: OlpakaColor, selected: Boolean, onClick: (OlpakaColor) -> Unit) {
+private fun ThemeSelector(
+    selectedTheme: OlpakaTheme,
+    onThemeChanged: (OlpakaTheme) -> Unit,
+) {
+    SingleChoiceSegmentedButtonRow {
+        OlpakaTheme.entries.forEachIndexed { index, theme ->
+            val isSelected = selectedTheme == theme
+            val icon = if (isSelected) {
+                Icons.Filled.Done
+            } else {
+                when (theme) {
+                    OlpakaTheme.AUTO -> Icons.Outlined.BrightnessAuto
+                    OlpakaTheme.LIGHT -> Icons.Outlined.LightMode
+                    OlpakaTheme.DARK -> Icons.Outlined.DarkMode
+                }
+            }
+            val text = when (theme) {
+                OlpakaTheme.AUTO -> stringResource(Res.string.settings_theme_mode_system)
+                OlpakaTheme.LIGHT -> stringResource(Res.string.settings_theme_mode_light)
+                OlpakaTheme.DARK -> stringResource(Res.string.settings_theme_mode_dark)
+            }
+            SegmentedButton(
+                icon = {
+                    Icon(
+                        icon,
+                        contentDescription = null
+                    )
+                },
+                label = { Text(text) },
+                selected = isSelected,
+                shape = SegmentedButtonDefaults.itemShape(index, OlpakaTheme.entries.size),
+                onClick = { onThemeChanged(theme) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColorSelector(
+    selectedColor: OlpakaColor,
+    onColorChanged: (OlpakaColor) -> Unit,
+) {
+    Row {
+        OlpakaColor.entries.forEach { entry ->
+            ColorItem(
+                color = entry,
+                selected = selectedColor == entry,
+                onClick = { onColorChanged(it) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColorItem(
+    color: OlpakaColor,
+    selected: Boolean,
+    onClick: (OlpakaColor) -> Unit
+) {
     val outlineColor = MaterialTheme.colorScheme.outline
     val fillColor = when (color) {
         OlpakaColor.OLPAKA -> olpakaColorOlpaka
@@ -149,7 +219,9 @@ private fun color(color: OlpakaColor, selected: Boolean, onClick: (OlpakaColor) 
 }
 
 @Composable
-private fun SettingSection(title: String) {
+private fun SettingSection(
+    title: String
+) {
     Text(
         title,
         modifier = Modifier
@@ -160,7 +232,10 @@ private fun SettingSection(title: String) {
 }
 
 @Composable
-private fun SettingItem(name: String, content: @Composable () -> Unit) {
+private fun SettingItem(
+    name: String,
+    content: @Composable () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -176,8 +251,16 @@ private fun SettingItem(name: String, content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun SettingLink(title: String, subtitle: String, onClick: () -> Unit) {
-    Column(Modifier.fillMaxWidth().clickable { onClick() }) {
+private fun SettingLink(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
         HorizontalDivider(Modifier.height(1.dp))
         Column(
             Modifier.padding(vertical = 8.dp, horizontal = 16.dp)

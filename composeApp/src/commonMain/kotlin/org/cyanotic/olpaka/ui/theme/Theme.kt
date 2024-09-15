@@ -39,8 +39,8 @@ fun AppTheme(
 
 enum class OlpakaTheme {
     AUTO,
-    LIGHT,
-    DARK
+    DARK,
+    LIGHT
 }
 
 enum class OlpakaColor {

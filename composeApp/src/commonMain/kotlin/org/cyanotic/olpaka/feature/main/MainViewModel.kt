@@ -5,7 +5,6 @@ import org.cyanotic.olpaka.core.*
 
 class MainViewModel(
     private val preferences: Preferences,
-    private val themeState: ThemeState,
     private val modelDownloadState: ModelDownloadState,
 ) : OlpakaViewModel() {
 
@@ -16,8 +15,6 @@ class MainViewModel(
     val event = _events.asSharedFlow()
 
     override fun onCreate() = inBackground {
-        themeState.themeMode.value = preferences.themeMode
-        themeState.color.value = preferences.themeColor
         if (!preferences.hasSeenOnboarding) {
             _events.emit(MainEvent.OpenOnboarding)
             preferences.hasSeenOnboarding = true

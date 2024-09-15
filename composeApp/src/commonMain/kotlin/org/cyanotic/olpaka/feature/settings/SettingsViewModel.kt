@@ -1,17 +1,25 @@
 package org.cyanotic.olpaka.feature.settings
 
+import androidx.lifecycle.viewModelScope
+import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.launch
+import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.settings_connection_url_error
 import org.cyanotic.olpaka.core.OlpakaViewModel
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.ThemeState
+import org.cyanotic.olpaka.network.EndpointProvider
 import org.cyanotic.olpaka.ui.theme.OlpakaColor
 import org.cyanotic.olpaka.ui.theme.OlpakaTheme
+import org.jetbrains.compose.resources.getString
 
 class SettingsViewModel(
     private val themeState: ThemeState,
     private val preferences: Preferences,
+    private val endpointProvider: EndpointProvider,
 ) : OlpakaViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -21,7 +29,8 @@ class SettingsViewModel(
         _state.getAndUpdate { current ->
             current.copy(
                 selectedColor = preferences.themeColor,
-                selectedTheme = preferences.themeMode
+                selectedTheme = preferences.themeMode,
+                connectionHost = preferences.connectionHost,
             )
         }
     }
@@ -41,9 +50,33 @@ class SettingsViewModel(
             current.copy(selectedTheme = theme)
         }
     }
+
+    fun onConnectionUrlChanged(newHost: String) = viewModelScope.launch {
+        setBaseUrl(newHost)
+    }
+
+    fun revertDefaultConnectionUrl() = inBackground {
+        setBaseUrl(EndpointProvider.DEFAULT_OLLAMA_API_URL)
+    }
+
+    private suspend fun setBaseUrl(newHost: String) {
+        _state.getAndUpdate { current ->
+            val url = parseUrl(newHost.trim())
+            val hostError = if(url != null){
+                preferences.connectionHost = url.toString()
+                endpointProvider.baseUrl = url
+                null
+            } else {
+                getString(Res.string.settings_connection_url_error)
+            }
+            current.copy(connectionHost = newHost, hostError = hostError)
+        }
+    }
 }
 
 data class SettingsState(
     val selectedColor: OlpakaColor = OlpakaColor.OLPAKA,
-    val selectedTheme: OlpakaTheme = OlpakaTheme.AUTO
+    val selectedTheme: OlpakaTheme = OlpakaTheme.AUTO,
+    val connectionHost: String = "",
+    val hostError: String? = null,
 )

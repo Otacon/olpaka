@@ -1,6 +1,7 @@
 package org.cyanotic.olpaka.core
 
 import com.russhwolf.settings.Settings
+import org.cyanotic.olpaka.network.EndpointProvider.Companion.DEFAULT_OLLAMA_API_URL
 import org.cyanotic.olpaka.ui.theme.OlpakaColor
 import org.cyanotic.olpaka.ui.theme.OlpakaTheme
 
@@ -30,6 +31,14 @@ class Preferences {
                 VALUE_THEME_DARK -> OlpakaTheme.DARK
                 else -> OlpakaTheme.AUTO
             }
+        }
+
+    var connectionHost: String
+        set(value) {
+            settings.putString(KEY_CONNECTION_HOST, value)
+        }
+        get() {
+            return settings.getString(KEY_CONNECTION_HOST, DEFAULT_OLLAMA_API_URL)
         }
 
     var themeColor: OlpakaColor
@@ -64,7 +73,9 @@ class Preferences {
     companion object {
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_THEME_COLOR = "theme_color"
-        private const val KEY_SEEN_ONBOARDING = "key_seen_onboarding"
+        private const val KEY_SEEN_ONBOARDING = "seen_onboarding"
+
+        private const val KEY_CONNECTION_HOST = "connection_host"
 
         private const val VALUE_THEME_AUTO = "auto"
         private const val VALUE_THEME_LIGHT = "light"

@@ -5,6 +5,7 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.factoryOf
@@ -42,10 +43,7 @@ val networkModule = module {
 
     single {
         EndpointProvider(
-            scheme = "http",
-            host = "localhost",
-            port = 11434,
-            baseUrl = "/api",
+            baseUrl = parseUrl(EndpointProvider.DEFAULT_OLLAMA_API_URL)!!,
         )
     }
 

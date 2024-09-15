@@ -1,14 +1,23 @@
 package org.cyanotic.olpaka.network
 
+import io.github.aakira.napier.Napier
+import io.ktor.http.*
+
 class EndpointProvider(
-    var scheme: String,
-    var host: String,
-    var port: Int,
-    var baseUrl: String,
+    baseUrl: Url,
 ) {
+    var baseUrl: Url = baseUrl
+        set(value) {
+            Napier.d("Updated baseUrl to $value", tag = "EndpointProvider")
+            field = value
+        }
 
     fun generateUrl(endpoint: String): String {
-        return "$scheme://$host:$port$baseUrl$endpoint"
+        return "$baseUrl$endpoint"
+    }
+
+    companion object {
+        const val DEFAULT_OLLAMA_API_URL = "http://localhost:11434/api"
     }
 
 }
