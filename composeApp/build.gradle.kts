@@ -24,7 +24,7 @@ buildkonfig {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")
         buildConfigField(STRING, "appVersion", versionName)
         buildConfigField(STRING, "appVariant", "release")
-        buildConfigField(STRING, "loggingLevel", "none")
+        buildConfigField(STRING, "loggingLevel", "verbose")
     }
     defaultConfigs("debug"){
         buildConfigField(STRING, "appVariant", "debug")
@@ -188,7 +188,7 @@ tasks.register("replaceBaseHref") {
     doLast {
         val buildDirectory = layout.buildDirectory.get()
         val indexHtmlFile = File("$buildDirectory/dist/wasmJs/productionExecutable/index.html")
-        val baseHref: String = System.getenv("BASE_HREF") ?: "/"
+        val baseHref: String = System.getenv("BASE_HREF") ?: "/wasmJs"
         if (indexHtmlFile.exists()) {
             val content = indexHtmlFile.readText()
             val updatedContent = content.replace("\$BASE_HREF", baseHref)

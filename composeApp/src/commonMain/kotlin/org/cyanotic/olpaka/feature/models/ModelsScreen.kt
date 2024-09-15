@@ -37,6 +37,9 @@ fun ModelsScreen() {
     }
     val addModelDialogState = state.addModelDialogState
     val removeModelDialogState = state.removeModelDialogState
+    if(addModelDialogState == null){
+        addModelTextState = TextFieldValue()
+    }
     if (addModelDialogState != null) {
         AddModelDialog(
             onDismiss = { viewModel.onCloseAddModelDialog() },
