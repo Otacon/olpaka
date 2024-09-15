@@ -32,6 +32,7 @@ buildkonfig {
         buildConfigField(BOOLEAN, "allowClearPreferences", "true")
     }
     defaultConfigs("release"){
+        buildConfigField(STRING, "loggingLevel", "verbose")
         buildConfigField(STRING, "appVariant", "release")
     }
 }
@@ -97,11 +98,10 @@ kotlin {
 
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.androidx.navigation.compose)
 
-            implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
-            implementation(libs.koin.compose.viewmodel.navigation)
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)

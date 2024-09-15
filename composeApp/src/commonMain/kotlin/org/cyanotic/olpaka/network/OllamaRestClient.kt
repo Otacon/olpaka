@@ -1,5 +1,6 @@
 package org.cyanotic.olpaka.network
 
+import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -52,18 +53,30 @@ class OllamaRestClient(
 
     suspend fun listModels(): GetModelsResult {
         return try {
+            Napier.i(message = "Retrieving tags...")
             val response = client.get {
                 url(endpointProvider.generateUrl("/tags"))
                 contentType(ContentType.Application.Json)
             }
-
+            Napier.i(message = "Received response with status ${response.status}...")
             if (response.status.isSuccess()) {
                 val models = response.body<GetModelResponseDTO>().models ?: emptyList()
                 GetModelsResult.Success(models)
             } else {
+                Napier.i(message = "Network request failed with code ${response.status}")
                 GetModelsResult.Failure
             }
         } catch (e: IOException) {
+            Napier.i(message = "IOException - ${e::class} - Message ${e.message} - Cause ${e.cause}")
+            GetModelsResult.Failure
+        } catch (e: Exception) {
+            Napier.i(message = "Exception - ${e::class} - Message ${e.message} - Cause ${e.cause}")
+            GetModelsResult.Failure
+        } catch (e: Error) {
+            Napier.i(message = "Error - ${e::class} - Message ${e.message} - Cause ${e.cause}")
+            GetModelsResult.Failure
+        } catch (e: Throwable) {
+            Napier.i(message = "Throwable - ${e::class} - Message ${e.message} - Cause ${e.cause}")
             GetModelsResult.Failure
         }
     }

@@ -27,7 +27,9 @@ import org.cyanotic.olpaka.core.OlpakaNavHost
 import org.cyanotic.olpaka.core.Routes
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 
+@OptIn(KoinExperimentalAPI::class)
 @Composable
 fun MainScreen() {
     val viewModel = koinViewModel<MainViewModel>().also { it.init() }
@@ -120,7 +122,7 @@ private fun handleEvent(event: MainEvent, navController: NavController) {
             navController.navigate(Routes.CHAT) {
                 launchSingleTop = true
                 restoreState = true
-                popUpTo(navController.graph.startDestinationId) {
+                popUpTo(navController.graph.startDestinationRoute!!) {
                     saveState = true
                 }
             }
@@ -130,7 +132,7 @@ private fun handleEvent(event: MainEvent, navController: NavController) {
             navController.navigate(Routes.MODELS) {
                 launchSingleTop = true
                 restoreState = true
-                popUpTo(navController.graph.startDestinationId) {
+                popUpTo(navController.graph.startDestinationRoute!!) {
                     saveState = true
                 }
             }
@@ -140,7 +142,7 @@ private fun handleEvent(event: MainEvent, navController: NavController) {
             navController.navigate(Routes.SETTINGS) {
                 launchSingleTop = true
                 restoreState = true
-                popUpTo(navController.graph.startDestinationId) {
+                popUpTo(navController.graph.startDestinationRoute!!) {
                     saveState = true
                 }
             }
@@ -148,7 +150,7 @@ private fun handleEvent(event: MainEvent, navController: NavController) {
 
         MainEvent.OpenOnboarding -> {
             navController.navigate(Routes.ONBOARDING) {
-                popUpTo(navController.graph.startDestinationId)
+                popUpTo(navController.graph.startDestinationRoute!!)
             }
         }
     }

@@ -23,7 +23,6 @@ import org.cyanotic.olpaka.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinApplication
 import org.koin.compose.getKoin
-import org.koin.dsl.koinApplication
 
 @Composable
 @Preview
@@ -45,7 +44,20 @@ fun App() {
         Napier.isEnable(it, null)
     }
 
-    KoinApplication(::koinConfiguration) {
+    KoinApplication(
+        {
+            modules(
+                coreModule,
+                networkModule,
+                repositoryModule,
+                mainModule,
+                onboardingModule,
+                chatModule,
+                modelsModule,
+                settingsModule,
+            )
+        }
+    ) {
 
         val koin = getKoin()
         val themeState = koin.get<ThemeState>()
@@ -64,17 +76,4 @@ fun App() {
             MainScreen()
         }
     }
-}
-
-private fun koinConfiguration() = koinApplication {
-    modules(
-        coreModule,
-        networkModule,
-        repositoryModule,
-        mainModule,
-        onboardingModule,
-        chatModule,
-        modelsModule,
-        settingsModule,
-    )
 }
