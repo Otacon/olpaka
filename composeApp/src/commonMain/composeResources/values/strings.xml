@@ -67,6 +67,8 @@
     <string name="settings_connection_section">Connection</string>
     <string name="settings_connection_url">Ollama API URL</string>
     <string name="settings_connection_url_error">Invalid url</string>
+    <string name="settings_clear_preferences_title">Clear preferences</string>
+    <string name="settings_clear_preferences_subtitle">Restart the app to apply the effects</string>
     <string name="settings_onboarding_title">Troubleshooting</string>
     <string name="settings_onboarding_subtitle">Launch the "Getting Started" wizard</string>
     <string name="settings_about_subtitle">Learn more about Olpaka</string>

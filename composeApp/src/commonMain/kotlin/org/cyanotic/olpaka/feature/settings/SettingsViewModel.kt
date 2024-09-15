@@ -62,7 +62,7 @@ class SettingsViewModel(
     private suspend fun setBaseUrl(newHost: String) {
         _state.getAndUpdate { current ->
             val url = parseUrl(newHost.trim())
-            val hostError = if(url != null){
+            val hostError = if (url != null) {
                 preferences.connectionHost = url.toString()
                 endpointProvider.baseUrl = url
                 null
@@ -71,6 +71,10 @@ class SettingsViewModel(
             }
             current.copy(connectionHost = newHost, hostError = hostError)
         }
+    }
+
+    fun onClearPreferencesClicked() {
+        preferences.clear()
     }
 }
 

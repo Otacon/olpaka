@@ -42,6 +42,7 @@ fun SettingsScreen(navHostController: NavHostController) {
         onThemeChanged = viewModel::onThemeChanged,
         onConnectionHostChanged = viewModel::onConnectionUrlChanged,
         onResetHostClicked = viewModel::revertDefaultConnectionUrl,
+        onClearPreferencesClicked = viewModel::onClearPreferencesClicked,
         onOnboardingClicked = { navHostController.navigate(Routes.ONBOARDING) },
         onAboutClicked = { navHostController.navigate(Routes.ABOUT) }
     )
@@ -55,6 +56,7 @@ private fun SettingsScreenContent(
     onThemeChanged: (OlpakaTheme) -> Unit = {},
     onConnectionHostChanged: (String) -> Unit = {},
     onResetHostClicked: () -> Unit = {},
+    onClearPreferencesClicked: () -> Unit = {},
     onOnboardingClicked: () -> Unit = {},
     onAboutClicked: () -> Unit = {}
 ) {
@@ -106,6 +108,13 @@ private fun SettingsScreenContent(
                 }
             }
             Spacer(Modifier.weight(1.0f))
+            if(BuildKonfig.allowClearPreferences){
+                SettingLink(
+                    title = stringResource(Res.string.settings_clear_preferences_title),
+                    subtitle = stringResource(Res.string.settings_clear_preferences_subtitle),
+                    onClick = onClearPreferencesClicked
+                )
+            }
             SettingLink(
                 title = stringResource(Res.string.settings_onboarding_title),
                 subtitle = stringResource(Res.string.settings_onboarding_subtitle),

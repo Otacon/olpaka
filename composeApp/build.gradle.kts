@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.BOOLEAN
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -20,16 +21,18 @@ buildkonfig {
     val versionName: String = System.getenv("VERSION_NAME") ?: "local"
 
     defaultConfigs {
+        buildConfigField(BOOLEAN, "allowClearPreferences", "false")
         buildConfigField(STRING, "appVersion", versionName)
-        buildConfigField(STRING, "appVariant", "debug")
+        buildConfigField(STRING, "appVariant", "release")
+        buildConfigField(STRING, "loggingLevel", "none")
     }
     defaultConfigs("debug"){
         buildConfigField(STRING, "appVariant", "debug")
         buildConfigField(STRING, "loggingLevel", "verbose")
+        buildConfigField(BOOLEAN, "allowClearPreferences", "true")
     }
     defaultConfigs("release"){
         buildConfigField(STRING, "appVariant", "release")
-        buildConfigField(STRING, "loggingLevel", "none")
     }
 }
 
