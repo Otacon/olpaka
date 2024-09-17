@@ -27,9 +27,7 @@ import org.cyanotic.olpaka.core.OlpakaNavHost
 import org.cyanotic.olpaka.core.Routes
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
-@OptIn(KoinExperimentalAPI::class)
 @Composable
 fun MainScreen() {
     val viewModel = koinViewModel<MainViewModel>().also { it.init() }

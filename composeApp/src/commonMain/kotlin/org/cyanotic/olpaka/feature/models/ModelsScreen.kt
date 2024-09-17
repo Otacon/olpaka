@@ -24,19 +24,51 @@ import org.cyanotic.olpaka.ui.EmptyScreen
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
-@OptIn(KoinExperimentalAPI::class)
 @Composable
 fun ModelsScreen() {
     val viewModel = koinViewModel<ModelsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
-    var addModelTextState by remember { mutableStateOf(TextFieldValue()) }
-    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { }
     }
+
+    when(val currentState = state){
+        is ModelsState.Content -> Content(
+            state =  currentState,
+            onCloseAddModelDialog = viewModel::onCloseAddModelDialog,
+            onAddModel = viewModel::onAddModel,
+            onAddModelTextChanged = viewModel::onAddModelTextChanged,
+            onRemoveModelDialogResult = viewModel::onRemoveModelDialogResult,
+            onRefreshClicked = viewModel::onRefreshClicked,
+            onAddModelClicked = viewModel::onAddModelClicked,
+            onRemoveModelClicked = viewModel::onRemoveModelClicked,
+            onCancelDownload = viewModel::onCancelDownload
+        )
+        ModelsState.Error -> Error(
+            onRefreshClicked = viewModel::onRefreshClicked
+        )
+        ModelsState.Loading -> Loading()
+    }
+}
+
+@Composable
+private fun Content(
+    state: ModelsState.Content,
+    onCloseAddModelDialog: () -> Unit,
+    onAddModel: (String) -> Unit,
+    onAddModelTextChanged: (String) -> Unit,
+    onRemoveModelDialogResult: (Boolean) -> Unit,
+    onRefreshClicked: () -> Unit,
+    onAddModelClicked: () -> Unit,
+    onRemoveModelClicked: (model: ModelUI.Available) -> Unit,
+    onCancelDownload: () -> Unit
+) {
+    var addModelTextState by remember { mutableStateOf(TextFieldValue()) }
+    val focusRequester = remember { FocusRequester() }
+
+
     val addModelDialogState = state.addModelDialogState
     val removeModelDialogState = state.removeModelDialogState
     if(addModelDialogState == null){
@@ -44,13 +76,13 @@ fun ModelsScreen() {
     }
     if (addModelDialogState != null) {
         AddModelDialog(
-            onDismiss = { viewModel.onCloseAddModelDialog() },
-            onConfirm = { viewModel.onAddModel(addModelTextState.text) },
+            onDismiss = onCloseAddModelDialog,
+            onConfirm = { onAddModel(addModelTextState.text) },
             textState = addModelTextState,
             onTextValueChange = {
                 val newText = it.text.filter { char -> !char.isWhitespace() }
                 addModelTextState = it.copy(text = newText)
-                viewModel.onAddModelTextChanged(addModelTextState.text)
+                onAddModelTextChanged(addModelTextState.text)
             },
             confirmEnabled = addModelDialogState.isAddEnabled,
             error = addModelDialogState.error,
@@ -62,8 +94,8 @@ fun ModelsScreen() {
     } else if (removeModelDialogState != null) {
         RemoveModelDialog(
             modelName = removeModelDialogState.model,
-            onDismiss = { viewModel.onRemoveModelDialogResult(false) },
-            onConfirm = { viewModel.onRemoveModelDialogResult(true) }
+            onDismiss = { onRemoveModelDialogResult(false) },
+            onConfirm = { onRemoveModelDialogResult(true) }
         )
     }
     Scaffold(
@@ -73,7 +105,7 @@ fun ModelsScreen() {
                 actions = {
                     IconButton(
                         enabled = !state.isLoading,
-                        onClick = viewModel::onRefreshClicked
+                        onClick = onRefreshClicked
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Refresh,
@@ -86,7 +118,7 @@ fun ModelsScreen() {
         floatingActionButton = {
             if (!state.isLoading) {
                 FloatingActionButton(
-                    onClick = { viewModel.onAddModelClicked() },
+                    onClick = onAddModelClicked,
                 ) {
                     Icon(Icons.Outlined.Add, null)
                 }
@@ -108,13 +140,13 @@ fun ModelsScreen() {
                     when (val model = state.models[index]) {
                         is ModelUI.Available -> ModelAvailable(
                             model = model,
-                            onRemoveClicked = { viewModel.onRemoveModelClicked(model) },
+                            onRemoveClicked = { onRemoveModelClicked(model) },
                             removeEnabled = !state.isLoading
                         )
 
                         is ModelUI.Downloading -> ModelDownloading(
                             model = model,
-                            onCancelClicked = { viewModel.onCancelDownload() },
+                            onCancelClicked = onCancelDownload,
                         )
 
                         is ModelUI.Error -> ModelError(model)
@@ -124,7 +156,57 @@ fun ModelsScreen() {
             }
         }
     }
+}
 
+@Composable
+private fun Loading(){
+    Scaffold(
+        topBar = {
+            OlpakaAppBar(
+                title = stringResource(Res.string.models_title),
+            )
+        }
+    ) { innerPadding ->
+        Column(modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            CircularProgressIndicator()
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Fetching Models")
+        }
+    }
+}
+
+@Composable
+private fun Error(
+    onRefreshClicked: () -> Unit
+){
+    Scaffold(
+        topBar = {
+            OlpakaAppBar(
+                title = stringResource(Res.string.models_title),
+                actions = {
+                    IconButton(
+                        onClick = onRefreshClicked
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = null,
+                        )
+                    }
+                }
+            )
+        }
+    ) {
+        EmptyScreen(
+            modifier = Modifier.fillMaxSize(),
+            title = stringResource(Res.string.error_missing_ollama_title),
+            subtitle = stringResource(Res.string.error_missing_ollama_message)
+        )
+    }
 }
 
 @Composable

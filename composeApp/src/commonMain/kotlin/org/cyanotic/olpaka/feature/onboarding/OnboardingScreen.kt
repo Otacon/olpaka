@@ -18,9 +18,7 @@ import androidx.navigation.NavHostController
 import olpaka.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.annotation.KoinExperimentalAPI
 
-@OptIn(KoinExperimentalAPI::class)
 @Composable
 fun OnboardingScreen(navController: NavHostController) {
     val viewModel = koinViewModel<OnboardingViewModel>().also { it.init() }

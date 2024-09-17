@@ -12,6 +12,7 @@ import org.cyanotic.olpaka.core.ModelDownloadState
 import org.cyanotic.olpaka.core.OlpakaViewModel
 import org.cyanotic.olpaka.repository.DownloadModelProgress
 import org.cyanotic.olpaka.repository.GetModelsResult
+import org.cyanotic.olpaka.repository.ModelDTO
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
 import kotlin.math.ln
@@ -22,7 +23,7 @@ class ModelsViewModel(
     private val modelDownloadState: ModelDownloadState
 ) : OlpakaViewModel() {
 
-    private val _state = MutableStateFlow(ModelsState())
+    private val _state = MutableStateFlow<ModelsState>(ModelsState.Loading)
     val state = _state.asStateFlow()
 
     private val _events = MutableSharedFlow<ModelsEvent>()
@@ -31,63 +32,79 @@ class ModelsViewModel(
     private var cancelDownload: Boolean = false
 
     override fun onCreate() = inBackground {
-        _state.getAndUpdate { current -> current.copy(isLoading = true) }
         refreshModels()
-        _state.getAndUpdate { current -> current.copy(isLoading = false) }
     }
 
     fun onRefreshClicked() = inBackground {
-        _state.getAndUpdate { current -> current.copy(isLoading = true) }
         refreshModels()
-        _state.getAndUpdate { current -> current.copy(isLoading = false) }
     }
 
     fun onAddModelClicked() = inBackground {
-        _state.getAndUpdate { current -> current.copy(addModelDialogState = AddModelDialogState()) }
-    }
-
-    fun onAddModelTextChanged(text: String) = viewModelScope.launch {
         _state.getAndUpdate { current ->
-            current.addModelDialogState?.let { dialogState ->
-                val alreadyDownloaded = current.models.any { it.key == text.trim() }
-                val isAddEnabled = text.isNotBlank() && !alreadyDownloaded
-                val error = if (alreadyDownloaded) {
-                    getString(Res.string.models_dialog_download_model_error_already_added)
-                } else {
-                    null
-                }
-                val newDialogState = dialogState.copy(
-                    text = text,
-                    isAddEnabled = isAddEnabled,
-                    error = error
-                )
-                current.copy(addModelDialogState = newDialogState)
-            } ?: current
+            when (current) {
+                ModelsState.Error,
+                ModelsState.Loading -> current
+
+                is ModelsState.Content -> current.copy(addModelDialogState = AddModelDialogState())
+            }
         }
     }
 
+    fun onAddModelTextChanged(text: String) = inBackground {
+        val current = _state.value
+        when (current) {
+            is ModelsState.Content -> Unit
+            ModelsState.Error,
+            ModelsState.Loading -> return@inBackground
+        }
+        val dialogState = current.addModelDialogState ?: return@inBackground
+        val alreadyDownloaded = current.models.any { it.key == text.trim() }
+        val isAddEnabled = text.isNotBlank() && !alreadyDownloaded
+        val error = if (alreadyDownloaded) {
+            getString(Res.string.models_dialog_download_model_error_already_added)
+        } else {
+            null
+        }
+        val newDialogState = dialogState.copy(
+            text = text,
+            isAddEnabled = isAddEnabled,
+            error = error
+        )
+        _state.value = current.copy(addModelDialogState = newDialogState)
+    }
+
     fun onCloseAddModelDialog() {
-        _state.getAndUpdate { current -> current.copy(addModelDialogState = null) }
+        _state.getAndUpdate { current ->
+            when (current) {
+                is ModelsState.Content -> current.copy(addModelDialogState = null)
+                ModelsState.Error,
+                ModelsState.Loading -> current
+            }
+
+        }
     }
 
     fun onAddModel(tag: String) = inBackground {
-        _state.getAndUpdate { current -> current.copy(isLoading = true, addModelDialogState = null) }
+        val currentState = when (val current = _state.value) {
+            is ModelsState.Content -> current.copy(isLoading = true, addModelDialogState = null)
+            ModelsState.Error,
+            ModelsState.Loading -> ModelsState.Content(isLoading = true, addModelDialogState = null)
+        }
         repository.downloadModel(tag)
             .onStart {
                 cancelDownload = false
-                val newModels = _state.value.models + ModelUI.Downloading(
+                val newModels = currentState.models + ModelUI.Downloading(
                     key = tag,
                     title = tag,
                     subtitle = getString(Res.string.models_state_initializing),
                     progress = null
                 )
-                _state.value = _state.value.copy(models = newModels)
+                _state.value = currentState.copy(models = newModels)
                 modelDownloadState.setDownloading()
             }
             .onCompletion {
                 viewModelScope.launch {
                     refreshModels()
-                    _state.getAndUpdate { current -> current.copy(isLoading = false) }
                     modelDownloadState.setCompleted()
                 }
             }
@@ -96,7 +113,7 @@ class ModelsViewModel(
                     this.cancel()
                     return@collect
                 }
-                val newModels = _state.value.models.map { model ->
+                val newModels = currentState.models.map { model ->
                     when (model) {
                         is ModelUI.Available,
                         is ModelUI.Error -> model
@@ -122,7 +139,7 @@ class ModelsViewModel(
                         }
                     }
                 }
-                _state.value = _state.value.copy(models = newModels)
+                _state.value = ModelsState.Content(models = newModels, isLoading = false)
             }
     }
 
@@ -131,40 +148,66 @@ class ModelsViewModel(
     }
 
     fun onRemoveModelClicked(model: ModelUI.Available) = inBackground {
-        _state.getAndUpdate { current -> current.copy(removeModelDialogState = RemoveModelDialogState(model.key)) }
+        _state.getAndUpdate { current ->
+            when (current) {
+                is ModelsState.Content -> current.copy(removeModelDialogState = RemoveModelDialogState(model.key))
+                ModelsState.Error,
+                ModelsState.Loading -> current
+            }
+        }
     }
 
     fun onRemoveModelDialogResult(remove: Boolean) = inBackground {
-        val model = _state.value.removeModelDialogState?.model
-        _state.getAndUpdate { current -> current.copy(removeModelDialogState = null) }
+        val currentState = when (val current = _state.value) {
+            is ModelsState.Content -> current.copy(removeModelDialogState = null)
+            ModelsState.Error,
+            ModelsState.Loading -> return@inBackground
+        }
+        val model = currentState.removeModelDialogState?.model
+        _state.value = currentState
         if (!remove || model == null) {
             return@inBackground
         }
-        _state.getAndUpdate { current -> current.copy(isLoading = true) }
+        _state.value = currentState.copy(isLoading = true)
         repository.removeModel(tag = model)
         refreshModels()
-        _state.getAndUpdate { current -> current.copy(isLoading = false) }
+        _state.value = currentState.copy(isLoading = false)
     }
 
     private suspend fun refreshModels() {
-        val models = when (val result = repository.getModels()) {
-            is GetModelsResult.Success -> result.models.map {
-                val subtitle = listOfNotNull(
-                    it.size.toHumanReadableByteCount(),
-                    it.details.quantization,
-                    it.details.parameters
-                ).joinToString(" • ")
-                ModelUI.Available(
-                    key = it.tag,
-                    title = "${it.tag.modelFriendlyName()} (${it.tag})",
-                    subtitle = subtitle
-                )
-            }
-
-            GetModelsResult.Failure -> emptyList()
+        val initialState = _state.value
+        _state.value = when (initialState) {
+            is ModelsState.Content -> initialState.copy(isLoading = true)
+            ModelsState.Error,
+            ModelsState.Loading -> ModelsState.Loading
         }
-        _state.getAndUpdate { current ->
-            current.copy(models = models)
+
+        when (val result = repository.getModels()) {
+            is GetModelsResult.Success -> {
+                _state.value = when(initialState){
+                    is ModelsState.Content -> initialState.copy(models = result.models.toModelUI(), isLoading = false)
+                    ModelsState.Error,
+                    ModelsState.Loading -> ModelsState.Content(result.models.toModelUI())
+                }
+            }
+            GetModelsResult.Failure -> {
+                _state.value = ModelsState.Error
+            }
+        }
+    }
+
+    private fun List<ModelDTO>.toModelUI(): List<ModelUI> {
+        return this.map {
+            val subtitle = listOfNotNull(
+                it.size.toHumanReadableByteCount(),
+                it.details.quantization,
+                it.details.parameters
+            ).joinToString(" • ")
+            ModelUI.Available(
+                key = it.tag,
+                title = "${it.tag.modelFriendlyName()} (${it.tag})",
+                subtitle = subtitle
+            )
         }
     }
 
@@ -172,12 +215,20 @@ class ModelsViewModel(
 
 sealed interface ModelsEvent
 
-data class ModelsState(
-    val models: List<ModelUI> = emptyList(),
-    val isLoading: Boolean = false,
-    val addModelDialogState: AddModelDialogState? = null,
-    val removeModelDialogState: RemoveModelDialogState? = null,
-)
+sealed interface ModelsState {
+
+    data class Content(
+        val models: List<ModelUI> = emptyList(),
+        val isLoading: Boolean = false,
+        val addModelDialogState: AddModelDialogState? = null,
+        val removeModelDialogState: RemoveModelDialogState? = null,
+    ) : ModelsState
+
+    data object Loading : ModelsState
+
+    data object Error : ModelsState
+}
+
 
 data class AddModelDialogState(
     val isAddEnabled: Boolean = false,
