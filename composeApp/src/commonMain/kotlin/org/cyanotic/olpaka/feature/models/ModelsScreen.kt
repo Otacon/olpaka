@@ -2,53 +2,69 @@ package org.cyanotic.olpaka.feature.models
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DownloadForOffline
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.mikepenz.markdown.m3.Markdown
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import olpaka.composeapp.generated.resources.*
+import org.cyanotic.olpaka.core.Routes
 import org.cyanotic.olpaka.ui.EmptyScreen
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun ModelsScreen() {
+fun ModelsScreen(navController: NavController) {
     val viewModel = koinViewModel<ModelsViewModel>().also { it.init() }
     val state by viewModel.state.collectAsState()
 
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val removeModel = backStackEntry?.savedStateHandle?.get<String>("removeModel")
+    val addModel = backStackEntry?.savedStateHandle?.get<String>("addModel")
+
     LaunchedEffect(Unit) {
-        viewModel.event.collect { }
+        viewModel.event.collect { event ->
+            when (event) {
+                is ModelsEvent.OpenRemoveModelDialog ->
+                    navController.navigate(Routes.MODELS_REMOVE_MODEL_DIALOG + event.key)
+
+
+                ModelsEvent.OpenAddModelDialog -> navController.navigate(Routes.MODELS_ADD_MODEL_DIALOG)
+            }
+        }
     }
 
-    when(val currentState = state){
+    LaunchedEffect(removeModel) {
+        removeModel?.let { viewModel.onConfirmRemoveModel(it) }
+    }
+    LaunchedEffect(addModel) {
+        addModel?.let { viewModel.onAddModel(it) }
+    }
+
+    when (val currentState = state) {
         is ModelsState.Content -> Content(
-            state =  currentState,
-            onCloseAddModelDialog = viewModel::onCloseAddModelDialog,
-            onAddModel = viewModel::onAddModel,
-            onAddModelTextChanged = viewModel::onAddModelTextChanged,
-            onRemoveModelDialogResult = viewModel::onRemoveModelDialogResult,
+            state = currentState,
             onRefreshClicked = viewModel::onRefreshClicked,
             onAddModelClicked = viewModel::onAddModelClicked,
             onRemoveModelClicked = viewModel::onRemoveModelClicked,
             onCancelDownload = viewModel::onCancelDownload
         )
+
         ModelsState.Error -> Error(
             onRefreshClicked = viewModel::onRefreshClicked
         )
+
         ModelsState.Loading -> Loading()
     }
 }
@@ -56,48 +72,11 @@ fun ModelsScreen() {
 @Composable
 private fun Content(
     state: ModelsState.Content,
-    onCloseAddModelDialog: () -> Unit,
-    onAddModel: (String) -> Unit,
-    onAddModelTextChanged: (String) -> Unit,
-    onRemoveModelDialogResult: (Boolean) -> Unit,
     onRefreshClicked: () -> Unit,
     onAddModelClicked: () -> Unit,
     onRemoveModelClicked: (model: ModelUI.Available) -> Unit,
     onCancelDownload: () -> Unit
 ) {
-    var addModelTextState by remember { mutableStateOf(TextFieldValue()) }
-    val focusRequester = remember { FocusRequester() }
-
-
-    val addModelDialogState = state.addModelDialogState
-    val removeModelDialogState = state.removeModelDialogState
-    if(addModelDialogState == null){
-        addModelTextState = TextFieldValue()
-    }
-    if (addModelDialogState != null) {
-        AddModelDialog(
-            onDismiss = onCloseAddModelDialog,
-            onConfirm = { onAddModel(addModelTextState.text) },
-            textState = addModelTextState,
-            onTextValueChange = {
-                val newText = it.text.filter { char -> !char.isWhitespace() }
-                addModelTextState = it.copy(text = newText)
-                onAddModelTextChanged(addModelTextState.text)
-            },
-            confirmEnabled = addModelDialogState.isAddEnabled,
-            error = addModelDialogState.error,
-            focusRequester = focusRequester,
-        )
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
-        }
-    } else if (removeModelDialogState != null) {
-        RemoveModelDialog(
-            modelName = removeModelDialogState.model,
-            onDismiss = { onRemoveModelDialogResult(false) },
-            onConfirm = { onRemoveModelDialogResult(true) }
-        )
-    }
     Scaffold(
         topBar = {
             OlpakaAppBar(
@@ -159,7 +138,7 @@ private fun Content(
 }
 
 @Composable
-private fun Loading(){
+private fun Loading() {
     Scaffold(
         topBar = {
             OlpakaAppBar(
@@ -167,12 +146,13 @@ private fun Loading(){
             )
         }
     ) { innerPadding ->
-        Column(modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize(),
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(16.dp))
             Text("Fetching Models")
@@ -183,7 +163,7 @@ private fun Loading(){
 @Composable
 private fun Error(
     onRefreshClicked: () -> Unit
-){
+) {
     Scaffold(
         topBar = {
             OlpakaAppBar(
@@ -207,96 +187,6 @@ private fun Error(
             subtitle = stringResource(Res.string.error_missing_ollama_message)
         )
     }
-}
-
-@Composable
-private fun AddModelDialog(
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-    textState: TextFieldValue,
-    onTextValueChange: (TextFieldValue) -> Unit,
-    confirmEnabled: Boolean,
-    focusRequester: FocusRequester,
-    error: String?,
-) {
-    AlertDialog(
-        title = {
-            Text(text = stringResource(Res.string.models_dialog_download_model_title))
-        },
-        text = {
-            Column {
-                Markdown(
-                    stringResource(Res.string.models_dialog_download_model_description),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                TextField(
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            if (confirmEnabled) {
-                                onConfirm()
-                            }
-                        }
-                    ),
-                    supportingText = {
-                        error?.let { Text(error, color = MaterialTheme.colorScheme.error) }
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    value = textState,
-                    onValueChange = onTextValueChange,
-                    label = { Text(stringResource(Res.string.models_dialog_download_model_text_hint)) }
-                )
-            }
-
-        },
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                enabled = confirmEnabled,
-                onClick = onConfirm
-            ) {
-                Text(stringResource(Res.string.models_dialog_download_model_action_positive))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.models_dialog_download_model_action_negative))
-            }
-        }
-    )
-}
-
-@Composable
-private fun RemoveModelDialog(
-    modelName: String,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    AlertDialog(
-        title = {
-            Text(text = stringResource(Res.string.models_dialog_remove_model_title))
-        },
-        text = {
-            Text(stringResource(Res.string.models_dialog_remove_model_description, modelName))
-        },
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = onConfirm
-            ) {
-                Text(stringResource(Res.string.models_dialog_remove_model_action_positive))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.models_dialog_remove_model_action_negative))
-            }
-        }
-    )
 }
 
 @Composable

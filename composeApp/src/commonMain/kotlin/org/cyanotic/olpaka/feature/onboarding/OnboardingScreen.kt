@@ -50,7 +50,6 @@ fun OnboardingScreen(navController: NavHostController) {
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Custom Content (replace with your custom layout)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

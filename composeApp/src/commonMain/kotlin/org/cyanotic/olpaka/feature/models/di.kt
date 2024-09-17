@@ -5,4 +5,5 @@ import org.koin.dsl.module
 
 val modelsModule = module {
     viewModelOf(::ModelsViewModel)
+    viewModelOf(::ModelsAddModelViewModel)
 }
