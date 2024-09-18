@@ -5,8 +5,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DownloadForOffline
+import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,7 +69,8 @@ fun ModelsScreen(navController: NavController) {
                 onRefreshClicked = viewModel::onRefreshClicked,
                 onAddModelClicked = viewModel::onAddModelClicked,
                 onRemoveModelClicked = viewModel::onRemoveModelClicked,
-                onCancelDownload = viewModel::onCancelDownload
+                onCancelDownload = viewModel::onCancelDownload,
+                onRetryDownload = viewModel::onAddModel
             )
         }
     }
@@ -81,7 +82,8 @@ private fun Content(
     onRefreshClicked: () -> Unit,
     onAddModelClicked: () -> Unit,
     onRemoveModelClicked: (model: ModelUI.Available) -> Unit,
-    onCancelDownload: () -> Unit
+    onCancelDownload: () -> Unit,
+    onRetryDownload: (String) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -134,7 +136,10 @@ private fun Content(
                             onCancelClicked = onCancelDownload,
                         )
 
-                        is ModelUI.Error -> ModelError(model)
+                        is ModelUI.Error -> ModelError(
+                            model = model,
+                            onRetryClicked = onRetryDownload,
+                        )
                     }
                     HorizontalDivider()
                 }
@@ -256,23 +261,27 @@ private fun ModelDownloading(model: ModelUI.Downloading, onCancelClicked: () -> 
 
 
 @Composable
-private fun ModelError(model: ModelUI.Error) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Icon(
-            modifier = Modifier.align(Alignment.CenterVertically),
-            imageVector = Icons.Outlined.Storage,
-            contentDescription = null
-        )
-        Column(
-            Modifier.weight(1.0f)
-                .padding(horizontal = 16.dp)
-        ) {
+private fun ModelError(
+    model: ModelUI.Error,
+    onRetryClicked: (String) -> Unit,
+) {
+    ListItem(
+        leadingContent = {
+            Icon(
+                imageVector = Icons.Outlined.Error,
+                contentDescription = null
+            )
+        },
+        headlineContent = {
             Text(model.title)
+        },
+        supportingContent = {
             Text(model.subtitle)
+        },
+        trailingContent = {
+            FilledTonalButton(onClick = { onRetryClicked(model.key) }) {
+                Text(stringResource(Res.string.models_action_retry_download))
+            }
         }
-    }
+    )
 }

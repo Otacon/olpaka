@@ -39,6 +39,7 @@
     <string name="models_error_no_models_title">This is empty...</string>
     <string name="models_error_no_models_message">Download your first model by tapping the button below.</string>
     <string name="models_action_remove_model">Remove</string>
+    <string name="models_action_retry_download">Retry</string>
     <string name="models_action_cancel_download">Cancel</string>
 
     <string name="onboarding_title">Getting started</string>

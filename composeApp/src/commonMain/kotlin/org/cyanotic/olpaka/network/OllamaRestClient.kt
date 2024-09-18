@@ -8,8 +8,8 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.flow
-import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
+import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.repository.*
 
 class OllamaRestClient(
@@ -42,16 +42,24 @@ class OllamaRestClient(
         }.streaming<DownloadModelResponseDTO>().collect(this)
     }
 
-    suspend fun removeModel(request: RemoveModelRequestDTO): Boolean {
-        val response = client.delete {
-            url(endpointProvider.generateUrl("/delete"))
-            contentType(ContentType.Application.Json)
-            setBody(request)
+    suspend fun removeModel(request: RemoveModelRequestDTO): Result<Unit> {
+        return try {
+            val response = client.delete {
+                url(endpointProvider.generateUrl("/delete"))
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+            if( response.status.isSuccess()) {
+                Result.success(Unit)
+            } else {
+                Result.failure(RuntimeException("Unable to remove model ${request.model}"))
+            }
+        } catch (e: Throwable) {
+            Result.failure(e)
         }
-        return response.status.isSuccess()
     }
 
-    suspend fun listModels(): GetModelsResult {
+    suspend fun listModels(): Result<List<Model>> {
         return try {
             Napier.i(message = "Retrieving tags...")
             val response = client.get {
@@ -61,23 +69,14 @@ class OllamaRestClient(
             Napier.i(message = "Received response with status ${response.status}...")
             if (response.status.isSuccess()) {
                 val models = response.body<GetModelResponseDTO>().models ?: emptyList()
-                GetModelsResult.Success(models)
+                Result.success(models.map{it.toModel()})
             } else {
                 Napier.i(message = "Network request failed with code ${response.status}")
-                GetModelsResult.Failure
+                Result.failure(RuntimeException("Http response: 404"))
             }
-        } catch (e: IOException) {
-            Napier.i(message = "IOException - ${e::class} - Message ${e.message} - Cause ${e.cause}")
-            GetModelsResult.Failure
-        } catch (e: Exception) {
-            Napier.i(message = "Exception - ${e::class} - Message ${e.message} - Cause ${e.cause}")
-            GetModelsResult.Failure
-        } catch (e: Error) {
-            Napier.i(message = "Error - ${e::class} - Message ${e.message} - Cause ${e.cause}")
-            GetModelsResult.Failure
         } catch (e: Throwable) {
             Napier.i(message = "Throwable - ${e::class} - Message ${e.message} - Cause ${e.cause}")
-            GetModelsResult.Failure
+            Result.failure(e)
         }
     }
 
@@ -90,6 +89,19 @@ class OllamaRestClient(
                 }
             }
         }
+    }
+
+    private fun ModelDTO.toModel() = Model(
+        id = this.model,
+        name = this.model.modelFriendlyName(),
+        size = this.size,
+        quantization = this.details.quantization,
+        parameters = this.details.parameters,
+    )
+
+
+    private fun String.modelFriendlyName(): String {
+        return this.split(":").first()
     }
 
 }

@@ -10,9 +10,8 @@ import olpaka.composeapp.generated.resources.models_state_download
 import olpaka.composeapp.generated.resources.models_state_initializing
 import org.cyanotic.olpaka.core.ModelDownloadState
 import org.cyanotic.olpaka.core.OlpakaViewModel
+import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.repository.DownloadModelProgress
-import org.cyanotic.olpaka.repository.GetModelsResult
-import org.cyanotic.olpaka.repository.ModelDTO
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
 import kotlin.math.ln
@@ -50,12 +49,28 @@ class ModelsViewModel(
             .onStart {
                 Napier.i("Started downloading...")
                 cancelDownload = false
-                val newModels = _state.value.models + ModelUI.Downloading(
+
+                val downloadingModel = ModelUI.Downloading(
                     key = tag,
                     title = tag,
                     subtitle = getString(Res.string.models_state_initializing),
                     progress = null
                 )
+
+                var modelFound = false
+                var newModels = _state.value.models.map {
+                    if (it.key == tag) {
+                        modelFound = true
+                        downloadingModel
+                    } else {
+                        it
+                    }
+                }
+                newModels = if (!modelFound) {
+                    newModels + downloadingModel
+                } else {
+                    newModels
+                }
                 _state.value = _state.value.copy(models = newModels)
                 modelDownloadState.setDownloading()
             }
@@ -65,6 +80,20 @@ class ModelsViewModel(
                     refreshModels()
                     modelDownloadState.setCompleted()
                 }
+            }
+            .catch {
+                val newModels = _state.value.models.map { model ->
+                    when (model) {
+                        is ModelUI.Available,
+                        is ModelUI.Error -> model
+
+                        is ModelUI.Downloading -> {
+                            // TODO fix error state
+                            ModelUI.Error(model.key, model.title, "Error")
+                        }
+                    }
+                }
+                _state.value = _state.value.copy(models = newModels, isLoading = true)
             }
             .collect { chunk ->
                 Napier.i("New chunk $chunk")
@@ -119,31 +148,27 @@ class ModelsViewModel(
 
     private suspend fun refreshModels() {
         _state.value = _state.value.copy(isLoading = true)
-
-        when (val result = repository.getModels()) {
-            is GetModelsResult.Success -> {
-                val newState = _state.value.copy(models = result.models.toModelUI(), isLoading = false, error = false)
+        repository.getModels()
+            .onSuccess {
+                val newState = _state.value.copy(models = it.toModelUI(), isLoading = false, error = false)
                 Napier.d(tag = "ModelsViewModel", message = "Refresh -> $newState")
                 _state.value = newState
             }
-
-            GetModelsResult.Failure -> {
+            .onFailure {
                 _state.value = _state.value.copy(isLoading = false, error = true)
             }
-        }
-
     }
 
-    private fun List<ModelDTO>.toModelUI(): List<ModelUI> {
+    private fun List<Model>.toModelUI(): List<ModelUI> {
         return this.map {
             val subtitle = listOfNotNull(
                 it.size.toHumanReadableByteCount(),
-                it.details.quantization,
-                it.details.parameters
+                it.quantization,
+                it.parameters
             ).joinToString(" • ")
             ModelUI.Available(
-                key = it.tag,
-                title = "${it.tag.modelFriendlyName()} (${it.tag})",
+                key = it.id,
+                title = "${it.name} (${it.id})",
                 subtitle = subtitle
             )
         }
@@ -195,8 +220,4 @@ private fun Long.toHumanReadableByteCount(): String {
     val result = this / unit.toDouble().pow(exp)
     val roundedResult = (result * 10).toInt() / 10.0
     return "$roundedResult ${pre}B"
-}
-
-private fun String.modelFriendlyName(): String {
-    return this.split(":").first()
 }

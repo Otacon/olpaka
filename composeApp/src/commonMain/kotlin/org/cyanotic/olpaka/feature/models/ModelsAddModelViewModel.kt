@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.models_dialog_download_model_error_already_added
 import org.cyanotic.olpaka.core.OlpakaViewModel
-import org.cyanotic.olpaka.repository.GetModelsResult
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
 
@@ -24,12 +23,9 @@ class ModelsAddModelViewModel(
     private var models: List<String> = emptyList()
 
     override fun onCreate() = inBackground {
-        when (val result = repository.getModels()) {
-            GetModelsResult.Failure -> Unit
-            is GetModelsResult.Success -> {
-                models = result.models.map { it.tag }
-            }
-        }
+        models = repository.getModels()
+            .getOrDefault(emptyList())
+            .map { it.id }
     }
 
     fun onModelNameChanged(text: String) = inBackground {

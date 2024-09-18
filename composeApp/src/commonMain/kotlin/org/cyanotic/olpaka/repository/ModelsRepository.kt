@@ -4,17 +4,18 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.network.OllamaRestClient
 
 class ModelsRepository(
     private val restClient: OllamaRestClient,
 ) {
 
-    suspend fun getModels(): GetModelsResult {
+    suspend fun getModels(): Result<List<Model>> {
         return restClient.listModels()
     }
 
-    suspend fun removeModel(tag: String): Boolean {
+    suspend fun removeModel(tag: String): Result<Unit> {
         return restClient.removeModel(RemoveModelRequestDTO(tag))
     }
 
@@ -35,11 +36,6 @@ class ModelsRepository(
 
 }
 
-sealed interface GetModelsResult {
-    data class Success(val models: List<ModelDTO>) : GetModelsResult
-    data object Failure : GetModelsResult
-}
-
 @Serializable
 data class GetModelResponseDTO(
     @SerialName("models") val models: List<ModelDTO>? = null,
@@ -48,7 +44,7 @@ data class GetModelResponseDTO(
 @Serializable
 data class ModelDTO(
     @SerialName("name") val name: String,
-    @SerialName("model") val tag: String,
+    @SerialName("model") val model: String,
     @SerialName("size") val size: Long,
     @SerialName("details") val details: ModelDetailsDTO,
 )

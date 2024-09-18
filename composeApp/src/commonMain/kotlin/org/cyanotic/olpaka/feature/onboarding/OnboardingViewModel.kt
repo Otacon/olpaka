@@ -8,7 +8,6 @@ import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.onboarding_cta_finish
 import olpaka.composeapp.generated.resources.onboarding_cta_next
 import org.cyanotic.olpaka.core.OlpakaViewModel
-import org.cyanotic.olpaka.repository.GetModelsResult
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
 
@@ -47,9 +46,10 @@ class OnboardingViewModel(
     }
 
     fun onCheckConnectionClicked() = inBackground {
-        val connectionState = when (repository.getModels()) {
-            GetModelsResult.Failure -> ConnectionCheckState.FAILURE
-            is GetModelsResult.Success -> ConnectionCheckState.SUCCESS
+        val connectionState = if(repository.getModels().isSuccess) {
+            ConnectionCheckState.SUCCESS
+        } else {
+            ConnectionCheckState.FAILURE
         }
         _state.value = _state.value.copy(connectionState = connectionState)
     }
