@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import olpaka.composeapp.generated.resources.*
+import org.cyanotic.olpaka.core.Results.RESULT_REMOVE_MODEL_KEY
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -53,7 +54,7 @@ fun ModelsRemoveModelScreen(
                 Button(
                     onClick = {
                         val previousBackStackEntry = navController.previousBackStackEntry
-                        previousBackStackEntry?.savedStateHandle?.set("removeModel", modelName)
+                        previousBackStackEntry?.savedStateHandle?.set(RESULT_REMOVE_MODEL_KEY, modelName)
                         navController.popBackStack()
                     }
                 ) {

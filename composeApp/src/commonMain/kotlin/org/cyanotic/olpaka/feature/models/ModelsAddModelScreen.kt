@@ -18,6 +18,7 @@ import com.mikepenz.markdown.m3.Markdown
 import olpaka.composeapp.generated.resources.*
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.models_dialog_download_model_title
+import org.cyanotic.olpaka.core.Results.RESULT_ADD_MODEL_KEY
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -35,7 +36,7 @@ fun ModelsAddModelScreen(navController: NavController) {
                 AddModelEvent.Cancel -> navController.popBackStack()
                 is AddModelEvent.Confirm -> {
                     val previousBackStackEntry = navController.previousBackStackEntry
-                    previousBackStackEntry?.savedStateHandle?.set("addModel", event.model)
+                    previousBackStackEntry?.savedStateHandle?.set(RESULT_ADD_MODEL_KEY, event.model)
                     navController.popBackStack()
                 }
             }

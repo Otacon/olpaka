@@ -23,7 +23,7 @@ class ModelsViewModel(
     private val modelDownloadState: ModelDownloadState
 ) : OlpakaViewModel() {
 
-    private val _state = MutableStateFlow<ModelsState>(ModelsState.Loading)
+    private val _state = MutableStateFlow(ModelsState())
     val state = _state.asStateFlow()
 
     private val _events = MutableSharedFlow<ModelsEvent>()
@@ -45,23 +45,18 @@ class ModelsViewModel(
 
     fun onAddModel(tag: String) = inBackground {
         Napier.i("Downloading model $tag")
-        var currentState = when (val current = _state.value) {
-            is ModelsState.Content -> current.copy(isLoading = true)
-            ModelsState.Error,
-            ModelsState.Loading -> ModelsState.Content(isLoading = true)
-        }
+        _state.value = _state.value.copy(isLoading = true)
         repository.downloadModel(tag)
             .onStart {
                 Napier.i("Started downloading...")
                 cancelDownload = false
-                val newModels = currentState.models + ModelUI.Downloading(
+                val newModels = _state.value.models + ModelUI.Downloading(
                     key = tag,
                     title = tag,
                     subtitle = getString(Res.string.models_state_initializing),
                     progress = null
                 )
-                currentState = currentState.copy(models = newModels)
-                _state.value = currentState
+                _state.value = _state.value.copy(models = newModels)
                 modelDownloadState.setDownloading()
             }
             .onCompletion {
@@ -78,7 +73,7 @@ class ModelsViewModel(
                     this.cancel()
                     return@collect
                 }
-                val newModels = currentState.models.map { model ->
+                val newModels = _state.value.models.map { model ->
                     when (model) {
                         is ModelUI.Available,
                         is ModelUI.Error -> model
@@ -104,8 +99,7 @@ class ModelsViewModel(
                         }
                     }
                 }
-                currentState = currentState.copy(models = newModels, isLoading = true)
-                _state.value = currentState
+                _state.value = _state.value.copy(models = newModels, isLoading = true)
             }
     }
 
@@ -118,30 +112,26 @@ class ModelsViewModel(
     }
 
     fun onConfirmRemoveModel(modelKey: String) = inBackground {
+        _state.value = _state.value.copy(isLoading = true)
         repository.removeModel(tag = modelKey)
         refreshModels()
     }
 
     private suspend fun refreshModels() {
-        val initialState = _state.value
-        _state.value = when (initialState) {
-            is ModelsState.Content -> initialState.copy(isLoading = true)
-            ModelsState.Error,
-            ModelsState.Loading -> ModelsState.Loading
-        }
+        _state.value = _state.value.copy(isLoading = true)
 
         when (val result = repository.getModels()) {
             is GetModelsResult.Success -> {
-                _state.value = when(initialState){
-                    is ModelsState.Content -> initialState.copy(models = result.models.toModelUI(), isLoading = false)
-                    ModelsState.Error,
-                    ModelsState.Loading -> ModelsState.Content(result.models.toModelUI())
-                }
+                val newState = _state.value.copy(models = result.models.toModelUI(), isLoading = false, error = false)
+                Napier.d(tag = "ModelsViewModel", message = "Refresh -> $newState")
+                _state.value = newState
             }
+
             GetModelsResult.Failure -> {
-                _state.value = ModelsState.Error
+                _state.value = _state.value.copy(isLoading = false, error = true)
             }
         }
+
     }
 
     private fun List<ModelDTO>.toModelUI(): List<ModelUI> {
@@ -162,21 +152,15 @@ class ModelsViewModel(
 }
 
 sealed interface ModelsEvent {
-    data class OpenRemoveModelDialog(val key: String): ModelsEvent
+    data class OpenRemoveModelDialog(val key: String) : ModelsEvent
     data object OpenAddModelDialog : ModelsEvent
 }
 
-sealed interface ModelsState {
-
-    data class Content(
-        val models: List<ModelUI> = emptyList(),
-        val isLoading: Boolean = false,
-    ) : ModelsState
-
-    data object Loading : ModelsState
-
-    data object Error : ModelsState
-}
+data class ModelsState(
+    val models: List<ModelUI> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: Boolean = false,
+)
 
 sealed interface ModelUI {
 

@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import olpaka.composeapp.generated.resources.*
+import org.cyanotic.olpaka.core.Results.RESULT_ADD_MODEL_KEY
+import org.cyanotic.olpaka.core.Results.RESULT_REMOVE_MODEL_KEY
 import org.cyanotic.olpaka.core.Routes
 import org.cyanotic.olpaka.ui.EmptyScreen
 import org.cyanotic.olpaka.ui.OlpakaAppBar
@@ -30,8 +32,8 @@ fun ModelsScreen(navController: NavController) {
     val state by viewModel.state.collectAsState()
 
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val removeModel = backStackEntry?.savedStateHandle?.get<String>("removeModel")
-    val addModel = backStackEntry?.savedStateHandle?.get<String>("addModel")
+    val removeModel = backStackEntry?.savedStateHandle?.get<String>(RESULT_REMOVE_MODEL_KEY)
+    val addModel = backStackEntry?.savedStateHandle?.get<String>(RESULT_ADD_MODEL_KEY)
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
@@ -46,32 +48,36 @@ fun ModelsScreen(navController: NavController) {
     }
 
     LaunchedEffect(removeModel) {
+        backStackEntry?.savedStateHandle?.set("removeModel", null)
         removeModel?.let { viewModel.onConfirmRemoveModel(it) }
     }
     LaunchedEffect(addModel) {
+        backStackEntry?.savedStateHandle?.set("addModel", null)
         addModel?.let { viewModel.onAddModel(it) }
     }
+    val currentState = state
+    when {
+        currentState.isLoading && currentState.models.isEmpty() -> Loading()
 
-    when (val currentState = state) {
-        is ModelsState.Content -> Content(
-            state = currentState,
-            onRefreshClicked = viewModel::onRefreshClicked,
-            onAddModelClicked = viewModel::onAddModelClicked,
-            onRemoveModelClicked = viewModel::onRemoveModelClicked,
-            onCancelDownload = viewModel::onCancelDownload
-        )
-
-        ModelsState.Error -> Error(
+        currentState.error && currentState.models.isEmpty() -> Error(
             onRefreshClicked = viewModel::onRefreshClicked
         )
 
-        ModelsState.Loading -> Loading()
+        else -> {
+            Content(
+                state = currentState,
+                onRefreshClicked = viewModel::onRefreshClicked,
+                onAddModelClicked = viewModel::onAddModelClicked,
+                onRemoveModelClicked = viewModel::onRemoveModelClicked,
+                onCancelDownload = viewModel::onCancelDownload
+            )
+        }
     }
 }
 
 @Composable
 private fun Content(
-    state: ModelsState.Content,
+    state: ModelsState,
     onRefreshClicked: () -> Unit,
     onAddModelClicked: () -> Unit,
     onRemoveModelClicked: (model: ModelUI.Available) -> Unit,

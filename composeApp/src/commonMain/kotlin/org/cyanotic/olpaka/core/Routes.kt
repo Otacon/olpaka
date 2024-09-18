@@ -16,13 +16,18 @@ import org.cyanotic.olpaka.feature.onboarding.OnboardingScreen
 import org.cyanotic.olpaka.feature.settings.SettingsScreen
 
 object Routes {
-    const val ABOUT = "about"
-    const val CHAT = "chat"
-    const val MODELS = "models"
+    const val ABOUT = "about/"
+    const val CHAT = "chat/"
+    const val MODELS = "models/"
     const val MODELS_REMOVE_MODEL_DIALOG = "models/remove_model_dialog/"
     const val MODELS_ADD_MODEL_DIALOG = "models/add_model_dialog/"
-    const val SETTINGS = "settings"
-    const val ONBOARDING = "onboarding"
+    const val SETTINGS = "settings/"
+    const val ONBOARDING = "onboarding/"
+}
+
+object Results{
+    const val RESULT_REMOVE_MODEL_KEY = "removeModel"
+    const val RESULT_ADD_MODEL_KEY = "addModel"
 }
 
 @Composable
