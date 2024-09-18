@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,8 +34,12 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun SettingsScreen(navHostController: NavHostController) {
-    val viewModel = koinViewModel<SettingsViewModel>().also { it.init() }
+    val viewModel = koinViewModel<SettingsViewModel>()
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.onCreate()
+    }
 
     SettingsScreenContent(
         state = state,
@@ -108,7 +113,7 @@ private fun SettingsScreenContent(
                 }
             }
             Spacer(Modifier.weight(1.0f))
-            if(BuildKonfig.allowClearPreferences){
+            if (BuildKonfig.allowClearPreferences) {
                 SettingLink(
                     title = stringResource(Res.string.settings_clear_preferences_title),
                     subtitle = stringResource(Res.string.settings_clear_preferences_subtitle),

@@ -1,12 +1,13 @@
 package org.cyanotic.olpaka.feature.main
 
+import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.*
 import org.cyanotic.olpaka.core.*
 
 class MainViewModel(
     private val preferences: Preferences,
     private val modelDownloadState: ModelDownloadState,
-) : OlpakaViewModel() {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(MainState())
     val state = _state.asStateFlow()
@@ -14,7 +15,7 @@ class MainViewModel(
     private val _events = MutableSharedFlow<MainEvent>()
     val event = _events.asSharedFlow()
 
-    override fun onCreate() = inBackground {
+    fun onCreate() = inBackground {
         if (!preferences.hasSeenOnboarding) {
             _events.emit(MainEvent.OpenOnboarding)
             preferences.hasSeenOnboarding = true

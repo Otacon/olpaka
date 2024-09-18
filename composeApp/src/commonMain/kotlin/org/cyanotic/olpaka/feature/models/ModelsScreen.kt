@@ -28,7 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ModelsScreen(navController: NavController) {
-    val viewModel = koinViewModel<ModelsViewModel>().also { it.init() }
+    val viewModel = koinViewModel<ModelsViewModel>()
     val state by viewModel.state.collectAsState()
 
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -36,6 +36,7 @@ fun ModelsScreen(navController: NavController) {
     val addModel = backStackEntry?.savedStateHandle?.get<String>(RESULT_ADD_MODEL_KEY)
 
     LaunchedEffect(Unit) {
+        viewModel.onCreate()
         viewModel.event.collect { event ->
             when (event) {
                 is ModelsEvent.OpenRemoveModelDialog ->

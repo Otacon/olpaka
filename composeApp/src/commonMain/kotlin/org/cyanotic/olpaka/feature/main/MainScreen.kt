@@ -30,13 +30,14 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun MainScreen() {
-    val viewModel = koinViewModel<MainViewModel>().also { it.init() }
+    val viewModel = koinViewModel<MainViewModel>()
     val navController = rememberNavController()
     val state by viewModel.state.collectAsState()
     val chatSelected = state.selectedTabIndex == 0
     val modelsSelected = state.selectedTabIndex == 1
     val settingsSelected = state.selectedTabIndex == 2
     LaunchedEffect(Unit) {
+        viewModel.onCreate()
         viewModel.event.collect { handleEvent(it, navController) }
     }
     Row(

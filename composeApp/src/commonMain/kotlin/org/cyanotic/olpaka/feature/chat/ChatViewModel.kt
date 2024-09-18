@@ -1,7 +1,8 @@
 package org.cyanotic.olpaka.feature.chat
 
+import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.*
-import org.cyanotic.olpaka.core.OlpakaViewModel
+import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.repository.ChatMessage
 import org.cyanotic.olpaka.repository.ChatRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
@@ -9,7 +10,7 @@ import org.cyanotic.olpaka.repository.ModelsRepository
 class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val modelsRepository: ModelsRepository,
-) : OlpakaViewModel() {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatState())
     val state = _state.asStateFlow()
@@ -17,7 +18,7 @@ class ChatViewModel(
     private val _events = MutableSharedFlow<ChatEvent>()
     val event = _events.asSharedFlow()
 
-    override fun onCreate() = inBackground {
+    fun onCreate() = inBackground {
         _state.value = _state.value.copy(isLoading = true)
         val models = modelsRepository.getModels()
             .map { result -> result.map { ChatModelUI(it.id, it.name) } }
@@ -51,7 +52,10 @@ class ChatViewModel(
                 _state.value = _state.value.copy(isLoading = false)
             }
             .collect { chunk ->
-                assistantMessage = assistantMessage.copy(text = assistantMessage.text + chunk.message.content)
+                assistantMessage = assistantMessage.copy(
+                    text = assistantMessage.text + chunk.message.content,
+                    isGenerating = chunk.done?.not() ?: false
+                )
                 val newMessages = _state.value.messages.subList(0, _state.value.messages.size - 1) + assistantMessage
                 _state.value = _state.value.copy(messages = newMessages)
             }

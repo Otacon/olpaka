@@ -9,16 +9,8 @@ import io.github.aakira.napier.Napier
 import io.ktor.http.*
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.ThemeState
-import org.cyanotic.olpaka.core.coreModule
-import org.cyanotic.olpaka.feature.chat.chatModule
 import org.cyanotic.olpaka.feature.main.MainScreen
-import org.cyanotic.olpaka.feature.main.mainModule
-import org.cyanotic.olpaka.feature.models.modelsModule
-import org.cyanotic.olpaka.feature.onboarding.onboardingModule
-import org.cyanotic.olpaka.feature.settings.settingsModule
 import org.cyanotic.olpaka.network.EndpointProvider
-import org.cyanotic.olpaka.network.networkModule
-import org.cyanotic.olpaka.repository.repositoryModule
 import org.cyanotic.olpaka.ui.theme.AppTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.KoinApplication
@@ -44,21 +36,7 @@ fun App() {
         Napier.isEnable(it, null)
     }
 
-    KoinApplication(
-        {
-            modules(
-                coreModule,
-                networkModule,
-                repositoryModule,
-                mainModule,
-                onboardingModule,
-                chatModule,
-                modelsModule,
-                settingsModule,
-            )
-        }
-    ) {
-
+    KoinApplication({ modules(koinModules) }) {
         val koin = getKoin()
         val themeState = koin.get<ThemeState>()
         val preferences = koin.get<Preferences>()

@@ -21,7 +21,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun OnboardingScreen(navController: NavHostController) {
-    val viewModel = koinViewModel<OnboardingViewModel>().also { it.init() }
+    val viewModel = koinViewModel<OnboardingViewModel>()
     val state by viewModel.state.collectAsState()
     val uriHandler = LocalUriHandler.current
     LaunchedEffect(Unit) {

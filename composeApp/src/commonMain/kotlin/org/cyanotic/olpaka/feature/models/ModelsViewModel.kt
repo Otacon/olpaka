@@ -1,5 +1,6 @@
 package org.cyanotic.olpaka.feature.models
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.cancel
@@ -9,18 +10,17 @@ import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.models_state_download
 import olpaka.composeapp.generated.resources.models_state_initializing
 import org.cyanotic.olpaka.core.ModelDownloadState
-import org.cyanotic.olpaka.core.OlpakaViewModel
 import org.cyanotic.olpaka.core.domain.Model
+import org.cyanotic.olpaka.core.inBackground
+import org.cyanotic.olpaka.core.toHumanReadableByteCount
 import org.cyanotic.olpaka.repository.DownloadModelProgress
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
-import kotlin.math.ln
-import kotlin.math.pow
 
 class ModelsViewModel(
     private val repository: ModelsRepository,
     private val modelDownloadState: ModelDownloadState
-) : OlpakaViewModel() {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ModelsState())
     val state = _state.asStateFlow()
@@ -30,7 +30,7 @@ class ModelsViewModel(
 
     private var cancelDownload: Boolean = false
 
-    override fun onCreate() = inBackground {
+    fun onCreate() = inBackground {
         refreshModels()
     }
 
@@ -211,13 +211,3 @@ sealed interface ModelUI {
     ) : ModelUI
 }
 
-private fun Long.toHumanReadableByteCount(): String {
-    val unit = 1000
-    if (this < unit) return "$this B"
-    val exp = (ln(this.toDouble()) / ln(unit.toDouble())).toInt()
-    val prefixes = "kMGTPE"
-    val pre = prefixes[exp - 1]
-    val result = this / unit.toDouble().pow(exp)
-    val roundedResult = (result * 10).toInt() / 10.0
-    return "$roundedResult ${pre}B"
-}

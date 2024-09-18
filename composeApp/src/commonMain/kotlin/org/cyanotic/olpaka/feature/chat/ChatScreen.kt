@@ -27,7 +27,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ChatScreen() {
-    val viewModel = koinViewModel<ChatViewModel>().also { it.init() }
+    val viewModel = koinViewModel<ChatViewModel>()
     val state by viewModel.state.collectAsState()
     var textState by remember { mutableStateOf(TextFieldValue()) }
     val chatListState = rememberLazyListState()
@@ -50,7 +50,13 @@ fun ChatScreen() {
                 .padding(padding)
                 .fillMaxWidth(),
         ) {
-            if (state.messages.isEmpty()) {
+            if (state.models.isEmpty()) {
+                EmptyScreen(
+                    modifier = Modifier.fillMaxWidth().weight(1.0f),
+                    title = stringResource(Res.string.chat_missing_model_error_title),
+                    subtitle = stringResource(Res.string.chat_missing_model_error_message)
+                )
+            } else if (state.messages.isEmpty()) {
                 EmptyScreen(
                     modifier = Modifier.fillMaxWidth().weight(1.0f),
                     title = stringResource(Res.string.chat_empty_screen_title),
@@ -64,39 +70,55 @@ fun ChatScreen() {
                 )
             }
 
-            Row(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-            ) {
-                MessageInputBar(
+            if (state.models.isNotEmpty()) {
+                Row(
                     modifier = Modifier
-                        .weight(1.0f)
-                        .onPreviewKeyEvent { e ->
-                        if (e.type == KeyEventType.KeyDown && (e.key == Key.Enter || e.key == Key.NumPadEnter)) {
-                            if (e.isShiftPressed) {
-                                textState = textState.addNewLine()
-                            } else {
-                                viewModel.onSubmit(textState.text)
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .weight(1.0f)
+                            .onPreviewKeyEvent { e ->
+                                if (e.type == KeyEventType.KeyDown && (e.key == Key.Enter || e.key == Key.NumPadEnter)) {
+                                    if (e.isShiftPressed) {
+                                        textState = textState.addNewLine()
+                                    } else {
+                                        viewModel.onSubmit(textState.text)
+                                    }
+                                    true
+                                } else {
+                                    false
+                                }
+                            },
+                        value = textState,
+                        onValueChange = { textState = it },
+                        enabled = state.isLoading.not(),
+                        minLines = 1,
+                        maxLines = 5,
+                        placeholder = { Text(stringResource(Res.string.chat_text_input_hint)) },
+                        trailingIcon = {
+                            IconButton(
+                                enabled = state.isLoading.not() && textState.text.isNotBlank(),
+                                onClick = { viewModel.onSubmit(textState.text) }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Outlined.Send,
+                                    contentDescription = null
+                                )
                             }
-                            true
-                        } else {
-                            false
-                        }
-                    },
-                    value = textState,
-                    onValueChange = { textState = it },
-                    enabled = state.isLoading.not(),
-                    onSubmit = viewModel::onSubmit,
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                DropDown(
-                    modifier = Modifier.width(200.dp),
-                    options = state.models,
-                    selectedModel = state.selectedModel,
-                    enabled = state.isLoading.not(),
-                    onOptionSelected = viewModel::onModelChanged,
-                )
+                        },
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    DropDown(
+                        modifier = Modifier.width(200.dp),
+                        options = state.models,
+                        selectedModel = state.selectedModel,
+                        enabled = state.isLoading.not(),
+                        onOptionSelected = viewModel::onModelChanged,
+                    )
+                }
+
             }
         }
     }
@@ -130,36 +152,6 @@ private fun Content(
             }
         }
     }
-}
-
-@Composable
-private fun MessageInputBar(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    onSubmit: (String) -> Unit,
-) {
-    OutlinedTextField(
-        modifier = modifier,
-        value = value,
-        onValueChange = onValueChange,
-        enabled = enabled,
-        minLines = 1,
-        maxLines = 5,
-        placeholder = { Text(stringResource(Res.string.chat_text_input_hint)) },
-        trailingIcon = {
-            IconButton(
-                enabled = enabled,
-                onClick = { onSubmit(value.text) }
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.Send,
-                    contentDescription = null
-                )
-            }
-        },
-    )
 }
 
 @Composable
@@ -217,7 +209,10 @@ private fun DropDown(
 }
 
 @Composable
-private fun OwnMessage(modifier: Modifier = Modifier, message: ChatMessageUI.OwnMessage) {
+private fun OwnMessage(
+    modifier: Modifier = Modifier,
+    message: ChatMessageUI.OwnMessage,
+) {
     Card(
         modifier = modifier.padding(16.dp)
     ) {
@@ -232,7 +227,10 @@ private fun OwnMessage(modifier: Modifier = Modifier, message: ChatMessageUI.Own
 }
 
 @Composable
-private fun AssistantMessage(modifier: Modifier = Modifier, message: ChatMessageUI.AssistantMessage) {
+private fun AssistantMessage(
+    modifier: Modifier = Modifier,
+    message: ChatMessageUI.AssistantMessage,
+) {
     OutlinedCard(
         modifier = modifier
             .padding(16.dp)
@@ -240,7 +238,21 @@ private fun AssistantMessage(modifier: Modifier = Modifier, message: ChatMessage
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(stringResource(Res.string.chat_assistant_name), style = MaterialTheme.typography.headlineSmall)
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(Res.string.chat_assistant_name),
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                if (message.isGenerating) {
+                    Spacer(Modifier.width(8.dp))
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                }
+            }
             Spacer(Modifier.height(8.dp))
             SelectionContainer { Markdown(message.text) }
         }

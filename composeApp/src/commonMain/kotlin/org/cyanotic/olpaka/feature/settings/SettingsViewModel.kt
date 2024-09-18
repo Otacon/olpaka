@@ -1,5 +1,6 @@
 package org.cyanotic.olpaka.feature.settings
 
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,9 +9,9 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.settings_connection_url_error
-import org.cyanotic.olpaka.core.OlpakaViewModel
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.ThemeState
+import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.network.EndpointProvider
 import org.cyanotic.olpaka.ui.theme.OlpakaColor
 import org.cyanotic.olpaka.ui.theme.OlpakaTheme
@@ -20,12 +21,12 @@ class SettingsViewModel(
     private val themeState: ThemeState,
     private val preferences: Preferences,
     private val endpointProvider: EndpointProvider,
-) : OlpakaViewModel() {
+) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
     val state = _state.asStateFlow()
 
-    override fun onCreate() {
+    fun onCreate() {
         _state.getAndUpdate { current ->
             current.copy(
                 selectedColor = preferences.themeColor,
