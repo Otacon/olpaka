@@ -2,6 +2,9 @@ package org.cyanotic.olpaka.feature.chat
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import org.cyanotic.olpaka.core.DownloadState.*
+import org.cyanotic.olpaka.core.ModelDownloadState
 import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.repository.ChatMessage
 import org.cyanotic.olpaka.repository.ChatRepository
@@ -10,6 +13,7 @@ import org.cyanotic.olpaka.repository.ModelsRepository
 class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val modelsRepository: ModelsRepository,
+    private val modelDownloadState: ModelDownloadState,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatState())
@@ -19,9 +23,22 @@ class ChatViewModel(
     val event = _events.asSharedFlow()
 
     fun onCreate() = inBackground {
+        refreshModels()
+        launch {
+            modelDownloadState.currentDownloadState.collect {
+                when (it) {
+                    DOWNLOADING -> Unit
+                    COMPLETED,
+                    INACTIVE -> refreshModels()
+                }
+            }
+        }
+    }
+
+    private suspend fun refreshModels() {
         _state.value = _state.value.copy(isLoading = true)
         val models = modelsRepository.getModels()
-            .map { result -> result.map { ChatModelUI(it.id, it.name) } }
+            .map { result -> result.map { ChatModelUI(it.id, it.id) } }
             .getOrDefault(emptyList())
 
         _state.value = _state.value.copy(

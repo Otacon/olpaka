@@ -24,13 +24,16 @@ import org.cyanotic.olpaka.ui.EmptyScreen
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 
+@OptIn(KoinExperimentalAPI::class)
 @Composable
 fun ChatScreen() {
     val viewModel = koinViewModel<ChatViewModel>()
     val state by viewModel.state.collectAsState()
     var textState by remember { mutableStateOf(TextFieldValue()) }
     val chatListState = rememberLazyListState()
+
     LaunchedEffect(Unit) {
         viewModel.onCreate()
         viewModel.event.collect { event ->
@@ -39,9 +42,11 @@ fun ChatScreen() {
             }
         }
     }
+
     LaunchedEffect(state.messages) {
         chatListState.animateScrollToItem(chatListState.layoutInfo.totalItemsCount)
     }
+
     Scaffold(
         topBar = { OlpakaAppBar(stringResource(Res.string.app_name)) },
     ) { padding ->
@@ -50,24 +55,40 @@ fun ChatScreen() {
                 .padding(padding)
                 .fillMaxWidth(),
         ) {
-            if (state.models.isEmpty()) {
-                EmptyScreen(
-                    modifier = Modifier.fillMaxWidth().weight(1.0f),
-                    title = stringResource(Res.string.chat_missing_model_error_title),
-                    subtitle = stringResource(Res.string.chat_missing_model_error_message)
-                )
-            } else if (state.messages.isEmpty()) {
-                EmptyScreen(
-                    modifier = Modifier.fillMaxWidth().weight(1.0f),
-                    title = stringResource(Res.string.chat_empty_screen_title),
-                    subtitle = stringResource(Res.string.chat_empty_screen_message)
-                )
-            } else {
-                Content(
-                    modifier = Modifier.fillMaxWidth().weight(1.0f),
-                    chatListState = chatListState,
-                    messages = state.messages
-                )
+            when {
+                (state.models.isEmpty() || state.messages.isEmpty()) && state.isLoading -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Loading...")
+                    }
+                }
+                state.models.isEmpty() -> {
+                    EmptyScreen(
+                        modifier = Modifier.fillMaxWidth().weight(1.0f),
+                        title = stringResource(Res.string.chat_missing_model_error_title),
+                        subtitle = stringResource(Res.string.chat_missing_model_error_message)
+                    )
+                }
+                state.messages.isEmpty() -> {
+                    EmptyScreen(
+                        modifier = Modifier.fillMaxWidth().weight(1.0f),
+                        title = stringResource(Res.string.chat_empty_screen_title),
+                        subtitle = stringResource(Res.string.chat_empty_screen_message)
+                    )
+                }
+                else -> {
+                    Content(
+                        modifier = Modifier.fillMaxWidth().weight(1.0f),
+                        chatListState = chatListState,
+                        messages = state.messages
+                    )
+                }
             }
 
             if (state.models.isNotEmpty()) {
