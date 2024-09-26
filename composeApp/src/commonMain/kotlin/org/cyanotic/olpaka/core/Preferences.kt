@@ -4,9 +4,24 @@ import com.russhwolf.settings.Settings
 import org.cyanotic.olpaka.network.EndpointProvider.Companion.DEFAULT_OLLAMA_API_URL
 import org.cyanotic.olpaka.ui.theme.OlpakaColor
 import org.cyanotic.olpaka.ui.theme.OlpakaTheme
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class Preferences {
     private val settings = Settings()
+
+    @OptIn(ExperimentalUuidApi::class)
+    val analyticsClientId: String
+        get() {
+            val clientId = settings.getStringOrNull(KEY_ANALYTICS_IDENTIFIER)
+            return if(clientId == null){
+                val uuid = Uuid.random().toString()
+                settings.putString(KEY_ANALYTICS_IDENTIFIER, uuid)
+                uuid
+            } else {
+                clientId
+            }
+        }
 
     var hasSeenOnboarding: Boolean
         set(value) {
@@ -76,6 +91,7 @@ class Preferences {
         private const val KEY_SEEN_ONBOARDING = "seen_onboarding"
 
         private const val KEY_CONNECTION_HOST = "connection_host"
+        private const val KEY_ANALYTICS_IDENTIFIER = "analytics_identifier"
 
         private const val VALUE_THEME_AUTO = "auto"
         private const val VALUE_THEME_LIGHT = "light"

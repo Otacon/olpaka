@@ -1,10 +1,10 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.BOOLEAN
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
-import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
-import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.BOOLEAN
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -18,21 +18,25 @@ plugins {
 buildkonfig {
     packageName = "com.cyanotic.olpaka"
 
-    val versionName: String = System.getenv("VERSION_NAME") ?: "local"
+    val versionName = System.getenv("VERSION_NAME") ?: "local"
+    val analyticsMeasurementId = System.getenv("ANALYTICS_MEASUREMENT_ID") ?: ""
+    val analyticsApiSecret = System.getenv("ANALYTICS_API_SECRET") ?: ""
 
     defaultConfigs {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")
         buildConfigField(STRING, "appVersion", versionName)
         buildConfigField(STRING, "appVariant", "release")
         buildConfigField(STRING, "loggingLevel", "verbose")
+        buildConfigField(STRING, "analyticsMeasurementId", analyticsMeasurementId)
+        buildConfigField(STRING, "analyticsApiSecret", analyticsApiSecret)
     }
-    defaultConfigs("debug"){
+    defaultConfigs("debug") {
         buildConfigField(STRING, "appVariant", "debug")
         buildConfigField(STRING, "loggingLevel", "verbose")
         buildConfigField(BOOLEAN, "allowClearPreferences", "true")
     }
-    defaultConfigs("release"){
-        buildConfigField(STRING, "loggingLevel", "verbose")
+    defaultConfigs("release") {
+        buildConfigField(STRING, "loggingLevel", "warning")
         buildConfigField(STRING, "appVariant", "release")
     }
 }
@@ -55,16 +59,16 @@ kotlin {
         }
         binaries.executable()
     }
-    
+
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     jvm("desktop")
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -75,10 +79,10 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     sourceSets {
         val desktopMain by getting
-        
+
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -104,6 +108,7 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
 
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.serialization.json)
 
             implementation(libs.ktor.client.core)

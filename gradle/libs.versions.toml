@@ -12,6 +12,7 @@ coroutines = "1.9.0"
 junit = "4.13.2"
 koin-compose = "1.2.0-Beta5"
 kotlin = "2.0.20"
+kotlinx-datetime = "0.6.1"
 ktor = "3.0.0-rc-1"
 materialKolor = "1.7.0"
 markdownRenderer = "0.26.0"
@@ -34,6 +35,7 @@ kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "coroutines" }
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization-json" }
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }

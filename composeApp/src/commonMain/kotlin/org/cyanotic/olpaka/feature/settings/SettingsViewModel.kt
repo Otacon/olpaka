@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.settings_connection_url_error
+import org.cyanotic.olpaka.core.Analytics
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.ThemeState
 import org.cyanotic.olpaka.core.inBackground
@@ -21,12 +22,14 @@ class SettingsViewModel(
     private val themeState: ThemeState,
     private val preferences: Preferences,
     private val endpointProvider: EndpointProvider,
+    private val analytics: Analytics,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
     val state = _state.asStateFlow()
 
     fun onCreate() {
+        analytics.trackScreenView("settings")
         _state.getAndUpdate { current ->
             current.copy(
                 selectedColor = preferences.themeColor,
@@ -37,6 +40,16 @@ class SettingsViewModel(
     }
 
     fun onColorChanged(color: OlpakaColor) = inBackground {
+        val analyticsName = when(color){
+            OlpakaColor.OLPAKA -> "olpaka"
+            OlpakaColor.RED -> "red"
+            OlpakaColor.PURPLE -> "purple"
+            OlpakaColor.BLUE -> "blue"
+            OlpakaColor.ORANGE -> "orange"
+            OlpakaColor.GREEN -> "green"
+            OlpakaColor.GREY -> "grey"
+        }
+        analytics.trackEvent("change_theme_color", mapOf("color" to analyticsName))
         _state.getAndUpdate { current ->
             preferences.themeColor = color
             themeState.color.value = color
@@ -45,6 +58,12 @@ class SettingsViewModel(
     }
 
     fun onThemeChanged(theme: OlpakaTheme) = inBackground {
+        val analyticsName = when(theme){
+            OlpakaTheme.AUTO -> "auto"
+            OlpakaTheme.DARK -> "dark"
+            OlpakaTheme.LIGHT -> "light"
+        }
+        analytics.trackEvent("change_theme_mode", mapOf("mode" to analyticsName))
         _state.getAndUpdate { current ->
             preferences.themeMode = theme
             themeState.themeMode.value = theme
