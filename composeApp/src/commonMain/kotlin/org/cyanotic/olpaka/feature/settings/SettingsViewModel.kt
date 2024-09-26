@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.settings_connection_url_error
-import org.cyanotic.olpaka.core.Analytics
+import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.ThemeState
 import org.cyanotic.olpaka.core.inBackground
@@ -22,14 +22,14 @@ class SettingsViewModel(
     private val themeState: ThemeState,
     private val preferences: Preferences,
     private val endpointProvider: EndpointProvider,
-    private val analytics: Analytics,
+    private val analytics: FirebaseAnalytics,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
     val state = _state.asStateFlow()
 
     fun onCreate() {
-        analytics.trackScreenView("settings")
+        analytics.screenView("settings")
         _state.getAndUpdate { current ->
             current.copy(
                 selectedColor = preferences.themeColor,
@@ -49,7 +49,7 @@ class SettingsViewModel(
             OlpakaColor.GREEN -> "green"
             OlpakaColor.GREY -> "grey"
         }
-        analytics.trackEvent("change_theme_color", mapOf("color" to analyticsName))
+        analytics.event("change_theme_color", mapOf("color" to analyticsName))
         _state.getAndUpdate { current ->
             preferences.themeColor = color
             themeState.color.value = color
@@ -63,7 +63,7 @@ class SettingsViewModel(
             OlpakaTheme.DARK -> "dark"
             OlpakaTheme.LIGHT -> "light"
         }
-        analytics.trackEvent("change_theme_mode", mapOf("mode" to analyticsName))
+        analytics.event("change_theme_mode", mapOf("mode" to analyticsName))
         _state.getAndUpdate { current ->
             preferences.themeMode = theme
             themeState.themeMode.value = theme

@@ -8,10 +8,7 @@ import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.LogLevel
 import io.github.aakira.napier.Napier
 import io.ktor.http.*
-import org.cyanotic.olpaka.core.Analytics
-import org.cyanotic.olpaka.core.GoogleAnalytics
-import org.cyanotic.olpaka.core.Preferences
-import org.cyanotic.olpaka.core.ThemeState
+import org.cyanotic.olpaka.core.*
 import org.cyanotic.olpaka.feature.main.MainScreen
 import org.cyanotic.olpaka.network.EndpointProvider
 import org.cyanotic.olpaka.ui.theme.AppTheme
@@ -27,11 +24,10 @@ fun App() {
         val koin = getKoin()
         val themeState = koin.get<ThemeState>()
         LaunchedEffect(Unit){
+            val analytics = koin.get<FirebaseAnalytics>()
+            analytics.init()
+
             val preferences = koin.get<Preferences>()
-            val analytics = koin.get<GoogleAnalytics>()
-            initAnalytics(preferences, analytics)
-
-
             initTheme(preferences, themeState)
 
             val endpointProvider = koin.get<EndpointProvider>()
@@ -65,22 +61,6 @@ private fun initLogging() {
     logLevel?.let {
         Napier.base(DebugAntilog())
         Napier.isEnable(it, null)
-    }
-}
-
-private fun initAnalytics(preferences: Preferences, analytics: Analytics) {
-    val measurementId = BuildKonfig.analyticsMeasurementId
-    val apiSecret = BuildKonfig.analyticsApiSecret
-    Napier.d(tag = "Init") { "Initialising analytics with \"measurementId\": $measurementId, \"apiSecret\": $apiSecret." }
-    if (measurementId.isNotBlank() && apiSecret.isNotBlank()) {
-        analytics.init(
-            clientId = preferences.analyticsClientId,
-            measurementId = measurementId,
-            apiSecret = apiSecret,
-            debug = true,
-        )
-    } else {
-        Napier.w(tag = "Init") { "Analytics are not being initialised as measurementId or apiSecrets are invalid." }
     }
 }
 

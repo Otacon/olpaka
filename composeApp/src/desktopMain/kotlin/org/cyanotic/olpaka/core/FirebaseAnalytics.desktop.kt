@@ -1,5 +1,6 @@
 package org.cyanotic.olpaka.core
 
+import com.cyanotic.olpaka.BuildKonfig
 import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -9,57 +10,46 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlinx.serialization.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import kotlin.coroutines.CoroutineContext
 
-interface Analytics {
 
-    fun init(
-        clientId: String,
-        measurementId: String,
-        apiSecret: String,
-        debug: Boolean = false,
-    )
-
-    fun trackScreenView(screenName: String)
-
-    fun trackEvent(name: String, params: Map<String, Any?>)
-
-}
-
-class GoogleAnalytics(
-    private val client: HttpClient,
-) : Analytics, CoroutineScope {
+actual class FirebaseAnalytics : CoroutineScope, KoinComponent {
 
     override val coroutineContext: CoroutineContext
         get() = SupervisorJob() + Dispatchers.Default
 
+    private val client by inject<HttpClient>()
+    private val preferences by inject<Preferences>()
+
     private var clientId: String? = null
     private var measurementId: String? = null
     private var apiSecret: String? = null
-    private var debug: Boolean = false
+
     private var session: String = Clock.System.now().toEpochMilliseconds().toString()
     private var startTime: Long = Clock.System.now().toEpochMilliseconds()
 
-    override fun init(clientId: String, measurementId: String, apiSecret: String, debug: Boolean) {
-        this.clientId = clientId
-        this.measurementId = measurementId
-        this.apiSecret = apiSecret
-        this.debug = debug
+    actual fun init() {
+        this.measurementId = BuildKonfig.analyticsMeasurementId
+        this.apiSecret = BuildKonfig.analyticsApiSecret
+        this.clientId = preferences.analyticsClientId
     }
 
-    override fun trackScreenView(screenName: String) {
+    actual fun screenView(screenName: String) {
         track(
             EVENT_NAME_SCREEN_VIEW,
             mapOf("screen_name" to screenName)
         )
     }
 
-    override fun trackEvent(name: String, params: Map<String, Any?>) {
-        track(name, params)
+    actual fun event(eventName: String, properties: Map<String,Any?>) {
+        track(eventName, properties)
     }
 
     private fun track(eventName: String, params: Map<String, Any?>) {
@@ -75,8 +65,7 @@ class GoogleAnalytics(
         val engagementTimeMs = Clock.System.now().toEpochMilliseconds() - startTime
         val enrichedParams = params +
                 ("session_id" to session) +
-                ("engagement_time_msec" to engagementTimeMs) +
-                ("debug_mode" to true)
+                ("engagement_time_msec" to engagementTimeMs)
 
         val jsonParams = buildJsonObject {
             enrichedParams.forEach{ (key, value) ->
@@ -103,7 +92,7 @@ class GoogleAnalytics(
                     )
                 ),
                 userProperties = UserProperty(
-                    value = UserPropertyValue("My device")
+                    value = UserPropertyValue("Desktop")
                 )
             )
             val url = GA_URL
@@ -123,8 +112,8 @@ class GoogleAnalytics(
     companion object {
 
         private const val GA_URL = "https://www.google-analytics.com/mp/collect"
-        private const val GA_DEBUG_URL = "https://www.google-analytics.com/debug/mp/collect"
         private const val EVENT_NAME_SCREEN_VIEW = "screen_view"
+
     }
 
 }

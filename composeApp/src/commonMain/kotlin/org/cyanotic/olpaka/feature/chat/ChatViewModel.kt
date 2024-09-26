@@ -3,7 +3,7 @@ package org.cyanotic.olpaka.feature.chat
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.cyanotic.olpaka.core.Analytics
+import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.DownloadState.*
 import org.cyanotic.olpaka.core.ModelDownloadState
 import org.cyanotic.olpaka.core.inBackground
@@ -15,7 +15,7 @@ class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val modelsRepository: ModelsRepository,
     private val modelDownloadState: ModelDownloadState,
-    private val analytics: Analytics
+    private val analytics: FirebaseAnalytics
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatState())
@@ -25,7 +25,7 @@ class ChatViewModel(
     val event = _events.asSharedFlow()
 
     fun onCreate() = inBackground {
-        analytics.trackScreenView("chat")
+        analytics.screenView("chat")
         refreshModels()
         launch {
             modelDownloadState.currentDownloadState.collect {

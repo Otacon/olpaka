@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.models_state_download
 import olpaka.composeapp.generated.resources.models_state_initializing
-import org.cyanotic.olpaka.core.Analytics
+import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.ModelDownloadState
 import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.core.inBackground
@@ -21,7 +21,7 @@ import org.jetbrains.compose.resources.getString
 class ModelsViewModel(
     private val repository: ModelsRepository,
     private val modelDownloadState: ModelDownloadState,
-    private val analytics: Analytics,
+    private val analytics: FirebaseAnalytics,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ModelsState())
@@ -33,7 +33,7 @@ class ModelsViewModel(
     private var cancelDownload: Boolean = false
 
     fun onCreate() = inBackground {
-        analytics.trackScreenView("models")
+        analytics.screenView("models")
         refreshModels()
     }
 

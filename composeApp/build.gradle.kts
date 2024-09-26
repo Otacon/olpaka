@@ -21,6 +21,7 @@ buildkonfig {
     val versionName = System.getenv("VERSION_NAME") ?: "local"
     val analyticsMeasurementId = System.getenv("ANALYTICS_MEASUREMENT_ID") ?: ""
     val analyticsApiSecret = System.getenv("ANALYTICS_API_SECRET") ?: ""
+    val firebaseWebConfig = System.getenv("FIREBASE_WEB_CONFIG_JSON") ?: ""
 
     defaultConfigs {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")
@@ -29,6 +30,7 @@ buildkonfig {
         buildConfigField(STRING, "loggingLevel", "verbose")
         buildConfigField(STRING, "analyticsMeasurementId", analyticsMeasurementId)
         buildConfigField(STRING, "analyticsApiSecret", analyticsApiSecret)
+        buildConfigField(STRING, "firebaseWebConfigJson", firebaseWebConfig)
     }
     defaultConfigs("debug") {
         buildConfigField(STRING, "appVariant", "debug")
@@ -138,7 +140,7 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
         wasmJsMain.dependencies {
-
+            implementation(devNpm("firebase", "10.13.2"))
         }
     }
 }
