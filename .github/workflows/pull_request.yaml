@@ -31,7 +31,6 @@ jobs:
           VERSION_NAME: development
           BASE_HREF: ${{ vars.BASE_HREF }}
         run: |
-          echo FIREBASE_WEB_CONFIG_JSON | base64 --decode
           ./gradlew :composeApp:wasmJsBrowserDistribution -Pbuildkonfig.flavor=release
 
       - name: Build Desktop app
