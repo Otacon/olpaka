@@ -14,6 +14,7 @@ actual class FirebaseAnalytics {
 
         try {
             val configurationJson = BuildKonfig.firebaseWebConfigJson
+            Napier.i("Firebase web configuration $configurationJson")
             val firebaseConfiguration = Json.decodeFromString<FirebaseWebConfig>(configurationJson)
             val configuration = createConfiguration(
                 apiKey = firebaseConfiguration.apiKey,
@@ -27,9 +28,9 @@ actual class FirebaseAnalytics {
             val app = initializeApp(configuration)
             analytics = getAnalytics(app)
         } catch (e: Exception){
-            Napier.w("Unable to configure analytics")
+            Napier.w("Exception while configuring analytics")
         } catch (e: Error){
-            Napier.w("Unable to configure analytics")
+            Napier.w("Error while configuring analytics")
         }
 
 

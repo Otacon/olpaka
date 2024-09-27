@@ -22,10 +22,8 @@ buildkonfig {
     val analyticsMeasurementId = System.getenv("ANALYTICS_MEASUREMENT_ID") ?: ""
     val analyticsApiSecret = System.getenv("ANALYTICS_API_SECRET") ?: ""
     val firebaseWebConfig = System.getenv("FIREBASE_WEB_CONFIG_JSON") ?: ""
-    val baseHref = System.getenv("BASE_HREF") ?: ""
 
-    println("VERSION_NAME: $versionName")
-    println("BASE_HREF: $baseHref")
+    println("FirebaseWebConfig exists? ${firebaseWebConfig.isNotBlank()}")
 
     defaultConfigs {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")
@@ -204,6 +202,7 @@ tasks.register("replaceBaseHref") {
             val content = indexHtmlFile.readText()
             val updatedContent = content.replace("\$BASE_HREF", baseHref)
             indexHtmlFile.writeText(updatedContent)
+            println("Set base href to $baseHref in index.html")
         } else {
             println("index.html not found!")
         }
