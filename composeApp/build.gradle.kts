@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import java.util.Base64
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -24,6 +25,7 @@ buildkonfig {
     val firebaseWebConfig = System.getenv("FIREBASE_WEB_CONFIG_JSON") ?: ""
 
     println("FirebaseWebConfig exists? ${firebaseWebConfig.isNotBlank()}")
+    val decodedWebConfig = Base64.getDecoder().decode(firebaseWebConfig).decodeToString()
 
     defaultConfigs {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")
@@ -32,7 +34,7 @@ buildkonfig {
         buildConfigField(STRING, "loggingLevel", "verbose")
         buildConfigField(STRING, "analyticsMeasurementId", analyticsMeasurementId)
         buildConfigField(STRING, "analyticsApiSecret", analyticsApiSecret)
-        buildConfigField(STRING, "firebaseWebConfigJson", firebaseWebConfig)
+        buildConfigField(STRING, "firebaseWebConfigJson", decodedWebConfig)
     }
     defaultConfigs("debug") {
         buildConfigField(STRING, "appVariant", "debug")
