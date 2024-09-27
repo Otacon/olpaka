@@ -38,6 +38,7 @@ class ModelsViewModel(
     }
 
     fun onRefreshClicked() = inBackground {
+        analytics.event("refresh_models")
         refreshModels()
     }
 
@@ -79,6 +80,7 @@ class ModelsViewModel(
             }
             .onCompletion {
                 Napier.i("Completed downloading...")
+                analytics.event(eventName = "download_model", properties = mapOf("model" to tag))
                 viewModelScope.launch {
                     refreshModels()
                     modelDownloadState.setCompleted()
@@ -146,6 +148,7 @@ class ModelsViewModel(
     fun onConfirmRemoveModel(modelKey: String) = inBackground {
         _state.value = _state.value.copy(isLoading = true)
         repository.removeModel(tag = modelKey)
+        analytics.event("remove_model", properties = mapOf("model" to modelKey))
         refreshModels()
     }
 

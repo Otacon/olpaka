@@ -41,6 +41,12 @@ fun SettingsScreen(navHostController: NavHostController) {
 
     LaunchedEffect(Unit) {
         viewModel.onCreate()
+        viewModel.events.collect { event ->
+            when (event) {
+                SettingsEvents.OpenAbout -> navHostController.navigate(Routes.ABOUT)
+                SettingsEvents.OpenOnboarding -> navHostController.navigate(Routes.ONBOARDING)
+            }
+        }
     }
 
     SettingsScreenContent(
@@ -50,8 +56,8 @@ fun SettingsScreen(navHostController: NavHostController) {
         onConnectionHostChanged = viewModel::onConnectionUrlChanged,
         onResetHostClicked = viewModel::revertDefaultConnectionUrl,
         onClearPreferencesClicked = viewModel::onClearPreferencesClicked,
-        onOnboardingClicked = { navHostController.navigate(Routes.ONBOARDING) },
-        onAboutClicked = { navHostController.navigate(Routes.ABOUT) }
+        onOnboardingClicked = viewModel::onOnboardingClicked,
+        onAboutClicked = viewModel::onAboutClicked
     )
 }
 

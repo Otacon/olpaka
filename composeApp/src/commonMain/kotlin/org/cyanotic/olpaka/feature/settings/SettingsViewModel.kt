@@ -3,9 +3,7 @@ package org.cyanotic.olpaka.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.ktor.http.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.settings_connection_url_error
@@ -28,6 +26,9 @@ class SettingsViewModel(
     private val _state = MutableStateFlow(SettingsState())
     val state = _state.asStateFlow()
 
+    private val _events = MutableSharedFlow<SettingsEvents>()
+    val events = _events.asSharedFlow()
+
     fun onCreate() {
         analytics.screenView("settings")
         _state.getAndUpdate { current ->
@@ -40,7 +41,7 @@ class SettingsViewModel(
     }
 
     fun onColorChanged(color: OlpakaColor) = inBackground {
-        val analyticsName = when(color){
+        val analyticsName = when (color) {
             OlpakaColor.OLPAKA -> "olpaka"
             OlpakaColor.RED -> "red"
             OlpakaColor.PURPLE -> "purple"
@@ -58,7 +59,7 @@ class SettingsViewModel(
     }
 
     fun onThemeChanged(theme: OlpakaTheme) = inBackground {
-        val analyticsName = when(theme){
+        val analyticsName = when (theme) {
             OlpakaTheme.AUTO -> "auto"
             OlpakaTheme.DARK -> "dark"
             OlpakaTheme.LIGHT -> "light"
@@ -93,6 +94,14 @@ class SettingsViewModel(
         }
     }
 
+    fun onAboutClicked() = inBackground {
+        _events.emit(SettingsEvents.OpenAbout)
+    }
+
+    fun onOnboardingClicked() = inBackground {
+        _events.emit(SettingsEvents.OpenOnboarding)
+    }
+
     fun onClearPreferencesClicked() {
         preferences.clear()
     }
@@ -104,3 +113,8 @@ data class SettingsState(
     val connectionHost: String = "",
     val hostError: String? = null,
 )
+
+sealed interface SettingsEvents {
+    data object OpenAbout : SettingsEvents
+    data object OpenOnboarding : SettingsEvents
+}

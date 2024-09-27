@@ -5,5 +5,5 @@ expect class FirebaseAnalytics() {
 
     fun screenView(screenName: String)
 
-    fun event(eventName: String, properties: Map<String,Any?>)
+    fun event(eventName: String, properties: Map<String,Any?> = emptyMap())
 }

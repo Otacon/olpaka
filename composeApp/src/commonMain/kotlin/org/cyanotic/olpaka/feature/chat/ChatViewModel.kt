@@ -3,8 +3,8 @@ package org.cyanotic.olpaka.feature.chat
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.DownloadState.*
+import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.ModelDownloadState
 import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.repository.ChatMessage
@@ -62,6 +62,7 @@ class ChatViewModel(
         }
         chatRepository.sendChatMessage(model = selectedModel.key, message = message, history = history)
             .onStart {
+                analytics.event("send_message", mapOf("model" to selectedModel.key))
                 val newMessages = _state.value.messages +
                         ChatMessageUI.OwnMessage(message) +
                         assistantMessage
@@ -83,6 +84,7 @@ class ChatViewModel(
     }
 
     fun onModelChanged(model: ChatModelUI) {
+        analytics.event("model_changed", mapOf("model" to model.key))
         _state.getAndUpdate { current ->
             current.copy(selectedModel = current.models.firstOrNull { it.key == model.key })
         }
