@@ -28,6 +28,8 @@ jobs:
       - name: Build Web app
         env:
           FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
+          VERSION_NAME: development
+          BASE_HREF: ${{ vars.BASE_HREF }}
         run: |
           ./gradlew :composeApp:wasmJsBrowserDistribution --quiet -Pbuildkonfig.flavor=release
 
