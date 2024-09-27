@@ -35,7 +35,7 @@ jobs:
           ANALYTICS_API_SECRET: ${{ secrets.ANALYTICS_API_SECRET }}
           ANALYTICS_MEASUREMENT_ID: ${{ secrets.ANALYTICS_MEASUREMENT_ID }}
         run: |
-          ./gradlew :desktopJar --quiet -Pbuildkonfig.flavor=release
+          ./gradlew desktopJar --quiet -Pbuildkonfig.flavor=release
 
       - name: Upload web artifacts
         uses: actions/upload-artifact@v4
