@@ -22,6 +22,10 @@ buildkonfig {
     val analyticsMeasurementId = System.getenv("ANALYTICS_MEASUREMENT_ID") ?: ""
     val analyticsApiSecret = System.getenv("ANALYTICS_API_SECRET") ?: ""
     val firebaseWebConfig = System.getenv("FIREBASE_WEB_CONFIG_JSON") ?: ""
+    val baseHref = System.getenv("BASE_HREF") ?: ""
+
+    println("VERSION_NAME: $versionName")
+    println("BASE_HREF: $baseHref")
 
     defaultConfigs {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")

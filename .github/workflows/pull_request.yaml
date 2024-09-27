@@ -31,7 +31,9 @@ jobs:
           VERSION_NAME: development
           BASE_HREF: ${{ vars.BASE_HREF }}
         run: |
-          ./gradlew :composeApp:wasmJsBrowserDistribution --quiet -Pbuildkonfig.flavor=release
+          echo "VERSION_NAME=$VERSION_NAME"
+          echo "BASE_HREF=$BASE_HREF"
+          ./gradlew :composeApp:wasmJsBrowserDistribution -Pbuildkonfig.flavor=release
 
       - name: Build Desktop app
         env:
