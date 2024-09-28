@@ -44,7 +44,7 @@ jobs:
           ./gradlew :composeApp:wasmJsBrowserDistribution --quiet -Pbuildkonfig.flavor=release
 
       - name: Copy Web App to the output folder
-        run:
+        run: |
           mkdir build/web/
           cp -r composeApp/build/dist/wasmJs/productionExecutable/* build/web/
 
