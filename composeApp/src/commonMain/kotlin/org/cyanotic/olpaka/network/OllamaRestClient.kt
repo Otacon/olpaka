@@ -61,21 +61,18 @@ class OllamaRestClient(
 
     suspend fun listModels(): Result<List<Model>> {
         return try {
-            Napier.i(message = "Retrieving tags...")
             val response = client.get {
                 url(endpointProvider.generateUrl("/tags"))
                 contentType(ContentType.Application.Json)
             }
-            Napier.i(message = "Received response with status ${response.status}...")
             if (response.status.isSuccess()) {
                 val models = response.body<GetModelResponseDTO>().models ?: emptyList()
                 Result.success(models.map{it.toModel()})
             } else {
-                Napier.i(message = "Network request failed with code ${response.status}")
                 Result.failure(RuntimeException("Http response: 404"))
             }
         } catch (e: Throwable) {
-            Napier.i(message = "Throwable - ${e::class} - Message ${e.message} - Cause ${e.cause}")
+            Napier.e(message = "Throwable - ${e::class} - Message ${e.message} - Cause ${e.cause}")
             Result.failure(e)
         }
     }

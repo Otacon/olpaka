@@ -32,7 +32,7 @@ val networkModule = module {
             install(Logging) {
                 logger = object : Logger {
                     override fun log(message: String) {
-                        Napier.i(tag = "Network") { message }
+                        Napier.d(tag = "Network") { message }
                     }
 
                 }

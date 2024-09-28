@@ -14,7 +14,7 @@ actual class FirebaseAnalytics {
 
         try {
             val configurationJson = BuildKonfig.firebaseWebConfigJson
-            Napier.i("Firebase web configuration $configurationJson")
+            Napier.d("Firebase web configuration $configurationJson")
             val firebaseConfiguration = Json.decodeFromString<FirebaseWebConfig>(configurationJson)
             val configuration = createConfiguration(
                 apiKey = firebaseConfiguration.apiKey,

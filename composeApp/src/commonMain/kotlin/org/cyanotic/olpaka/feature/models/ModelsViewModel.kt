@@ -101,9 +101,9 @@ class ModelsViewModel(
                 _state.value = _state.value.copy(models = newModels, isLoading = true)
             }
             .collect { chunk ->
-                Napier.i("New chunk $chunk")
+                Napier.d("New chunk $chunk")
                 if (cancelDownload) {
-                    Napier.i("Canceling download...")
+                    Napier.d("Canceling download...")
                     this.cancel()
                     return@collect
                 }

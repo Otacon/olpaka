@@ -53,12 +53,12 @@ actual class FirebaseAnalytics : CoroutineScope, KoinComponent {
     }
 
     private fun track(eventName: String, params: Map<String, Any?>) {
-        Napier.d(tag = "Analytics", message = "Sending \"$eventName\" event with params: $params")
+        Napier.d(tag = "Analytics", message = "Sending \"$eventName\" with params: $params")
         val clientId = this.clientId
         val measurementId = this.measurementId
         val apiSecret = this.apiSecret
 
-        if (clientId == null || measurementId == null || apiSecret == null) {
+        if (clientId.isNullOrBlank() || measurementId.isNullOrBlank() || apiSecret.isNullOrBlank()) {
             Napier.w(tag = "Analytics", message = "Analytics are not initialised.")
             return
         }
@@ -105,7 +105,7 @@ actual class FirebaseAnalytics : CoroutineScope, KoinComponent {
                 contentType(ContentType.Application.Json)
                 setBody(event)
             }
-            Napier.i(tag = "Analytics", message = "\"$eventName\" sent!")
+            Napier.d(tag = "Analytics", message = "\"$eventName\" sent!")
         }
     }
 
