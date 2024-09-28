@@ -63,7 +63,7 @@ finally doing some progress in self-marketing as well 🥳 ).
 
 Hopefully, with the new version things will be better.
 
-## Bonus Content - Flutter vs Kotlin Multiplatform
+## Nerd stuff - Flutter vs Kotlin Multiplatform
 
 ### Premise
 I've been using Kotlin pretty much every single day for the past 8 years,
@@ -128,12 +128,36 @@ exactly the same as having the concept built into the compiler!
 
 It wasn't as terrible as Python or Javascript, but for sure suboptimal.
 
-#### Lack of code generation
+#### Code generation
 With kotlinx serialization you just need to annotate your data classes, and
 you're pretty much good to go! With Dart, you'll need to fiddle so much that
 I gave up and parsed the JSON manually. 
 
 Maybe it's just me and my lack of patience here.
+
+#### Resource usage and compile times
+Well, when it comes to Kotlin compile times are on another level.
+
+I've got a pretty decent Intel 8th gen computer with 32GB of RAM and SSD and
+the kotlin compilation was painfully slow. A fresh web compilation takes around
+5-8 minutes, a fresh desktop takes about 2-3 minutes.
+
+Subsequent builds are way quicker, however, are not as instant as it happens
+with Dart.
+
+This is definitely a score from Dart.
+
+#### UI Preview
+When you are new to a UI Framework you might want to have a quick visual
+preview of what you're building. Well, it might come to a surprise, but none
+of the two technologies give you a decent live preview of what you're building!
+
+That said, at list Dart has an "instant refresh" triggered when you press
+CTRL + S, and it works on web, desktop and mobile. Kotlin multiplatform
+provides such functionality only when the project is opened using the
+[Intellij's Fleet IDE](https://www.jetbrains.com/fleet/). The only con of this
+tool is that it's not just slow on its own, but it will also slow down or
+freeze your entire OS.
 
 #### Other perks
 I've pretty much missed the concept of `data class`es, especially the `copy`
