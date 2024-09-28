@@ -192,11 +192,21 @@ private fun Error(
                 }
             )
         }
-    ) {
+    ) { padding ->
         EmptyScreen(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize(),
             title = stringResource(Res.string.error_missing_ollama_title),
-            subtitle = stringResource(Res.string.error_missing_ollama_message)
+            subtitle = stringResource(Res.string.error_missing_ollama_message),
+            cta = {
+                Button(
+                    modifier = Modifier.align(Alignment.End),
+                    onClick = onRefreshClicked
+                ) {
+                    Text(stringResource(Res.string.error_missing_ollama_positive))
+                }
+            }
         )
     }
 }

@@ -56,6 +56,22 @@ fun ChatScreen() {
                 .fillMaxWidth(),
         ) {
             when {
+                state.errorLoading && !state.isLoading -> {
+                    EmptyScreen(
+                        modifier = Modifier.fillMaxWidth().weight(1.0f),
+                        title = stringResource(Res.string.error_missing_ollama_title),
+                        subtitle = stringResource(Res.string.error_missing_ollama_message),
+                        cta = {
+                            Button(
+                                modifier = Modifier.align(Alignment.End),
+                                onClick = viewModel::onRefresh
+                            ) {
+                                Text(stringResource(Res.string.error_missing_ollama_positive))
+                            }
+                        }
+                    )
+                }
+
                 (state.models.isEmpty() || state.messages.isEmpty()) && state.isLoading -> {
                     Column(
                         modifier = Modifier
@@ -68,6 +84,7 @@ fun ChatScreen() {
                         Text("Loading...")
                     }
                 }
+
                 state.models.isEmpty() -> {
                     EmptyScreen(
                         modifier = Modifier.fillMaxWidth().weight(1.0f),
@@ -75,6 +92,7 @@ fun ChatScreen() {
                         subtitle = stringResource(Res.string.chat_missing_model_error_message)
                     )
                 }
+
                 state.messages.isEmpty() -> {
                     EmptyScreen(
                         modifier = Modifier.fillMaxWidth().weight(1.0f),
@@ -82,6 +100,7 @@ fun ChatScreen() {
                         subtitle = stringResource(Res.string.chat_empty_screen_message)
                     )
                 }
+
                 else -> {
                     Content(
                         modifier = Modifier.fillMaxWidth().weight(1.0f),
@@ -91,7 +110,7 @@ fun ChatScreen() {
                 }
             }
 
-            if (state.models.isNotEmpty()) {
+            if (!state.errorLoading && state.models.isNotEmpty()) {
                 Row(
                     modifier = Modifier
                         .padding(16.dp)

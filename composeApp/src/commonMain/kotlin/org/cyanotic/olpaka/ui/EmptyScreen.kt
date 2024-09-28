@@ -16,6 +16,7 @@ fun EmptyScreen(
     modifier: Modifier,
     title: String,
     subtitle: String,
+    cta: @Composable ColumnScope.() -> Unit = {},
 ) {
     Box(modifier) {
         Card(
@@ -36,6 +37,8 @@ fun EmptyScreen(
                     content = subtitle,
                     modifier = Modifier
                 )
+                Spacer(Modifier.height(16.dp))
+                cta()
             }
         }
     }

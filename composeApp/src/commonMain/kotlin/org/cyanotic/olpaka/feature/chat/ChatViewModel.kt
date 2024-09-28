@@ -38,17 +38,28 @@ class ChatViewModel(
         }
     }
 
+    fun onRefresh() = inBackground {
+        refreshModels()
+    }
+
     private suspend fun refreshModels() {
         _state.value = _state.value.copy(isLoading = true)
-        val models = modelsRepository.getModels()
+        modelsRepository.getModels()
             .map { result -> result.map { ChatModelUI(it.id, it.id) } }
-            .getOrDefault(emptyList())
-
-        _state.value = _state.value.copy(
-            models = models,
-            selectedModel = models.firstOrNull(),
-            isLoading = false
-        )
+            .onSuccess {
+                _state.value = _state.value.copy(
+                    models = it,
+                    selectedModel = it.firstOrNull(),
+                    isLoading = false,
+                    errorLoading = false
+                )
+            }
+            .onFailure {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    errorLoading = true
+                )
+            }
     }
 
     fun onSubmit(message: String) = inBackground {
@@ -71,6 +82,10 @@ class ChatViewModel(
             }
             .onCompletion {
                 _state.value = _state.value.copy(isLoading = false)
+            }
+            .catch {
+                val newMessages = _state.value.messages.subList(0, _state.value.messages.size - 1)
+                _state.value = _state.value.copy(messages = newMessages, isLoading = false)
             }
             .collect { chunk ->
                 assistantMessage = assistantMessage.copy(
@@ -101,6 +116,7 @@ data class ChatState(
     val models: List<ChatModelUI> = emptyList(),
     val selectedModel: ChatModelUI? = null,
     val isLoading: Boolean = false,
+    val errorLoading: Boolean = false,
 )
 
 data class ChatModelUI(
