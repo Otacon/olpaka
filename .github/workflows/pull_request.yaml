@@ -16,27 +16,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
-
-      - name: Update dependencies (pub get)
-        run: flutter pub get
-
-      - name: Generate translations
-        run: |
-          flutter pub global activate intl_utils
-          flutter pub global run intl_utils:generate
-
-      - name: Run Tests
-        run: flutter test
-
-      - name: Build app
+      - name: Build Web app
         env:
-          FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+          FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
+          VERSION_NAME: development
+          BASE_HREF: ${{ vars.BASE_HREF }}
         run: |
-          flutter build web --dart-define=FIREBASE_WEB_API_KEY="$FIREBASE_WEB_API_KEY"
+          ./gradlew :composeApp:wasmJsBrowserDistribution -Pbuildkonfig.flavor=release
+
+      - name: Build Desktop app
+        env:
+          ANALYTICS_API_SECRET: ${{ secrets.ANALYTICS_API_SECRET }}
+          ANALYTICS_MEASUREMENT_ID: ${{ secrets.ANALYTICS_MEASUREMENT_ID }}
+        run: |
+          ./gradlew desktopJar --quiet -Pbuildkonfig.flavor=release
+
+      - name: Upload web artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OlpakaWeb
+          path: composeApp/build/dist/wasmJs/productionExecutable/*
+
+      - name: Upload desktop artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OlpakaDesktop
+          path: composeApp/build/libs/*

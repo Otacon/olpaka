@@ -26,28 +26,27 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          cache: true
-
-      - name: Update dependencies (pub get)
-        run: flutter pub get
-
-      - name: Generate translations
-        run: |
-          flutter pub global activate intl_utils
-          flutter pub global run intl_utils:generate
-
-      - name: Build web app
+      - name: Build Web app
         env:
-          FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+          FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
+          VERSION_NAME: ${{ vars.OLPAKA_VERSION }}
+          BASE_HREF: ${{ vars.BASE_HREF }}
         run: |
-          flutter build web --release --base-href "/olpaka/" --dart-define=FIREBASE_WEB_API_KEY="$FIREBASE_WEB_API_KEY"
+          ./gradlew :composeApp:wasmJsBrowserDistribution --quiet -Pbuildkonfig.flavor=release
+
+      - name: Copy Web App to the output folder
+        run:
+          mkdir build/web/
+          mv -r composeApp/build/dist/wasmJs/productionExecutable/* build/web/
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@8575951200e472d5f2d95c625da0c7bec8217c42 # v1.161.0

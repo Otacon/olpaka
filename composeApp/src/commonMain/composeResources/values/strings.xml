@@ -1,0 +1,87 @@
+<resources>
+    <string name="app_name">Olpaka</string>
+
+    <string name="about_description">Made with love by Cyanotic (Orfeo Ciano)</string>
+    <string name="about_close_cta">Close</string>
+
+    <string name="chat_text_input_hint">Message Olpaka</string>
+    <string name="chat_model_dropdown_hint">Select model</string>
+    <string name="chat_assistant_name">Assistant</string>
+    <string name="chat_user_name">You</string>
+    <string name="chat_missing_model_error_title">You've got no AI models installed.</string>
+    <string name="chat_missing_model_error_message">To start a new conversation, make sure you've got at least one model installed.\n\nHead to the "Models" tab to download your first model.</string>
+    <string name="chat_empty_screen_title">...Howdy...</string>
+    <string name="chat_empty_screen_message">How can I help you today?</string>
+    <string name="chat_message_error">Whooops...something went wrong when generating the answer...</string>
+
+    <string name="home_tab_name_chat">Chat</string>
+    <string name="home_tab_name_models">Models</string>
+    <string name="home_tab_name_settings">Settings</string>
+
+    <string name="models_title">Models</string>
+    <string name="models_state_download">Downloading...</string>
+    <string name="models_state_initializing">Initializing...</string>
+    <string name="models_dialog_download_model_title">Download ollama model</string>
+    <string name="models_dialog_download_model_description">Pick a model from the [ollama library](https://ollama.com/library) and add its name here.</string>
+    <string name="models_dialog_download_model_text_hint">e.g. "llama3:latest" or just "llama3"</string>
+    <string name="models_dialog_download_model_action_positive">Download</string>
+    <string name="models_dialog_download_model_action_negative">Cancel</string>
+    <string name="models_dialog_download_model_error_already_added">This model is already in your library</string>
+    <string name="models_dialog_remove_model_title">Remove downloaded model</string>
+    <string name="models_dialog_remove_model_description">Do you really want to remove the model %1$s?</string>
+    <string name="models_dialog_remove_model_action_positive">Yes</string>
+    <string name="models_dialog_remove_model_action_negative">No</string>
+    <string name="models_dialog_download_model_error_title">Unable to download model</string>
+    <string name="models_dialog_download_model_error_message">Please check that Ollama is running, configured correctly, the model exists in the Ollama library and has not been already downloaded</string>
+    <string name="models_dialog_delete_model_error_title">Unable to delete model</string>
+    <string name="models_dialog_delete_model_error_message">Please check that Ollama is running, configured correctly, the model exists in the Ollama library and has not been already downloaded</string>
+    <string name="models_error_no_models_title">This is empty...</string>
+    <string name="models_error_no_models_message">Download your first model by tapping the button below.</string>
+    <string name="models_action_remove_model">Remove</string>
+    <string name="models_action_retry_download">Retry</string>
+    <string name="models_action_cancel_download">Cancel</string>
+
+    <string name="onboarding_title">Getting started</string>
+    <string name="onboarding_step_1">Olpaka is a powerful and intuitive frontend application designed to help you interact seamlessly with AI models powered by Ollama.\n\nWhether you're a developer, data scientist, or just curious about AI, Olpaka provides an easy-to-use interface to load, manage, and interact with various AI models.\n\nWith Olpaka, harnessing the power of AI has never been easier. Let’s get started on this exciting journey!</string>
+    <string name="onboarding_step_2_a">To get started, you'll need to download and install Ollama.</string>
+    <string name="onboarding_step_2_b">Click on "Next" once you're done.</string>
+    <string name="onboarding_step_3_a">To allow Olpaka to communicate with Ollama, you'll need to set up CORS.</string>
+    <string name="onboarding_step_3_b">Once you've configured CORS, you can check whether Olpaka is able to communicate with Olpaka by using the button below.</string>
+    <string name="onboarding_step_3_c">If it still doesn't work try to restart Ollama before continuing.</string>
+    <string name="onboarding_download_ollama">Download Ollama</string>
+    <string name="onboarding_setup_cors">Setup CORS</string>
+    <string name="onboarding_check_connection_unknown">Check connection</string>
+    <string name="onboarding_check_connection_success">Success - check again</string>
+    <string name="onboarding_check_connection_failure">Failed - retry</string>
+    <string name="onboarding_cta_previous">Previous</string>
+    <string name="onboarding_cta_next">Next</string>
+    <string name="onboarding_cta_finish">Finish</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_theme_section">Theme</string>
+    <string name="settings_theme_mode">Mode</string>
+    <string name="settings_theme_mode_system">Auto</string>
+    <string name="settings_theme_mode_light">Light</string>
+    <string name="settings_theme_mode_dark">Dark</string>
+    <string name="settings_theme_color">Color</string>
+    <string name="settings_connection_section">Connection</string>
+    <string name="settings_connection_url">Ollama API URL</string>
+    <string name="settings_connection_url_error">Invalid url</string>
+    <string name="settings_clear_preferences_title">Clear preferences</string>
+    <string name="settings_clear_preferences_subtitle">Restart the app to apply the effects</string>
+    <string name="settings_onboarding_title">Troubleshooting</string>
+    <string name="settings_onboarding_subtitle">Launch the "Getting Started" wizard</string>
+    <string name="settings_about_subtitle">Learn more about Olpaka</string>
+    <string name="settings_about_author">Made with love by Cyanotic (Orfeo Ciano)</string>
+
+    <string name="loading">Loading...</string>
+
+    <string name="error_missing_ollama_title">Connection failed</string>
+    <string name="error_missing_ollama_message">Olpaka is not able to communicate with Ollama.\n\nYou could try to fix it by:\n\t• Making sure [Ollama is installed](https://ollama.com/download);\n\t• Checking it is running on port 11434;\n\t• Checking that [CORS is configured correctly](https://github.com/Otacon/olpaka/blob/main/docs/setup_cors.md);\n\nAs a last resort, you could try to restart the app.</string>
+    <string name="error_missing_ollama_positive">Try again</string>
+    <string name="error_generic_title">Error</string>
+    <string name="error_generic_message">Whoops...Something didn't work. Maybe try to restart Olpaka.</string>
+    <string name="error_generic_positive">OK</string>
+</resources>
+
+
