@@ -1,0 +1,149 @@
+---
+title: "Olpaka 0.5: The Scientist"
+date: 2024-09-28 12:00:00 +0100
+categories: [ releases ]
+gallery:
+  - url: /assets/images/0.5_the_scientist_1.jpg
+    image_path: /assets/images/0.5_the_scientist_1.jpg
+    title: "Connection settings"
+---
+
+> Nobody said it was easy\
+> Oh, it's such a shame for us to part\
+> Nobody said it was easy\
+> No one ever said it would be so hard\
+> I'm going back to the start
+
+It's been a while since I've published something huh!?
+
+Well, as per premise in previous blog posts, I've lost interest into this
+project. So I've decided it was better to just leave it there for a while.
+
+Up until a friend of mine told me that Kotlin Multiplatform + Compose work like
+a charm. Something similar happened at work. I had to give it a try!
+
+Since I cannot be bothered to clone twice the same project, I've spent the 
+past month rewriting the whole project in Kotlin Multiplatform. So, some 
+elements might look the same as before, others slightly different, new bugs 
+might be there ... ENJOY!
+
+## What's new
+
+### Connection settings
+Well, from a user experience, there should be pretty much nothing new.
+
+What you'll find different is just a new section under the *Settings* tab
+where you can connect to any ollama endpoint.
+
+{% include gallery caption="New connection settings section" %}
+
+For instance, I have an instance deployed on my Raspberry PI and that's where
+I use it with some insignificant models such as 
+[Qwen2.5:0.5b](https://ollama.com/library/qwen2.5). At the end of the day, I 
+had to add at least one functionality to justify a new release. Right!?
+
+### The discord server is now working!
+Earlier I already had a Discord server link on the Readme.md file. However, I
+didn't notice I've put an expiring link. That's why the server was so lonely!
+
+If you want to join me, have a chat, report a bug, argue about why the sky is
+blue, join the official [Olpaka Discord server](https://discord.gg/4exUDbu539)!
+
+## How is Olpaka doing?
+Well, it's definitely better that expected, considering there was a critical
+bug that would prevent people with no models to download their first model!
+In the past 3 months Olpaka has been used:
+
+🌍 by **300** unique users from **57** different countries;\
+💬 to send **100** messages - mainly using `llama3:latest`;\
+⬇️ to download **30** models - mainly `llama3.1:8b`\
+
+(**NOTE:** I've used emojis, so it looks more appealing to the audience: I'm 
+finally doing some progress in self-marketing as well 🥳 ). 
+
+Hopefully, with the new version things will be better.
+
+## Bonus Content - Flutter vs Kotlin Multiplatform
+
+### Premise
+I've been using Kotlin pretty much every single day for the past 8 years,
+so it's obvious I'm more fluent with Kotlin therefore I'm biased.
+
+### The technology
+Flutter is way more mature than Kotlin Multiplatform. This is a fact: Flutter 
+has now been around now for about 7 years, therefore it comes with tons of 
+multiplatform libraries that just work out of the box, plenty of blog posts, 
+StackOverflow questions and documentation.
+
+Despite I don't really code with AI on a daily basis I've found ChatGPT really
+struggling with Kotlin Multiplatform - especially WASM as it's an experimental
+technology. 
+
+So, all I've got was wrong answers, 2 pages of documentation from JetBrains 
+and a Slack channel to ask obvious questions to which the answer was either 
+`you can't do it` or `Yes, build it on your own`.
+
+Olpaka is a very trivial piece of software as it's mostly:
+- Render some UI;
+- Render some Markdown;
+- Dependency Injection - nice to have;
+- Performing network calls;
+- Storing few key/value pairs;
+- Collecting some anonymous analytics;
+
+So, let's make a little comparison
+
+| **Feature**          | **Flutter**        | **Kotlin MP**          |
+|----------------------|--------------------|------------------------|
+| UI                   | Material           | Compose                |
+| Markdown             | markdown_widget    | markdown-renderer      |
+| Dependency Injection | get_it             | koin *                 |
+| Network              | http, dio          | ktor                   |
+| Preferences          | shared_preferences | multiplatform_settings |
+| Analytics            | firebase           | firebase / custom **   |
+
+\* Spent 6 hours fiddling with it as it prevented me to run it on WASM when the
+app was not deployed on `localhost` 🥔
+
+\** There's no such thing as Firebase Analytics multiplatform. So I had to 
+import it on web, then create the bindings JS/Kotlin and provide an
+implementation. For desktop I've just implemented the actual Google Analytics
+reporting protocol. Both of those approaches are quite painful.
+
+So, as you can see, Flutter already provides out-of-the box most of the tools
+you might need to get started.
+
+### Dart vs Kotlin
+Here is where things become obvious. Let's just face it: if Kotlin is a 
+sugar-coated version of Java, Dart is definitely the evil twin of Java.
+
+#### Weak type system
+The Dart's type system is very weak in general as I've encountered a huge
+number of type casting nonsense - sorry: I can't remember exactly what was 
+the scenario.
+
+Compared to Kotlin, there are no `sealed class`es - yes I know you can 
+download a library that mimics sealed classes, however, mimicking is not 
+exactly the same as having the concept built into the compiler!
+
+It wasn't as terrible as Python or Javascript, but for sure suboptimal.
+
+#### Lack of code generation
+With kotlinx serialization you just need to annotate your data classes, and
+you're pretty much good to go! With Dart, you'll need to fiddle so much that
+I gave up and parsed the JSON manually. 
+
+Maybe it's just me and my lack of patience here.
+
+#### Other perks
+I've pretty much missed the concept of `data class`es, especially the `copy`
+utility function. Again, I know that there are libraries to mimic this, but
+it's like having a carbonara with bacon (guess where I'm from)!
+
+`async/await` can be error-prone because I often forget to add the `await` 
+keyword.
+
+However, one thing that I really loved about Dart is the lack of an obvious
+multithreading mechanism. If you want to achieve true multithreading, you'll
+need to put some serious effort. This is definitely a PRO as most of the
+developers do not think (know?) about concurrency when developing an app.
