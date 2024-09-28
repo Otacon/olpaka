@@ -46,7 +46,7 @@ jobs:
       - name: Copy Web App to the output folder
         run:
           mkdir build/web/
-          mv -r composeApp/build/dist/wasmJs/productionExecutable/* build/web/
+          cp -r composeApp/build/dist/wasmJs/productionExecutable/* build/web/
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@8575951200e472d5f2d95c625da0c7bec8217c42 # v1.161.0
