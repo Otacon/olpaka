@@ -4,9 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.cyanotic.olpaka.BuildKonfig
-import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.LogLevel
-import io.github.aakira.napier.Napier
 import io.ktor.http.*
 import org.cyanotic.olpaka.core.*
 import org.cyanotic.olpaka.feature.main.MainScreen
@@ -59,8 +57,8 @@ private fun initLogging() {
         }
     }
     logLevel?.let {
-        Napier.base(DebugAntilog())
-        Napier.isEnable(it, null)
+//        Napier.base(DebugAntilog())
+//        Napier.isEnable(it, null)
     }
 }
 

@@ -31,7 +31,7 @@ buildkonfig {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")
         buildConfigField(STRING, "appVersion", versionName)
         buildConfigField(STRING, "appVariant", "release")
-        buildConfigField(STRING, "loggingLevel", "verbose")
+        buildConfigField(STRING, "loggingLevel", "warning")
         buildConfigField(STRING, "analyticsMeasurementId", analyticsMeasurementId)
         buildConfigField(STRING, "analyticsApiSecret", analyticsApiSecret)
         buildConfigField(STRING, "firebaseWebConfigJson", decodedWebConfig)
@@ -40,10 +40,6 @@ buildkonfig {
         buildConfigField(STRING, "appVariant", "debug")
         buildConfigField(STRING, "loggingLevel", "verbose")
         buildConfigField(BOOLEAN, "allowClearPreferences", "true")
-    }
-    defaultConfigs("release") {
-        buildConfigField(STRING, "loggingLevel", "warning")
-        buildConfigField(STRING, "appVariant", "release")
     }
 }
 
