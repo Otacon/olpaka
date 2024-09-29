@@ -56,7 +56,7 @@ jobs:
       - name: Create Blog
         working-directory: ./blog
         env:
-          JEKYLL_ENV=production
+          JEKYLL_ENV: production
         run: |
           bundle update
           bundle exec jekyll build -d ../build/web/blog
