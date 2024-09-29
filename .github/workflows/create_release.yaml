@@ -55,7 +55,7 @@ jobs:
 
       - name: Create Blog
         working-directory: ./blog
-        evn:
+        env:
           JEKYLL_ENV=production
         run: |
           bundle update
