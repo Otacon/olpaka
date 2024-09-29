@@ -1,15 +1,23 @@
 package org.cyanotic.olpaka.feature.chat
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.models_error_no_models_message
+import olpaka.composeapp.generated.resources.models_error_no_models_title
 import org.cyanotic.olpaka.core.DownloadState.*
 import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.ModelDownloadState
+import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.repository.ChatMessage
 import org.cyanotic.olpaka.repository.ChatRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
+import org.jetbrains.compose.resources.getString
 
 class ChatViewModel(
     private val chatRepository: ChatRepository,
@@ -18,15 +26,20 @@ class ChatViewModel(
     private val analytics: FirebaseAnalytics
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(ChatState())
+    private val _state = MutableStateFlow<ChatState>(ChatState.Loading)
     val state = _state.asStateFlow()
 
     private val _events = MutableSharedFlow<ChatEvent>()
     val event = _events.asSharedFlow()
 
+    private val stateMutex = Mutex()
+
+    private var models = listOf<Model>()
+    private var messages = listOf<ChatMessage>()
+    private var newMessage: ChatMessage.Assistant? = null
+    private var selectedModel: Model? = null
+
     fun onCreate() = inBackground {
-        analytics.screenView("chat")
-        refreshModels()
         launch {
             modelDownloadState.currentDownloadState.collect {
                 when (it) {
@@ -36,88 +49,177 @@ class ChatViewModel(
                 }
             }
         }
+        analytics.screenView("chat")
+        refreshModels()
+        delay(50)
+        _events.emit(ChatEvent.FocusOnTextInput)
     }
 
     fun onRefresh() = inBackground {
         refreshModels()
     }
 
-    private suspend fun refreshModels() {
-        _state.value = _state.value.copy(isLoading = true)
-        modelsRepository.getModels()
-            .map { result -> result.map { ChatModelUI(it.id, it.id) } }
-            .onSuccess {
-                _state.value = _state.value.copy(
-                    models = it,
-                    selectedModel = it.firstOrNull(),
-                    isLoading = false,
-                    errorLoading = false
+    private suspend fun refreshModels() = stateMutex.withLock {
+        if (models.isEmpty() && messages.isEmpty()) {
+            _state.value = ChatState.Loading
+        } else {
+            _state.value = ChatState.Content(
+                models = models.toChatModelUI(),
+                messages = (messages + newMessage).filterNotNull().toMessageUI(),
+                selectedModel = selectedModel?.toChatModelUI(),
+                controlsEnabled = false
+            )
+        }
+        val result = modelsRepository.getModels()
+        if (result.isSuccess) {
+            val newModels = result.getOrThrow()
+            this.models = newModels
+            if (newModels.isEmpty()) {
+                selectedModel = null
+                _state.value = ChatState.Error(
+                    title = getString(Res.string.models_error_no_models_title),
+                    message = getString(Res.string.models_error_no_models_message),
+                    showTryAgain = false,
+                )
+            } else {
+                if (selectedModel == null) {
+                    selectedModel = newModels.first()
+                }
+                _state.value = ChatState.Content(
+                    messages = (messages + newMessage).filterNotNull().toMessageUI(),
+                    models = newModels.toChatModelUI(),
+                    selectedModel = selectedModel?.toChatModelUI(),
+                    controlsEnabled = true
                 )
             }
-            .onFailure {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    errorLoading = true
-                )
-            }
+        } else {
+            _state.value = ChatState.Error(
+                title = "Error",
+                message = "Error",
+                showTryAgain = true
+            )
+        }
     }
 
     fun onSubmit(message: String) = inBackground {
-        val selectedModel = _state.value.selectedModel ?: return@inBackground
-        var assistantMessage = ChatMessageUI.AssistantMessage("", true)
-        val history = _state.value.messages.map {
-            when (it) {
-                is ChatMessageUI.AssistantMessage -> ChatMessage.Assistant(it.text)
-                is ChatMessageUI.OwnMessage -> ChatMessage.User(it.text)
-            }
-        }
-        chatRepository.sendChatMessage(model = selectedModel.key, message = message, history = history)
+        val currentSelectedModel = selectedModel ?: return@inBackground
+        val userMessage = ChatMessage.User(message)
+        var assistantMessage = ChatMessage.Assistant(message = "", isGenerating = true)
+        chatRepository.sendChatMessage(model = currentSelectedModel.id, message = message, history = messages)
             .onStart {
-                analytics.event("send_message", mapOf("model" to selectedModel.key))
-                val newMessages = _state.value.messages +
-                        ChatMessageUI.OwnMessage(message) +
-                        assistantMessage
-                _events.emit(ChatEvent.ClearTextInput)
-                _state.value = _state.value.copy(messages = newMessages, isLoading = true)
+                analytics.event("send_message", mapOf("model" to currentSelectedModel.id))
+                stateMutex.withLock {
+                    val newMessages = messages + userMessage + assistantMessage
+                    _events.emit(ChatEvent.ClearTextInput)
+                    _state.value = ChatState.Content(
+                        messages = newMessages.toMessageUI(),
+                        models = models.toChatModelUI(),
+                        selectedModel = selectedModel?.toChatModelUI(),
+                        controlsEnabled = false
+                    )
+                }
             }
             .onCompletion {
-                _state.value = _state.value.copy(isLoading = false)
+                stateMutex.withLock {
+                    val newMessages = messages + userMessage + assistantMessage
+                    messages = newMessages
+                    _state.value = ChatState.Content(
+                        messages = newMessages.toMessageUI(),
+                        models = models.toChatModelUI(),
+                        selectedModel = selectedModel?.toChatModelUI(),
+                        controlsEnabled = true
+                    )
+                }
+                delay(50)
+                _events.emit(ChatEvent.FocusOnTextInput)
             }
             .catch {
-                val newMessages = _state.value.messages.subList(0, _state.value.messages.size - 1)
-                _state.value = _state.value.copy(messages = newMessages, isLoading = false)
+                //TODO handle errors
+                stateMutex.withLock {
+                    val newMessages = messages + userMessage
+                    _state.value = ChatState.Content(
+                        messages = newMessages.toMessageUI(),
+                        models = models.toChatModelUI(),
+                        selectedModel = selectedModel?.toChatModelUI(),
+                        controlsEnabled = true
+                    )
+                }
+                delay(50)
+                _events.emit(ChatEvent.FocusOnTextInput)
             }
             .collect { chunk ->
                 assistantMessage = assistantMessage.copy(
-                    text = assistantMessage.text + chunk.message.content,
+                    message = assistantMessage.message + chunk.message.content,
                     isGenerating = chunk.done?.not() ?: false
                 )
-                val newMessages = _state.value.messages.subList(0, _state.value.messages.size - 1) + assistantMessage
-                _state.value = _state.value.copy(messages = newMessages)
+                stateMutex.withLock {
+                    val newMessages = messages + userMessage + assistantMessage
+                    _state.value = ChatState.Content(
+                        messages = newMessages.toMessageUI(),
+                        models = models.toChatModelUI(),
+                        selectedModel = selectedModel?.toChatModelUI(),
+                        controlsEnabled = false
+                    )
+                }
+
             }
 
     }
 
-    fun onModelChanged(model: ChatModelUI) {
+    fun onModelChanged(model: ChatModelUI) = inBackground {
         analytics.event("model_changed", mapOf("model" to model.key))
-        _state.getAndUpdate { current ->
-            current.copy(selectedModel = current.models.firstOrNull { it.key == model.key })
+        stateMutex.withLock {
+            selectedModel = models.firstOrNull { it.id == model.key }
+            _state.value = ChatState.Content(
+                messages = messages.toMessageUI(),
+                models = models.toChatModelUI(),
+                selectedModel = selectedModel?.toChatModelUI(),
+                controlsEnabled = true
+            )
         }
     }
+}
+
+private fun Model.toChatModelUI() = ChatModelUI(this.id, this.id)
+
+private fun List<Model>.toChatModelUI() = map { it.toChatModelUI() }
+
+private fun List<ChatMessage>.toMessageUI() = map {
+    when (it) {
+        is ChatMessage.Assistant -> ChatMessageUI.Assistant(
+            text = it.message,
+            isGenerating = false
+        )
+
+        is ChatMessage.User -> ChatMessageUI.User(
+            text = it.message
+        )
+    }
+
 }
 
 
 sealed interface ChatEvent {
     data object ClearTextInput : ChatEvent
+    data object FocusOnTextInput : ChatEvent
 }
 
-data class ChatState(
-    val messages: List<ChatMessageUI> = emptyList(),
-    val models: List<ChatModelUI> = emptyList(),
-    val selectedModel: ChatModelUI? = null,
-    val isLoading: Boolean = false,
-    val errorLoading: Boolean = false,
-)
+sealed interface ChatState {
+    data class Content(
+        val messages: List<ChatMessageUI> = emptyList(),
+        val models: List<ChatModelUI> = emptyList(),
+        val selectedModel: ChatModelUI? = null,
+        val controlsEnabled: Boolean,
+    ) : ChatState
+
+    data class Error(
+        val title: String,
+        val message: String,
+        val showTryAgain: Boolean,
+    ) : ChatState
+
+    data object Loading : ChatState
+}
 
 data class ChatModelUI(
     val key: String,
@@ -126,11 +228,11 @@ data class ChatModelUI(
 
 sealed interface ChatMessageUI {
 
-    data class OwnMessage(
+    data class User(
         val text: String,
     ) : ChatMessageUI
 
-    data class AssistantMessage(
+    data class Assistant(
         val text: String,
         val isGenerating: Boolean
     ) : ChatMessageUI

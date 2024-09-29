@@ -37,6 +37,7 @@ sealed interface ChatMessage {
     ) : ChatMessage
 
     data class Assistant(
-        val message: String
+        val message: String,
+        val isGenerating: Boolean,
     ) : ChatMessage
 }
