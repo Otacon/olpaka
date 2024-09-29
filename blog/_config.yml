@@ -43,6 +43,11 @@ defaults:
       layout: single
       author_profile: false
 
+analytics:
+  provider: google
+  google:
+    tracking-id: "G-K2EW7V6H3M"
+
 repository: Otacon/olpaka
 author: Orfeo Ciano
 footer:
