@@ -44,7 +44,7 @@ defaults:
       author_profile: false
 
 analytics:
-  provider: google
+  provider: google-gtag
   google:
     tracking-id: "G-K2EW7V6H3M"
 
