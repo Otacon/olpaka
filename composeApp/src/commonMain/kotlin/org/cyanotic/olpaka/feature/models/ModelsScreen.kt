@@ -56,30 +56,28 @@ fun ModelsScreen(navController: NavController) {
         backStackEntry?.savedStateHandle?.set("addModel", null)
         addModel?.let { viewModel.onAddModel(it) }
     }
-    val currentState = state
-    when {
-        currentState.isLoading && currentState.models.isEmpty() -> Loading()
-
-        currentState.error && currentState.models.isEmpty() -> Error(
+    when (val currentState = state) {
+        ModelsState.Loading -> Loading()
+        is ModelsState.Error -> Error(
             onRefreshClicked = viewModel::onRefreshClicked
         )
 
-        else -> {
-            Content(
-                state = currentState,
-                onRefreshClicked = viewModel::onRefreshClicked,
-                onAddModelClicked = viewModel::onAddModelClicked,
-                onRemoveModelClicked = viewModel::onRemoveModelClicked,
-                onCancelDownload = viewModel::onCancelDownload,
-                onRetryDownload = viewModel::onAddModel
-            )
-        }
+        is ModelsState.Content -> Content(
+            models = currentState.models,
+            controlsEnabled = currentState.controlsEnabled,
+            onRefreshClicked = viewModel::onRefreshClicked,
+            onAddModelClicked = viewModel::onAddModelClicked,
+            onRemoveModelClicked = viewModel::onRemoveModelClicked,
+            onCancelDownload = viewModel::onCancelDownload,
+            onRetryDownload = viewModel::onAddModel
+        )
     }
 }
 
 @Composable
 private fun Content(
-    state: ModelsState,
+    models: List<ModelUI>,
+    controlsEnabled: Boolean,
     onRefreshClicked: () -> Unit,
     onAddModelClicked: () -> Unit,
     onRemoveModelClicked: (model: ModelUI.Available) -> Unit,
@@ -92,7 +90,7 @@ private fun Content(
                 title = stringResource(Res.string.models_title),
                 actions = {
                     IconButton(
-                        enabled = !state.isLoading,
+                        enabled = controlsEnabled,
                         onClick = onRefreshClicked
                     ) {
                         Icon(
@@ -104,7 +102,7 @@ private fun Content(
             )
         },
         floatingActionButton = {
-            if (!state.isLoading) {
+            if (controlsEnabled) {
                 FloatingActionButton(
                     onClick = onAddModelClicked,
                 ) {
@@ -113,7 +111,7 @@ private fun Content(
             }
         }
     ) { padding ->
-        if (state.models.isEmpty()) {
+        if (models.isEmpty()) {
             EmptyScreen(
                 modifier = Modifier.fillMaxSize(),
                 title = stringResource(Res.string.models_error_no_models_title),
@@ -122,14 +120,14 @@ private fun Content(
         } else {
             LazyColumn(Modifier.fillMaxSize().padding(padding)) {
                 items(
-                    count = state.models.count(),
-                    key = { index -> state.models[index].key }
+                    count = models.count(),
+                    key = { index -> models[index].key }
                 ) { index ->
-                    when (val model = state.models[index]) {
+                    when (val model = models[index]) {
                         is ModelUI.Available -> ModelAvailable(
                             model = model,
                             onRemoveClicked = { onRemoveModelClicked(model) },
-                            removeEnabled = !state.isLoading
+                            removeEnabled = controlsEnabled
                         )
 
                         is ModelUI.Downloading -> ModelDownloading(

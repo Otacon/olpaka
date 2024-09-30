@@ -34,10 +34,10 @@ class ChatViewModel(
 
     private val stateMutex = Mutex()
 
-    private var models = listOf<Model>()
+    private var models = listOf<Model.Cached>()
     private var messages = listOf<ChatMessage>()
     private var newMessage: ChatMessage.Assistant? = null
-    private var selectedModel: Model? = null
+    private var selectedModel: Model.Cached? = null
 
     fun onCreate() = inBackground {
         launch {
@@ -72,7 +72,7 @@ class ChatViewModel(
         }
         val result = modelsRepository.getModels()
         if (result.isSuccess) {
-            val newModels = result.getOrThrow()
+            val newModels = result.getOrThrow().filterIsInstance<Model.Cached>()
             this.models = newModels
             if (newModels.isEmpty()) {
                 selectedModel = null
@@ -180,9 +180,9 @@ class ChatViewModel(
     }
 }
 
-private fun Model.toChatModelUI() = ChatModelUI(this.id, this.id)
+private fun Model.Cached.toChatModelUI() = ChatModelUI(this.id, this.id)
 
-private fun List<Model>.toChatModelUI() = map { it.toChatModelUI() }
+private fun List<Model.Cached>.toChatModelUI() = map { it.toChatModelUI() }
 
 private fun List<ChatMessage>.toMessageUI() = map {
     when (it) {
