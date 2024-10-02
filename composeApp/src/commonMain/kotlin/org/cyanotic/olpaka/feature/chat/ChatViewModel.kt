@@ -8,6 +8,11 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import olpaka.composeapp.generated.resources.*
+import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.error_missing_ollama_title
+import olpaka.composeapp.generated.resources.models_error_no_models_message
+import olpaka.composeapp.generated.resources.models_error_no_models_title
 import org.cyanotic.olpaka.core.*
 import org.cyanotic.olpaka.core.DownloadState.*
 import org.cyanotic.olpaka.core.domain.Model
@@ -22,6 +27,7 @@ class ChatViewModel(
     private val analytics: Analytics,
     private val preferences: Preferences,
     private val backgroundDispatcher: CoroutineDispatcher,
+    private val strings: StringResources,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ChatState>(ChatState.Loading)
@@ -53,7 +59,7 @@ class ChatViewModel(
         _events.emit(ChatEvent.FocusOnTextInput)
     }
 
-    fun onRefresh() = inBackground {
+    fun onRefresh() = viewModelScope.launch(backgroundDispatcher) {
         refreshModels()
     }
 
@@ -75,9 +81,9 @@ class ChatViewModel(
             if (newModels.isEmpty()) {
                 selectedModel = null
                 _state.value = ChatState.Error(
-                    title = "Title",
-                    message = "Message",
-                    showTryAgain = false,
+                    title = strings.get(Res.string.models_error_no_models_title),
+                    message = strings.get(Res.string.models_error_no_models_message),
+                    showTryAgain = true,
                 )
             } else {
                 if (selectedModel == null || !newModels.contains(selectedModel)) {
@@ -92,8 +98,8 @@ class ChatViewModel(
             }
         } else {
             _state.value = ChatState.Error(
-                title = "Error",
-                message = "Error",
+                title = strings.get(Res.string.error_missing_ollama_title),
+                message = strings.get(Res.string.error_missing_ollama_message),
                 showTryAgain = true
             )
         }

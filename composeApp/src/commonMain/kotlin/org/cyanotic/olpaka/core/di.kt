@@ -12,5 +12,6 @@ val coreModule = module {
     singleOf(::ModelDownloadStateDefault) bind ModelDownloadState::class
     singleOf(::FirebaseAnalytics) bind Analytics::class
     factoryOf(::PreferencesDefault) bind Preferences::class
+    factoryOf(::StringResourcesDefault) bind StringResources::class
     factory<CoroutineDispatcher> { Dispatchers.Default }
 }

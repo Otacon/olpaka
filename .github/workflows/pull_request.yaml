@@ -33,14 +33,45 @@ jobs:
       - name: Run unit tests
         run: ./gradlew allTests
 
-      - name: Generate test report
+      - name: Upload desktop test report
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
           name: Unit test report
           only-summary: 'true'
-          path: 'composeApp/build/test-results/**/*.xml'
+          path: 'composeApp/build/test-results/desktopTest/*.xml'
           reporter: java-junit
+          list-tests: 'failed'
+
+      - name: Upload android debug test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Unit test report
+          only-summary: 'true'
+          path: 'composeApp/build/test-results/testDebugUnitTest/*.xml'
+          reporter: java-junit
+          list-tests: 'failed'
+
+      - name: Upload android release test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Unit test report
+          only-summary: 'true'
+          path: 'composeApp/build/test-results/testReleaseUnitTest/*.xml'
+          reporter: java-junit
+          list-tests: 'failed'
+
+      - name: Upload web test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Unit test report
+          only-summary: 'true'
+          path: 'composeApp/build/test-results/wasmJsBrowserTest/*.xml'
+          reporter: java-junit
+          list-tests: 'failed'
 
       - name: Build Web app
         env:
@@ -55,9 +86,3 @@ jobs:
         with:
           name: OlpakaWeb
           path: composeApp/build/dist/wasmJs/productionExecutable/*
-
-      - name: Upload desktop artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: OlpakaDesktop
-          path: composeApp/build/libs/*
