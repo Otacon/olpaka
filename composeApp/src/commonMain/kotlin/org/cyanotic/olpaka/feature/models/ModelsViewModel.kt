@@ -30,7 +30,7 @@ class ModelsViewModel(
     private val stateMutex = Mutex()
 
     private var cachedModels = listOf<Model.Cached>()
-    private var downloadingModel :Model.Downloading? = null
+    private var downloadingModel: ModelUI? = null
     private var downloadProcess: Job? = null
 
     fun onCreate() = inBackground {
@@ -58,11 +58,11 @@ class ModelsViewModel(
                 .cancellable()
                 .onStart {
                     stateMutex.withLock {
-                        val newModel = Model.Downloading(
-                            id = tag,
-                            name = tag,
-                            downloaded = 0,
-                            size = 0
+                        val newModel = ModelUI.Downloading(
+                            key = tag,
+                            title = tag,
+                            subtitle = "Downloading...",
+                            progress = null
                         )
                         val newModels = cachedModels.mapNotNull {
                             if (it.id == tag) {
@@ -72,7 +72,7 @@ class ModelsViewModel(
                             }
                         }
                         downloadingModel = newModel
-                        val modelsUi = (newModels + newModel).toModelUI()
+                        val modelsUi = (newModels).toModelUI() + newModel
                         _state.value = ModelsState.Content(
                             models = modelsUi,
                             controlsEnabled = false
@@ -80,22 +80,18 @@ class ModelsViewModel(
                         modelDownloadState.setDownloading()
                     }
                 }
-                .onCompletion {
-                    downloadingModel = null
+                .onCompletion { throwable ->
+                    val newDownloadingModel = if (throwable != null) {
+                        ModelUI.Error(key = tag, title = "Unable to download $tag", subtitle = "Try again")
+                    } else {
+                        null
+                    }
+                    downloadingModel = newDownloadingModel
                     analytics.event(eventName = "download_model", properties = mapOf("model" to tag))
                     viewModelScope.launch {
                         refreshModels()
                         modelDownloadState.setCompleted()
                     }
-                }
-                .catch {
-                    val newModels = cachedModels.toModelUI()
-                    downloadingModel = null
-                    // TODO handle model error
-                    _state.value = ModelsState.Content(
-                        models = newModels,
-                        controlsEnabled = true
-                    )
                 }
                 .collect { chunk ->
                     val newModel = when (chunk) {
@@ -119,7 +115,7 @@ class ModelsViewModel(
                             )
                         }
                     }
-                    downloadingModel = newModel
+                    downloadingModel = newModel.toModelUI()
                     val newModels = (cachedModels + newModel).toModelUI()
                     _state.value = ModelsState.Content(models = newModels, controlsEnabled = false)
                 }
@@ -149,7 +145,7 @@ class ModelsViewModel(
             ModelsState.Loading
         } else {
             ModelsState.Content(
-                models = (cachedModels + downloadingModel).filterNotNull().toModelUI(),
+                models = cachedModels.toModelUI() + downloadingModel,
                 controlsEnabled = false,
             )
         }
@@ -158,8 +154,10 @@ class ModelsViewModel(
             if (result.isSuccess) {
                 val models = result.getOrThrow().filterIsInstance<Model.Cached>()
                 cachedModels = models
+
+                val newModelsUI = models.toModelUI() + downloadingModel
                 _state.value = ModelsState.Content(
-                    models = models.toModelUI(),
+                    models = newModelsUI,
                     controlsEnabled = true
                 )
             } else {
@@ -172,6 +170,14 @@ class ModelsViewModel(
         }
     }
 
+}
+
+private operator fun List<ModelUI>.plus(otherModel: ModelUI?) : List<ModelUI> {
+    return if (otherModel == null) {
+        this
+    } else {
+        this.toMutableList().also { it.add(otherModel) }
+    }
 }
 
 private fun List<Model>.toModelUI(): List<ModelUI> {
