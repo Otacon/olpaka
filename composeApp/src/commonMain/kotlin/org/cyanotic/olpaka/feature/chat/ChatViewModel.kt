@@ -12,6 +12,7 @@ import olpaka.composeapp.generated.resources.models_error_no_models_title
 import org.cyanotic.olpaka.core.DownloadState.*
 import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.ModelDownloadState
+import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.repository.ChatMessage
@@ -23,7 +24,8 @@ class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val modelsRepository: ModelsRepository,
     private val modelDownloadState: ModelDownloadState,
-    private val analytics: FirebaseAnalytics
+    private val analytics: FirebaseAnalytics,
+    private val preferences: Preferences,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ChatState>(ChatState.Loading)
@@ -82,8 +84,8 @@ class ChatViewModel(
                     showTryAgain = false,
                 )
             } else {
-                if (selectedModel == null) {
-                    selectedModel = newModels.first()
+                if (selectedModel == null || !newModels.contains(selectedModel)) {
+                    selectedModel = newModels.firstOrNull { it.id == preferences.lastUsedModel } ?: newModels.first()
                 }
                 _state.value = ChatState.Content(
                     messages = (messages + newMessage).filterNotNull().toMessageUI(),
@@ -109,6 +111,7 @@ class ChatViewModel(
             .onStart {
                 analytics.event("send_message", mapOf("model" to currentSelectedModel.id))
                 stateMutex.withLock {
+                    preferences.lastUsedModel = currentSelectedModel.id
                     val newMessages = messages + userMessage + assistantMessage
                     _events.emit(ChatEvent.ClearTextInput)
                     _state.value = ChatState.Content(
@@ -119,24 +122,14 @@ class ChatViewModel(
                     )
                 }
             }
-            .onCompletion {
+            .onCompletion { throwable ->
                 stateMutex.withLock {
-                    val newMessages = messages + userMessage + assistantMessage
+                    val newMessages = if (throwable != null) {
+                        messages + userMessage
+                    } else {
+                        messages + userMessage + assistantMessage
+                    }
                     messages = newMessages
-                    _state.value = ChatState.Content(
-                        messages = newMessages.toMessageUI(),
-                        models = models.toChatModelUI(),
-                        selectedModel = selectedModel?.toChatModelUI(),
-                        controlsEnabled = true
-                    )
-                }
-                delay(50)
-                _events.emit(ChatEvent.FocusOnTextInput)
-            }
-            .catch {
-                //TODO handle errors
-                stateMutex.withLock {
-                    val newMessages = messages + userMessage
                     _state.value = ChatState.Content(
                         messages = newMessages.toMessageUI(),
                         models = models.toChatModelUI(),
@@ -188,7 +181,7 @@ private fun List<ChatMessage>.toMessageUI() = map {
     when (it) {
         is ChatMessage.Assistant -> ChatMessageUI.Assistant(
             text = it.message,
-            isGenerating = false
+            isGenerating = it.isGenerating
         )
 
         is ChatMessage.User -> ChatMessageUI.User(
