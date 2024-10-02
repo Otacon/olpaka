@@ -46,7 +46,7 @@
     <string name="onboarding_step_2_a">To get started, you'll need to download and install Ollama.</string>
     <string name="onboarding_step_2_b">Click on "Next" once you're done.</string>
     <string name="onboarding_step_3_a">To allow Olpaka to communicate with Ollama, you'll need to set up CORS.</string>
-    <string name="onboarding_step_3_b">Once you've configured CORS, you can check whether Olpaka is able to communicate with Olpaka by using the button below.</string>
+    <string name="onboarding_step_3_b">Once you've configured CORS, you can check whether Olpaka is able to communicate with Ollama by using the button below.</string>
     <string name="onboarding_step_3_c">If it still doesn't work try to restart Ollama before continuing.</string>
     <string name="onboarding_download_ollama">Download Ollama</string>
     <string name="onboarding_setup_cors">Setup CORS</string>
