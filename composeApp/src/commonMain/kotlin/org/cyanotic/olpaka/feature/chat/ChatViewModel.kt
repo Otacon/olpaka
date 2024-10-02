@@ -8,12 +8,16 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.models_error_no_models_message
+import olpaka.composeapp.generated.resources.models_error_no_models_title
 import org.cyanotic.olpaka.core.*
 import org.cyanotic.olpaka.core.DownloadState.*
 import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.repository.ChatMessage
 import org.cyanotic.olpaka.repository.ChatRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
+import org.jetbrains.compose.resources.getString
 
 class ChatViewModel(
     private val chatRepository: ChatRepository,
@@ -75,8 +79,8 @@ class ChatViewModel(
             if (newModels.isEmpty()) {
                 selectedModel = null
                 _state.value = ChatState.Error(
-                    title = "Title",
-                    message = "Message",
+                    title = getString(Res.string.models_error_no_models_title),
+                    message = getString(Res.string.models_error_no_models_message),
                     showTryAgain = false,
                 )
             } else {
