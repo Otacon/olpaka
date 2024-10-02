@@ -1,5 +1,7 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.BOOLEAN
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -14,6 +16,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.buildKonfig)
+    alias(libs.plugins.mokkery)
 }
 
 buildkonfig {
@@ -41,6 +44,30 @@ buildkonfig {
         buildConfigField(STRING, "loggingLevel", "verbose")
         buildConfigField(BOOLEAN, "allowClearPreferences", "true")
     }
+}
+
+tasks.withType<Test> {
+    testLogging {
+
+        events = setOf(
+            TestLogEvent.PASSED,
+            TestLogEvent.FAILED,
+            TestLogEvent.SKIPPED,
+            TestLogEvent.STANDARD_OUT,
+            TestLogEvent.STANDARD_ERROR,
+        )
+
+        exceptionFormat = TestExceptionFormat.FULL
+        ignoreFailures = true
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        showStandardStreams = true
+
+        reports.html.required = false
+        reports.junitXml.required = true
+    }
+
 }
 
 kotlin {
@@ -93,6 +120,7 @@ kotlin {
 
             implementation(libs.kotlinx.coroutines.android)
         }
+
         commonMain.dependencies {
             implementation(compose.foundation)
             implementation(compose.components.resources)
@@ -139,8 +167,14 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
         }
+
         wasmJsMain.dependencies {
             implementation(devNpm("firebase", "10.13.2"))
+        }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }

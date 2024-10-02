@@ -9,11 +9,23 @@ import org.cyanotic.olpaka.ui.theme.OlpakaTheme
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-class Preferences {
+interface Preferences {
+
+    val analyticsClientId: String
+    var hasSeenOnboarding: Boolean
+    var lastUsedModel: String?
+    var themeMode: OlpakaTheme
+    var connectionHost: String
+    var themeColor: OlpakaColor
+
+    fun clear()
+}
+
+class PreferencesDefault : Preferences {
     private val settings = Settings()
 
     @OptIn(ExperimentalUuidApi::class)
-    val analyticsClientId: String
+    override val analyticsClientId: String
         get() {
             val clientId = settings.getStringOrNull(KEY_ANALYTICS_IDENTIFIER)
             return if (clientId == null) {
@@ -25,7 +37,7 @@ class Preferences {
             }
         }
 
-    var hasSeenOnboarding: Boolean
+    override var hasSeenOnboarding: Boolean
         set(value) {
             settings[KEY_SEEN_ONBOARDING] = value
         }
@@ -33,7 +45,7 @@ class Preferences {
             return settings[KEY_SEEN_ONBOARDING] ?: false
         }
 
-    var lastUsedModel: String?
+    override var lastUsedModel: String?
         set(value) {
             settings[KEY_LAST_USED_MODEL] = value
 
@@ -42,7 +54,7 @@ class Preferences {
             return settings[KEY_LAST_USED_MODEL]
         }
 
-    var themeMode: OlpakaTheme
+    override var themeMode: OlpakaTheme
         set(value) {
             val mode = when (value) {
                 OlpakaTheme.AUTO -> VALUE_THEME_AUTO
@@ -59,7 +71,7 @@ class Preferences {
             }
         }
 
-    var connectionHost: String
+    override var connectionHost: String
         set(value) {
             settings[KEY_CONNECTION_HOST] = value
         }
@@ -67,7 +79,7 @@ class Preferences {
             return settings.getString(KEY_CONNECTION_HOST, DEFAULT_OLLAMA_API_URL)
         }
 
-    var themeColor: OlpakaColor
+    override var themeColor: OlpakaColor
         set(value) {
             val mode = when (value) {
                 OlpakaColor.OLPAKA -> VALUE_THEME_COLOR_OLPAKA
@@ -92,7 +104,7 @@ class Preferences {
             }
         }
 
-    fun clear() {
+    override fun clear() {
         settings.clear()
     }
 

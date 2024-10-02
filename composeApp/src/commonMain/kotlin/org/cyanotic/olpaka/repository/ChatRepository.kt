@@ -1,16 +1,27 @@
 package org.cyanotic.olpaka.repository
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.cyanotic.olpaka.network.*
 
-class ChatRepository(
-    private val client: OllamaRestClient,
-) {
+interface ChatRepository {
 
     fun sendChatMessage(
         model: String,
         message: String,
         history: List<ChatMessage> = emptyList()
+    ): Flow<ChatResponseDTO>
+
+}
+
+class ChatRepositoryDefault(
+    private val client: OllamaRestClient,
+) : ChatRepository {
+
+    override fun sendChatMessage(
+        model: String,
+        message: String,
+        history: List<ChatMessage>
     ) = flow {
         val messages = history.map {
             when (it) {

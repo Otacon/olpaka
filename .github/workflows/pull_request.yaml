@@ -25,6 +25,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Run Unit test
+        run: ./gradlew desktopTest
+
+      - uses: dorny/test-reporter@v1
+        with:
+          name: Generate test report
+          only-summary: 'true'
+          path: 'composeApp/build/test-results/**/*.xml'
+          reporter: java-junit
+          use-actions-summary: 'true'
+
       - name: Build Web app
         env:
           FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
@@ -32,13 +43,6 @@ jobs:
           BASE_HREF: ${{ vars.BASE_HREF }}
         run: |
           ./gradlew :composeApp:wasmJsBrowserDistribution -Pbuildkonfig.flavor=release
-
-      - name: Build Desktop app
-        env:
-          ANALYTICS_API_SECRET: ${{ secrets.ANALYTICS_API_SECRET }}
-          ANALYTICS_MEASUREMENT_ID: ${{ secrets.ANALYTICS_MEASUREMENT_ID }}
-        run: |
-          ./gradlew desktopJar --quiet -Pbuildkonfig.flavor=release
 
       - name: Upload web artifacts
         uses: actions/upload-artifact@v4

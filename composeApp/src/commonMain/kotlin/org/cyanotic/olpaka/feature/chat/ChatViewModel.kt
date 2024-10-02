@@ -1,6 +1,8 @@
 package org.cyanotic.olpaka.feature.chat
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -9,12 +11,9 @@ import kotlinx.coroutines.sync.withLock
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.models_error_no_models_message
 import olpaka.composeapp.generated.resources.models_error_no_models_title
+import org.cyanotic.olpaka.core.*
 import org.cyanotic.olpaka.core.DownloadState.*
-import org.cyanotic.olpaka.core.FirebaseAnalytics
-import org.cyanotic.olpaka.core.ModelDownloadState
-import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.domain.Model
-import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.repository.ChatMessage
 import org.cyanotic.olpaka.repository.ChatRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
@@ -24,8 +23,9 @@ class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val modelsRepository: ModelsRepository,
     private val modelDownloadState: ModelDownloadState,
-    private val analytics: FirebaseAnalytics,
+    private val analytics: Analytics,
     private val preferences: Preferences,
+    private val backgroundDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ChatState>(ChatState.Loading)
@@ -41,7 +41,8 @@ class ChatViewModel(
     private var newMessage: ChatMessage.Assistant? = null
     private var selectedModel: Model.Cached? = null
 
-    fun onCreate() = inBackground {
+    fun onCreate() = viewModelScope.launch(backgroundDispatcher) {
+        analytics.screenView("chat")
         launch {
             modelDownloadState.currentDownloadState.collect {
                 when (it) {
@@ -51,7 +52,6 @@ class ChatViewModel(
                 }
             }
         }
-        analytics.screenView("chat")
         refreshModels()
         delay(50)
         _events.emit(ChatEvent.FocusOnTextInput)
