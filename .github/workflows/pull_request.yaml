@@ -30,13 +30,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Unit test
+      - name: Run unit tests
         run: ./gradlew desktopTest
 
-      - uses: dorny/test-reporter@v1
+      - uses: Generate test report
         if: success() || failure()
         with:
-          name: Generate test report
+          name: Unit test report
           only-summary: 'true'
           path: 'composeApp/build/test-results/**/*.xml'
           reporter: java-junit

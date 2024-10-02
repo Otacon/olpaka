@@ -41,8 +41,8 @@ class ChatViewModelTest {
 
         // THEN
         val loadedState = ChatState.Error(
-            title = "This is empty...",
-            message = "Download your first model by tapping the button below.",
+            title = "Title",
+            message = "Message",
             showTryAgain = false,
         )
         assertEquals(loadedState, viewModel.state.value)
