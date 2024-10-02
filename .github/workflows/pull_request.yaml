@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run unit tests
-        run: ./gradlew desktopTest
+        run: ./gradlew test
 
       - name: Generate test report
         uses: dorny/test-reporter@v1
