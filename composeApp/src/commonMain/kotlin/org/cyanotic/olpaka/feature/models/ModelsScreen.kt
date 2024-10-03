@@ -25,7 +25,9 @@ import org.cyanotic.olpaka.ui.EmptyScreen
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 
+@OptIn(KoinExperimentalAPI::class)
 @Composable
 fun ModelsScreen(navController: NavController) {
     val viewModel = koinViewModel<ModelsViewModel>()

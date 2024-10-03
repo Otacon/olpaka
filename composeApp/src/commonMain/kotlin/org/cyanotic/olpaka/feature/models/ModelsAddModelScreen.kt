@@ -18,7 +18,9 @@ import olpaka.composeapp.generated.resources.models_dialog_download_model_title
 import org.cyanotic.olpaka.core.Results.RESULT_ADD_MODEL_KEY
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 
+@OptIn(KoinExperimentalAPI::class)
 @Composable
 fun ModelsAddModelScreen(navController: NavController) {
     val viewModel = koinViewModel<ModelsAddModelViewModel>()

@@ -105,8 +105,8 @@ class ChatViewModel(
         }
     }
 
-    fun onSubmit(message: String) = inBackground {
-        val currentSelectedModel = selectedModel ?: return@inBackground
+    fun onSubmit(message: String) = viewModelScope.launch(backgroundDispatcher) {
+        val currentSelectedModel = selectedModel ?: return@launch
         val userMessage = ChatMessage.User(message)
         var assistantMessage = ChatMessage.Assistant(message = "", isGenerating = true)
         chatRepository.sendChatMessage(model = currentSelectedModel.id, message = message, history = messages)
@@ -145,7 +145,7 @@ class ChatViewModel(
             .collect { chunk ->
                 assistantMessage = assistantMessage.copy(
                     message = assistantMessage.message + chunk.message.content,
-                    isGenerating = chunk.done?.not() ?: false
+                    isGenerating = chunk.done?.not() ?: true
                 )
                 stateMutex.withLock {
                     val newMessages = messages + userMessage + assistantMessage
@@ -161,7 +161,7 @@ class ChatViewModel(
 
     }
 
-    fun onModelChanged(model: ChatModelUI) = inBackground {
+    fun onModelChanged(model: ChatModelUI) = viewModelScope.launch(backgroundDispatcher) {
         analytics.event("model_changed", mapOf("model" to model.key))
         stateMutex.withLock {
             selectedModel = models.firstOrNull { it.id == model.key }

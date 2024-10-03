@@ -37,7 +37,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: Unit test report
+          name: Desktop test report
           only-summary: 'true'
           path: 'composeApp/build/test-results/desktopTest/*.xml'
           reporter: java-junit
@@ -47,7 +47,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: Unit test report
+          name: Android debug test report
           only-summary: 'true'
           path: 'composeApp/build/test-results/testDebugUnitTest/*.xml'
           reporter: java-junit
@@ -57,7 +57,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: Unit test report
+          name: Android release test report
           only-summary: 'true'
           path: 'composeApp/build/test-results/testReleaseUnitTest/*.xml'
           reporter: java-junit
@@ -67,7 +67,7 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: Unit test report
+          name: Web test report
           only-summary: 'true'
           path: 'composeApp/build/test-results/wasmJsBrowserTest/*.xml'
           reporter: java-junit

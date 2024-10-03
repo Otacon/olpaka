@@ -27,7 +27,6 @@ buildkonfig {
     val analyticsApiSecret = System.getenv("ANALYTICS_API_SECRET") ?: ""
     val firebaseWebConfig = System.getenv("FIREBASE_WEB_CONFIG_JSON") ?: ""
 
-    println("FirebaseWebConfig exists? ${firebaseWebConfig.isNotBlank()}")
     val decodedWebConfig = Base64.getDecoder().decode(firebaseWebConfig).decodeToString()
 
     defaultConfigs {
@@ -70,7 +69,13 @@ tasks.withType<Test> {
 
 }
 
+@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         moduleName = "composeApp"
@@ -175,6 +180,7 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.turbine)
         }
     }
 }
