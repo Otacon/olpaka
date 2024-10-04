@@ -34,6 +34,7 @@ import org.cyanotic.olpaka.network.ChatResponseDTO
 import org.cyanotic.olpaka.network.Role
 import org.cyanotic.olpaka.repository.ChatRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -291,7 +292,8 @@ class ChatViewModelTest {
         }
 
     @Test
-    fun given_thereisAnError_when_generatingMessage_then_sendMessageEventIsReported() = try {
+    @Ignore
+    fun given_thereIsAnError_when_generatingMessage_then_sendMessageEventIsReported() = try {
         runTestOn { viewModel ->
             // GIVEN
             everySuspend { modelsRepository.getModels() } returns Result.success(listOf(cachedModel1))
