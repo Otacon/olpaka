@@ -20,7 +20,7 @@ import org.koin.core.component.inject
 import kotlin.coroutines.CoroutineContext
 
 
-actual class FirebaseAnalytics : CoroutineScope, KoinComponent {
+actual class FirebaseAnalytics : CoroutineScope, KoinComponent, Analytics {
 
     override val coroutineContext: CoroutineContext
         get() = SupervisorJob() + Dispatchers.Default
@@ -35,20 +35,20 @@ actual class FirebaseAnalytics : CoroutineScope, KoinComponent {
     private var session: String = Clock.System.now().toEpochMilliseconds().toString()
     private var startTime: Long = Clock.System.now().toEpochMilliseconds()
 
-    actual fun init() {
+    actual override fun init() {
         this.measurementId = BuildKonfig.analyticsMeasurementId
         this.apiSecret = BuildKonfig.analyticsApiSecret
         this.clientId = preferences.analyticsClientId
     }
 
-    actual fun screenView(screenName: String) {
+    actual override fun screenView(screenName: String) {
         track(
             EVENT_NAME_SCREEN_VIEW,
             mapOf("screen_name" to screenName)
         )
     }
 
-    actual fun event(eventName: String, properties: Map<String,Any?>) {
+    actual override fun event(eventName: String, properties: Map<String,Any?>) {
         track(eventName, properties)
     }
 

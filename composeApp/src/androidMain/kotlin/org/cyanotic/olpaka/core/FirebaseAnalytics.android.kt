@@ -1,13 +1,13 @@
 package org.cyanotic.olpaka.core
 
-actual class FirebaseAnalytics {
-    actual fun init() {
+actual class FirebaseAnalytics : Analytics {
+    actual override fun init() {
     }
 
-    actual fun screenView(screenName: String) {
+    actual override fun screenView(screenName: String) {
     }
 
-    actual fun event(eventName: String, properties: Map<String, Any?>) {
+    actual override fun event(eventName: String, properties: Map<String, Any?>) {
     }
 
 }

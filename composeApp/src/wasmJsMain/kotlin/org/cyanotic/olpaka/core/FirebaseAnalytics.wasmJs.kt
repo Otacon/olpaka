@@ -6,11 +6,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-actual class FirebaseAnalytics {
+actual class FirebaseAnalytics : Analytics {
 
     private var analytics: JsAny? = null
 
-    actual fun init() {
+    actual override fun init() {
 
         try {
             val configurationJson = BuildKonfig.firebaseWebConfigJson
@@ -36,12 +36,12 @@ actual class FirebaseAnalytics {
 
     }
 
-    actual fun screenView(screenName: String) {
+    actual override fun screenView(screenName: String) {
         analytics?.let { logEvent(it, screenName) }
 
     }
 
-    actual fun event(eventName: String, properties: Map<String, Any?>) {
+    actual override fun event(eventName: String, properties: Map<String, Any?>) {
         analytics?.let { logEvent(it, eventName, properties.toJsAny()) }
     }
 

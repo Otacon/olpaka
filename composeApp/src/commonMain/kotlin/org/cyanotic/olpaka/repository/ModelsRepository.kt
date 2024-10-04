@@ -1,5 +1,6 @@
 package org.cyanotic.olpaka.repository
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
@@ -7,19 +8,26 @@ import kotlinx.serialization.Serializable
 import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.network.OllamaRestClient
 
-class ModelsRepository(
-    private val restClient: OllamaRestClient,
-) {
+interface ModelsRepository {
+    suspend fun getModels(): Result<List<Model>>
 
-    suspend fun getModels(): Result<List<Model>> {
+    suspend fun removeModel(tag: String): Result<Unit>
+    fun downloadModel(tag: String): Flow<DownloadModelProgress>
+}
+
+class ModelsRepositoryDefault(
+    private val restClient: OllamaRestClient,
+) : ModelsRepository {
+
+    override suspend fun getModels(): Result<List<Model>> {
         return restClient.listModels()
     }
 
-    suspend fun removeModel(tag: String): Result<Unit> {
+    override suspend fun removeModel(tag: String): Result<Unit> {
         return restClient.removeModel(RemoveModelRequestDTO(tag))
     }
 
-    fun downloadModel(tag: String) = flow {
+    override fun downloadModel(tag: String) = flow {
         val request = DownloadModelRequestDTO(tag)
         restClient.downloadModel(request)
             .map { chunk ->

@@ -2,18 +2,25 @@ package org.cyanotic.olpaka.core
 
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class ModelDownloadState {
-    val currentDownloadState = MutableStateFlow(DownloadState.INACTIVE)
+interface ModelDownloadState {
+    val currentDownloadState: MutableStateFlow<DownloadState>
+    fun setDownloading()
+    fun setCompleted()
+    fun setInactive()
+}
 
-    fun setDownloading() {
+class ModelDownloadStateDefault : ModelDownloadState {
+    override val currentDownloadState = MutableStateFlow(DownloadState.INACTIVE)
+
+    override fun setDownloading() {
         currentDownloadState.value = DownloadState.DOWNLOADING
     }
 
-    fun setCompleted() {
+    override fun setCompleted() {
         currentDownloadState.value = DownloadState.COMPLETED
     }
 
-    fun setInactive() {
+    override fun setInactive() {
         currentDownloadState.value = DownloadState.INACTIVE
     }
 }

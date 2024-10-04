@@ -11,6 +11,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  checks: write
+  contents: write
+  pull-requests: write
+
 jobs:
   build-app:
     runs-on: ubuntu-latest
@@ -25,6 +30,49 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Run unit tests
+        run: ./gradlew allTests
+
+      - name: Upload desktop test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Desktop test report
+          only-summary: 'true'
+          path: 'composeApp/build/test-results/desktopTest/*.xml'
+          reporter: java-junit
+          list-tests: 'failed'
+
+      - name: Upload android debug test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Android debug test report
+          only-summary: 'true'
+          path: 'composeApp/build/test-results/testDebugUnitTest/*.xml'
+          reporter: java-junit
+          list-tests: 'failed'
+
+      - name: Upload android release test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Android release test report
+          only-summary: 'true'
+          path: 'composeApp/build/test-results/testReleaseUnitTest/*.xml'
+          reporter: java-junit
+          list-tests: 'failed'
+
+      - name: Upload web test report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: Web test report
+          only-summary: 'true'
+          path: 'composeApp/build/test-results/wasmJsBrowserTest/*.xml'
+          reporter: java-junit
+          list-tests: 'failed'
+
       - name: Build Web app
         env:
           FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
@@ -33,21 +81,8 @@ jobs:
         run: |
           ./gradlew :composeApp:wasmJsBrowserDistribution -Pbuildkonfig.flavor=release
 
-      - name: Build Desktop app
-        env:
-          ANALYTICS_API_SECRET: ${{ secrets.ANALYTICS_API_SECRET }}
-          ANALYTICS_MEASUREMENT_ID: ${{ secrets.ANALYTICS_MEASUREMENT_ID }}
-        run: |
-          ./gradlew desktopJar --quiet -Pbuildkonfig.flavor=release
-
       - name: Upload web artifacts
         uses: actions/upload-artifact@v4
         with:
           name: OlpakaWeb
           path: composeApp/build/dist/wasmJs/productionExecutable/*
-
-      - name: Upload desktop artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: OlpakaDesktop
-          path: composeApp/build/libs/*

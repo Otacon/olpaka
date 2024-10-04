@@ -1,5 +1,5 @@
 [versions]
-agp = "8.2.2"
+agp = "8.6.1"
 android-compileSdk = "34"
 android-minSdk = "24"
 android-targetSdk = "34"
@@ -9,16 +9,17 @@ androidx-navigation = "2.8.0-alpha10"
 buildKonfig = "0.15.2"
 compose-plugin = "1.7.0-beta02"
 coroutines = "1.9.0"
-junit = "4.13.2"
 koin-compose = "1.2.0-Beta5"
 kotlin = "2.0.20"
 kotlinx-datetime = "0.6.1"
 ktor = "3.0.0-rc-1"
 materialKolor = "1.7.1"
 markdownRenderer = "0.26.0"
+mokkery = "2.3.0"
 napier = "2.7.1"
 serialization-json = "1.7.3"
 settings = "1.2.0"
+turbine = "1.1.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
@@ -30,7 +31,7 @@ koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = 
 koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin-compose" }
 
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
@@ -52,12 +53,14 @@ materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "ma
 napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 
 settings = { group = "com.russhwolf", name = "multiplatform-settings-no-arg", version.ref = "settings" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig" }
+mokkery = { id = "dev.mokkery", version.ref = "mokkery" }

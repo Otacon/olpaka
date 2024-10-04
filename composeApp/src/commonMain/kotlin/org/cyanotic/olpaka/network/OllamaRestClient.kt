@@ -88,7 +88,7 @@ class OllamaRestClient(
         }
     }
 
-    private fun ModelDTO.toModel() = Model(
+    private fun ModelDTO.toModel() = Model.Cached(
         id = this.model,
         name = this.model.modelFriendlyName(),
         size = this.size,

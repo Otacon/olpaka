@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.models_dialog_download_model_error_already_added
+import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
@@ -26,7 +27,12 @@ class ModelsAddModelViewModel(
     fun onCreate() = inBackground {
         models = repository.getModels()
             .getOrDefault(emptyList())
-            .map { it.id }
+            .map {
+                when(it){
+                    is Model.Cached -> it.id
+                    is Model.Downloading -> it.id
+                }
+            }
     }
 
     fun onModelNameChanged(text: String) = inBackground {
