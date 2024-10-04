@@ -240,6 +240,46 @@ class ChatViewModelTest {
 
     }
 
+    @Test
+    fun when_generatingMessage_then_sendMessageEventIsReported() = runTestOn { viewModel ->
+        // GIVEN
+        everySuspend { modelsRepository.getModels() } returns Result.success(listOf(cachedModel1))
+        every { preferences.lastUsedModel } returns cachedModel1.id
+        everySuspend {
+            chatRepository.sendChatMessage(
+                model = cachedModel1.id,
+                message = "",
+                history = emptyList()
+            )
+        } returns flowOf()
+
+        // WHEN
+        viewModel.onCreate()
+        advanceUntilIdle()
+        viewModel.onSubmit("")
+        advanceUntilIdle()
+
+        verify { analytics.event("send_message", mapOf("model" to cachedModel1.id)) }
+
+    }
+
+    @Test
+    fun when_changingModel_then_modelIsUpdated() = runTestOn { viewModel ->
+        // GIVEN
+        everySuspend { modelsRepository.getModels() } returns Result.success(listOf(cachedModel1, cachedModel2))
+        every { preferences.lastUsedModel } returns cachedModel1.id
+
+        // WHEN
+        viewModel.onCreate()
+        advanceUntilIdle()
+        viewModel.onModelChanged(cachedModel2Ui)
+        advanceUntilIdle()
+
+        val selectedStateModel = (viewModel.state.value as ChatState.Content).selectedModel
+        assertEquals(cachedModel2Ui, selectedStateModel)
+
+    }
+
     private fun runTestOn(body: suspend TestScope.(viewModel: ChatViewModel) -> Unit) = runTest {
         val viewModel = ChatViewModel(
             chatRepository = chatRepository,
