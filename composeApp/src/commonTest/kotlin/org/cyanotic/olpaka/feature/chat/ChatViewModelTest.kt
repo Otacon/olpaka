@@ -7,6 +7,7 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.mock
 import dev.mokkery.verify
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import kotlinx.io.IOException
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.error_missing_ollama_message
@@ -381,13 +383,15 @@ class ChatViewModelTest {
     }
 
     private fun runTestOn(body: suspend TestScope.(viewModel: ChatViewModel) -> Unit) = runTest {
+        val testDispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(testDispatcher)
         val viewModel = ChatViewModel(
             chatRepository = chatRepository,
             modelsRepository = modelsRepository,
             modelDownloadState = modelDownloadState,
             analytics = analytics,
             preferences = preferences,
-            backgroundDispatcher = StandardTestDispatcher(testScheduler),
+            backgroundDispatcher = testDispatcher,
             strings = strings
         )
         body(viewModel)
