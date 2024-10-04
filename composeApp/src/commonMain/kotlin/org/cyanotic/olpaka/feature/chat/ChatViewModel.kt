@@ -4,17 +4,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import olpaka.composeapp.generated.resources.*
 import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.error_missing_ollama_message
 import olpaka.composeapp.generated.resources.error_missing_ollama_title
 import olpaka.composeapp.generated.resources.models_error_no_models_message
 import olpaka.composeapp.generated.resources.models_error_no_models_title
-import org.cyanotic.olpaka.core.*
-import org.cyanotic.olpaka.core.DownloadState.*
+import org.cyanotic.olpaka.core.Analytics
+import org.cyanotic.olpaka.core.DownloadState.COMPLETED
+import org.cyanotic.olpaka.core.DownloadState.DOWNLOADING
+import org.cyanotic.olpaka.core.DownloadState.INACTIVE
+import org.cyanotic.olpaka.core.ModelDownloadState
+import org.cyanotic.olpaka.core.Preferences
+import org.cyanotic.olpaka.core.StringResources
 import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.repository.ChatMessage
 import org.cyanotic.olpaka.repository.ChatRepository
@@ -55,8 +65,7 @@ class ChatViewModel(
             }
         }
         refreshModels()
-        delay(50)
-        _events.emit(ChatEvent.FocusOnTextInput)
+        focusOnTextInput()
     }
 
     fun onRefresh() = viewModelScope.launch(backgroundDispatcher) {
@@ -64,7 +73,7 @@ class ChatViewModel(
     }
 
     private suspend fun refreshModels() = stateMutex.withLock {
-        if (models.isEmpty() && messages.isEmpty()) {
+        if (_state.value is ChatState.Error) {
             _state.value = ChatState.Loading
         } else {
             _state.value = ChatState.Content(
@@ -87,7 +96,8 @@ class ChatViewModel(
                 )
             } else {
                 if (selectedModel == null || !newModels.contains(selectedModel)) {
-                    selectedModel = newModels.firstOrNull { it.id == preferences.lastUsedModel } ?: newModels.first()
+                    selectedModel = newModels.firstOrNull { it.id == preferences.lastUsedModel }
+                        ?: newModels.first()
                 }
                 _state.value = ChatState.Content(
                     messages = (messages + newMessage).filterNotNull().toMessageUI(),
@@ -108,8 +118,13 @@ class ChatViewModel(
     fun onSubmit(message: String) = viewModelScope.launch(backgroundDispatcher) {
         val currentSelectedModel = selectedModel ?: return@launch
         val userMessage = ChatMessage.User(message)
-        var assistantMessage = ChatMessage.Assistant(message = "", isGenerating = true)
-        chatRepository.sendChatMessage(model = currentSelectedModel.id, message = message, history = messages)
+        var assistantMessage =
+            ChatMessage.Assistant(message = "", isError = false, isGenerating = true)
+        chatRepository.sendChatMessage(
+            model = currentSelectedModel.id,
+            message = message,
+            history = messages
+        )
             .onStart {
                 analytics.event("send_message", mapOf("model" to currentSelectedModel.id))
                 stateMutex.withLock {
@@ -126,21 +141,18 @@ class ChatViewModel(
             }
             .onCompletion { throwable ->
                 stateMutex.withLock {
-                    val newMessages = if (throwable != null) {
-                        messages + userMessage
-                    } else {
-                        messages + userMessage + assistantMessage
-                    }
-                    messages = newMessages
+                    messages = messages + userMessage + assistantMessage.copy(
+                        isError = throwable != null,
+                        isGenerating = false
+                    )
                     _state.value = ChatState.Content(
-                        messages = newMessages.toMessageUI(),
+                        messages = messages.toMessageUI(),
                         models = models.toChatModelUI(),
                         selectedModel = selectedModel?.toChatModelUI(),
                         controlsEnabled = true
                     )
                 }
-                delay(50)
-                _events.emit(ChatEvent.FocusOnTextInput)
+                focusOnTextInput()
             }
             .collect { chunk ->
                 assistantMessage = assistantMessage.copy(
@@ -173,6 +185,11 @@ class ChatViewModel(
             )
         }
     }
+
+    private fun focusOnTextInput() = viewModelScope.launch {
+        delay(50)
+        _events.emit(ChatEvent.FocusOnTextInput)
+    }
 }
 
 private fun Model.Cached.toChatModelUI() = ChatModelUI(this.id, this.id)
@@ -183,7 +200,8 @@ private fun List<ChatMessage>.toMessageUI() = map {
     when (it) {
         is ChatMessage.Assistant -> ChatMessageUI.Assistant(
             text = it.message,
-            isGenerating = it.isGenerating
+            isGenerating = it.isGenerating,
+            isError = it.isError
         )
 
         is ChatMessage.User -> ChatMessageUI.User(
@@ -229,7 +247,8 @@ sealed interface ChatMessageUI {
 
     data class Assistant(
         val text: String,
-        val isGenerating: Boolean
+        val isGenerating: Boolean,
+        val isError: Boolean,
     ) : ChatMessageUI
 }
 

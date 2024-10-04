@@ -12,7 +12,7 @@
     <string name="chat_missing_model_error_message">To start a new conversation, make sure you've got at least one model installed.\n\nHead to the "Models" tab to download your first model.</string>
     <string name="chat_empty_screen_title">...Howdy...</string>
     <string name="chat_empty_screen_message">How can I help you today?</string>
-    <string name="chat_message_error">Whooops...something went wrong when generating the answer...</string>
+    <string name="chat_message_error">There has been an error while generating the message. Try again.</string>
 
     <string name="home_tab_name_chat">Chat</string>
     <string name="home_tab_name_models">Models</string>

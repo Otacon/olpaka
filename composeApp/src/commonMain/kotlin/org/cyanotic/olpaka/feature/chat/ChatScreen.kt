@@ -2,7 +2,18 @@ package org.cyanotic.olpaka.feature.chat
 
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -10,19 +21,57 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.mikepenz.markdown.m3.Markdown
-import olpaka.composeapp.generated.resources.*
+import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.app_name
+import olpaka.composeapp.generated.resources.chat_assistant_name
+import olpaka.composeapp.generated.resources.chat_message_error
+import olpaka.composeapp.generated.resources.chat_model_dropdown_hint
+import olpaka.composeapp.generated.resources.chat_text_input_hint
+import olpaka.composeapp.generated.resources.chat_user_name
+import olpaka.composeapp.generated.resources.error_missing_ollama_positive
+import olpaka.composeapp.generated.resources.loading
 import org.cyanotic.olpaka.ui.EmptyScreen
 import org.cyanotic.olpaka.ui.OlpakaAppBar
 import org.jetbrains.compose.resources.stringResource
@@ -43,7 +92,12 @@ fun ChatScreen() {
         viewModel.event.collect { event ->
             when (event) {
                 ChatEvent.ClearTextInput -> textState = TextFieldValue("")
-                ChatEvent.FocusOnTextInput -> { try {focusRequester.requestFocus() } catch (_: Exception){}  }
+                ChatEvent.FocusOnTextInput -> {
+                    try {
+                        focusRequester.requestFocus()
+                    } catch (_: Exception) {
+                    }
+                }
             }
         }
     }
@@ -123,8 +177,8 @@ private fun ColumnScope.MessageList(
 
         is ChatState.Error -> EmptyScreen(
             modifier = Modifier.fillMaxWidth().weight(1.0f),
-            title = stringResource(Res.string.chat_missing_model_error_title),
-            subtitle = stringResource(Res.string.chat_missing_model_error_message),
+            title = state.title,
+            subtitle = state.message,
             cta = {
                 if (state.showTryAgain) {
                     Button(
@@ -145,44 +199,36 @@ private fun ColumnScope.MessageList(
         ) {
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Loading...")
+            Text(stringResource(Res.string.loading))
         }
     }
 }
 
 @Composable
-private fun ColumnScope.Content(
+private fun Content(
     modifier: Modifier,
     chatListState: LazyListState,
     messages: List<ChatMessageUI>
 ) {
-    if(messages.isEmpty()){
-        EmptyScreen(
-            modifier = Modifier.fillMaxWidth().weight(1.0f),
-            title = stringResource(Res.string.chat_empty_screen_title),
-            subtitle = stringResource(Res.string.chat_empty_screen_message),
-        )
-    } else {
-        LazyColumn(
-            modifier = modifier,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            state = chatListState
-        ) {
-            items(
-                messages.size,
-                key = { index -> "$index" }
-            ) { index ->
-                when (val item = messages[index]) {
-                    is ChatMessageUI.Assistant -> AssistantMessage(
-                        modifier = Modifier.fillMaxWidth(0.75f),
-                        message = item
-                    )
+    LazyColumn(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        state = chatListState
+    ) {
+        items(
+            messages.size,
+            key = { index -> "$index" }
+        ) { index ->
+            when (val item = messages[index]) {
+                is ChatMessageUI.Assistant -> AssistantMessage(
+                    modifier = Modifier.fillMaxWidth(0.75f),
+                    message = item
+                )
 
-                    is ChatMessageUI.User -> OwnMessage(
-                        modifier = Modifier.fillMaxWidth(0.75f),
-                        message = item,
-                    )
-                }
+                is ChatMessageUI.User -> OwnMessage(
+                    modifier = Modifier.fillMaxWidth(0.75f),
+                    message = item,
+                )
             }
         }
     }
@@ -313,13 +359,17 @@ private fun OwnMessage(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(stringResource(Res.string.chat_user_name), style = MaterialTheme.typography.headlineSmall)
+            Text(
+                stringResource(Res.string.chat_user_name),
+                style = MaterialTheme.typography.headlineSmall
+            )
             Spacer(Modifier.height(8.dp))
             SelectionContainer { Markdown(message.text) }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AssistantMessage(
     modifier: Modifier = Modifier,
@@ -345,6 +395,23 @@ private fun AssistantMessage(
                         modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp
                     )
+                } else if (message.isError) {
+                    Spacer(Modifier.width(8.dp))
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                        tooltip = {
+                            PlainTooltip {
+                                Text(stringResource(Res.string.chat_message_error))
+                            }
+                        },
+                        state = rememberTooltipState()
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(16.dp),
+                            imageVector = Icons.Outlined.ErrorOutline,
+                            contentDescription = null
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(8.dp))
@@ -369,7 +436,8 @@ private fun ChatViewPreview() {
             ),
             ChatMessageUI.Assistant(
                 text = "This is because ",
-                isGenerating = true
+                isGenerating = true,
+                isError = false
             )
         ),
         models = listOf(

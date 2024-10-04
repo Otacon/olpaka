@@ -2,7 +2,12 @@ package org.cyanotic.olpaka.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.cyanotic.olpaka.network.*
+import org.cyanotic.olpaka.network.ChatMessageDTO
+import org.cyanotic.olpaka.network.ChatMessageRequestDTO
+import org.cyanotic.olpaka.network.ChatOptionsDTO
+import org.cyanotic.olpaka.network.ChatResponseDTO
+import org.cyanotic.olpaka.network.OllamaRestClient
+import org.cyanotic.olpaka.network.Role
 
 interface ChatRepository {
 
@@ -50,5 +55,6 @@ sealed interface ChatMessage {
     data class Assistant(
         val message: String,
         val isGenerating: Boolean,
+        val isError: Boolean,
     ) : ChatMessage
 }
