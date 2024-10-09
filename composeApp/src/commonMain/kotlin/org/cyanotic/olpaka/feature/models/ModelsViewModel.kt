@@ -2,11 +2,20 @@ package org.cyanotic.olpaka.feature.models
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.Clock
+import org.cyanotic.olpaka.core.DownloadFormatter
 import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.ModelDownloadState
 import org.cyanotic.olpaka.core.domain.Model
@@ -19,6 +28,7 @@ class ModelsViewModel(
     private val repository: ModelsRepository,
     private val modelDownloadState: ModelDownloadState,
     private val analytics: FirebaseAnalytics,
+    private val downloadFormatter: DownloadFormatter,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ModelsState>(ModelsState.Loading)
@@ -52,7 +62,8 @@ class ModelsViewModel(
             models = cachedModels.toModelUI(),
             controlsEnabled = false
         )
-
+        var lastUpdateTime = Clock.System.now().toEpochMilliseconds()
+        var previousDownloadedBytes = 0L
         downloadProcess = viewModelScope.launch {
             repository.downloadModel(tag)
                 .cancellable()
@@ -81,43 +92,45 @@ class ModelsViewModel(
                     }
                 }
                 .onCompletion { throwable ->
-                    val newDownloadingModel = if (throwable != null) {
-                        ModelUI.Error(key = tag, title = "Unable to download $tag", subtitle = "Try again")
-                    } else {
-                        null
+                    Napier.i(
+                        tag = "ModelsViewModel",
+                        message = "Download completed",
+                        throwable = throwable
+                    )
+                    if (throwable != null) {
+                        downloadingModel = ModelUI.Error(
+                            key = tag,
+                            title = tag,
+                            subtitle = throwable.message ?: "UnknownError",
+                        )
                     }
-                    downloadingModel = newDownloadingModel
-                    analytics.event(eventName = "download_model", properties = mapOf("model" to tag))
+                    analytics.event(
+                        eventName = "download_model",
+                        properties = mapOf("model" to tag)
+                    )
                     viewModelScope.launch {
                         refreshModels()
                         modelDownloadState.setCompleted()
                     }
                 }
                 .collect { chunk ->
-                    val newModel = when (chunk) {
-                        is DownloadModelProgress.Downloading -> {
-                            Model.Downloading(
-                                id = tag,
-                                name = tag,
-                                downloaded = chunk.completed,
-                                size = chunk.total
-                            )
-                        }
-
-                        is DownloadModelProgress.Processing -> {
-                            //TODO handle status
-                            val status = chunk.status.replaceFirstChar { it.uppercaseChar() }
-                            Model.Downloading(
-                                id = tag,
-                                name = tag,
-                                downloaded = null,
-                                size = null
+                    stateMutex.withLock {
+                        val newModel = chunk.toModelUI(
+                            previousDownloadedBytes = previousDownloadedBytes,
+                            previousUpdateTime = lastUpdateTime,
+                            setLastDownloadedBytes = { bytes -> previousDownloadedBytes = bytes },
+                            setLastUpdateTime = { time -> lastUpdateTime = time }
+                        )
+                        Napier.d(tag = "ModelsViewModel", message = "chunk $chunk")
+                        newModel?.let {
+                            downloadingModel = it
+                            val newModels = (cachedModels.toModelUI() + it)
+                            _state.value = ModelsState.Content(
+                                models = newModels,
+                                controlsEnabled = false
                             )
                         }
                     }
-                    downloadingModel = newModel.toModelUI()
-                    val newModels = (cachedModels + newModel).toModelUI()
-                    _state.value = ModelsState.Content(models = newModels, controlsEnabled = false)
                 }
         }
     }
@@ -152,10 +165,19 @@ class ModelsViewModel(
         stateMutex.withLock {
             val result = repository.getModels()
             if (result.isSuccess) {
-                val models = result.getOrThrow().filterIsInstance<Model.Cached>()
+                val models = result.getOrThrow()
                 cachedModels = models
-
-                val newModelsUI = models.toModelUI() + downloadingModel
+                val newModelsUI = downloadingModel?.let { downloading ->
+                    Napier.i(tag = "ModelsViewModel", message = "Currenlty downloading model")
+                    val completedDownload = models.any { it.id == downloading.key }
+                    if (completedDownload) {
+                        downloadingModel = null
+                        models.toModelUI()
+                    } else {
+                        models.toModelUI() + downloading
+                    }
+                } ?: models.toModelUI()
+                Napier.d(tag = "ModelsViewModel", message = "Downloading Model: $downloadingModel")
                 _state.value = ModelsState.Content(
                     models = newModelsUI,
                     controlsEnabled = true
@@ -170,9 +192,61 @@ class ModelsViewModel(
         }
     }
 
+
+    private fun DownloadModelProgress.toModelUI(
+        previousDownloadedBytes: Long,
+        previousUpdateTime: Long,
+        setLastDownloadedBytes: (Long) -> Unit = {},
+        setLastUpdateTime: (Long) -> Unit = {},
+    ): ModelUI? {
+        return when (this) {
+            is DownloadModelProgress.Downloading -> {
+                val progress = if (total > 0 && completed > 0) {
+                    completed / total.toFloat()
+                } else {
+                    null
+                }
+                val now = Clock.System.now().toEpochMilliseconds()
+                if (now - previousUpdateTime < 1000) {
+                    return null
+                }
+                val subtitle = downloadFormatter.formatDownloadProgress(
+                    totalBytes = total,
+                    downloadedBytes = completed,
+                    previousBytesDownloaded = previousDownloadedBytes,
+                    previousUpdateTime = previousUpdateTime
+                )
+
+                setLastDownloadedBytes(completed)
+                setLastUpdateTime(now)
+
+                ModelUI.Downloading(
+                    key = tag,
+                    title = tag,
+                    subtitle = subtitle,
+                    progress = progress,
+                )
+            }
+
+            is DownloadModelProgress.Processing -> ModelUI.Downloading(
+                key = tag,
+                title = tag,
+                subtitle = status,
+                progress = null,
+            )
+
+            is DownloadModelProgress.Error -> ModelUI.Error(
+                key = tag,
+                title = tag,
+                subtitle = this.message ?: "Unknown Error",
+            )
+
+        }
+
+    }
 }
 
-private operator fun List<ModelUI>.plus(otherModel: ModelUI?) : List<ModelUI> {
+private operator fun List<ModelUI>.plus(otherModel: ModelUI?): List<ModelUI> {
     return if (otherModel == null) {
         this
     } else {
@@ -180,40 +254,19 @@ private operator fun List<ModelUI>.plus(otherModel: ModelUI?) : List<ModelUI> {
     }
 }
 
-private fun List<Model>.toModelUI(): List<ModelUI> {
-    return this.map { it.toModelUI() }
-}
+private fun List<Model.Cached>.toModelUI() = map { it.toModelUI() }
 
-private fun Model.toModelUI(): ModelUI {
-    return when (this) {
-        is Model.Cached -> {
-            val subtitle = listOfNotNull(
-                size.toHumanReadableByteCount(),
-                quantization,
-                parameters
-            ).joinToString(" • ")
-            ModelUI.Available(
-                key = id,
-                title = "$name ($id)",
-                subtitle = subtitle
-            )
-        }
-
-        is Model.Downloading -> {
-            val progress = if (size != null && size > 0 && downloaded != null && downloaded > 0) {
-                downloaded / size.toFloat()
-            } else {
-                null
-            }
-            ModelUI.Downloading(
-                key = id,
-                title = name,
-                subtitle = "Downloading",
-                progress = progress
-            )
-        }
-    }
-
+private fun Model.Cached.toModelUI(): ModelUI {
+    val subtitle = listOfNotNull(
+        size.toHumanReadableByteCount(),
+        quantization,
+        parameters
+    ).joinToString(" • ")
+    return ModelUI.Available(
+        key = id,
+        title = "$name ($id)",
+        subtitle = subtitle
+    )
 }
 
 sealed interface ModelsEvent {

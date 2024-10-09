@@ -27,12 +27,7 @@ class ModelsAddModelViewModel(
     fun onCreate() = inBackground {
         models = repository.getModels()
             .getOrDefault(emptyList())
-            .map {
-                when(it){
-                    is Model.Cached -> it.id
-                    is Model.Downloading -> it.id
-                }
-            }
+            .map { it.id }
     }
 
     fun onModelNameChanged(text: String) = inBackground {
