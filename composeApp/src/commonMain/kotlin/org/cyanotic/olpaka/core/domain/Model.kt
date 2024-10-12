@@ -3,18 +3,28 @@ package org.cyanotic.olpaka.core.domain
 
 sealed interface Model {
 
+    val id: String
+
     data class Downloading(
-        val id: String,
+        override val id: String,
         val name: String,
-        val downloaded: Long?,
-        val size: Long?,
+        val downloadedBytes: Long,
+        val sizeBytes: Long,
+        val speedBytesSecond: Long,
+        val timeLeftSeconds: Long
     ) : Model
 
     data class Cached(
-        val id: String,
+        override val id: String,
         val name: String,
         val size: Long,
         val quantization: String,
         val parameters: String
+    ) : Model
+
+    data class Error(
+        override val id: String,
+        val name: String,
+        val message: String,
     ) : Model
 }

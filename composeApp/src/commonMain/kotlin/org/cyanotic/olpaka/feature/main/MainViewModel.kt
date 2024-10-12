@@ -1,12 +1,24 @@
 package org.cyanotic.olpaka.feature.main
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.*
-import org.cyanotic.olpaka.core.*
+import androidx.lifecycle.viewModelScope
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import org.cyanotic.olpaka.core.Preferences
+import org.cyanotic.olpaka.core.domain.Model
+import org.cyanotic.olpaka.core.inBackground
+import org.cyanotic.olpaka.repository.ModelsRepository
 
 class MainViewModel(
     private val preferences: Preferences,
-    private val modelDownloadState: ModelDownloadState,
+    private val modelsRepository: ModelsRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainState())
@@ -15,20 +27,34 @@ class MainViewModel(
     private val _events = MutableSharedFlow<MainEvent>()
     val event = _events.asSharedFlow()
 
+    init {
+        viewModelScope.launch(Dispatchers.Default) {
+            modelsRepository.models
+                .map { it.filterIsInstance<Model.Downloading>() }
+                .collect { models ->
+                    val current = _state.value
+                    val isDownloading = models.isNotEmpty()
+                    Napier.i(tag = "MainViewModel", message = "current = $current | isDownloading = $isDownloading")
+                    val activityBadge = when {
+                        current.selectedTabIndex == 1 -> Badge.NONE
+                        !isDownloading -> {
+                            when(current.activityBadge){
+                                Badge.DOWNLOADING,
+                                Badge.COMPLETED -> Badge.COMPLETED
+                                Badge.NONE -> Badge.NONE
+                            }
+                        }
+                        else -> Badge.DOWNLOADING
+                    }
+                    _state.value = current.copy(activityBadge = activityBadge)
+                }
+        }
+    }
+
     fun onCreate() = inBackground {
         if (!preferences.hasSeenOnboarding) {
             _events.emit(MainEvent.OpenOnboarding)
             preferences.hasSeenOnboarding = true
-        }
-        inBackground {
-            modelDownloadState.currentDownloadState.collect { newState ->
-                val selectedTab = state.value.selectedTabIndex
-                if (selectedTab != 1) {
-                    _state.value = _state.value.copy(activityBadge = newState.toBadge())
-                } else if(newState == DownloadState.COMPLETED){
-                    modelDownloadState.setInactive()
-                }
-            }
         }
     }
 
@@ -39,14 +65,8 @@ class MainViewModel(
                 2 -> MainEvent.OpenSettings
                 else -> MainEvent.OpenChat
             }
-            val currentState = modelDownloadState.currentDownloadState.value
             val badge = when {
-                index != 1 -> currentState.toBadge()
-                currentState == DownloadState.COMPLETED -> {
-                    modelDownloadState.setInactive()
-                    Badge.NONE
-                }
-
+                index != 1 -> current.activityBadge
                 else -> Badge.NONE
             }
             _events.emit(navigationEvent)
@@ -57,14 +77,6 @@ class MainViewModel(
         }
     }
 
-}
-
-private fun DownloadState.toBadge(): Badge {
-    return when (this) {
-        DownloadState.DOWNLOADING -> Badge.DOWNLOADING
-        DownloadState.COMPLETED -> Badge.COMPLETED
-        DownloadState.INACTIVE -> Badge.NONE
-    }
 }
 
 data class MainState(

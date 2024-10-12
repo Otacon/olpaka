@@ -10,6 +10,7 @@ import dev.mokkery.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -24,8 +25,6 @@ import olpaka.composeapp.generated.resources.error_missing_ollama_title
 import olpaka.composeapp.generated.resources.models_error_no_models_message
 import olpaka.composeapp.generated.resources.models_error_no_models_title
 import org.cyanotic.olpaka.core.Analytics
-import org.cyanotic.olpaka.core.DownloadState
-import org.cyanotic.olpaka.core.ModelDownloadState
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.StringResources
 import org.cyanotic.olpaka.core.domain.Model
@@ -41,13 +40,16 @@ import kotlin.test.assertEquals
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatViewModelTest {
 
+    private val stateModels = MutableStateFlow<List<Model>>(emptyList())
     private val chatRepository = mock<ChatRepository>()
-    private val modelsRepository = mock<ModelsRepository>()
-    private val modelDownloadState = mock<ModelDownloadState> {
-        everySuspend { currentDownloadState } returns MutableStateFlow(DownloadState.INACTIVE)
+    private val modelsRepository = mock<ModelsRepository> {
+        every { models } returns stateModels.asStateFlow()
+        everySuspend { getModels() } returns Result.success(emptyList())
     }
     private val analytics = mock<Analytics>(mode = MockMode.autoUnit)
-    private val preferences = mock<Preferences>(mode = MockMode.autoUnit)
+    private val preferences = mock<Preferences>(mode = MockMode.autoUnit) {
+        every { lastUsedModel } returns null
+    }
     private val strings = mock<StringResources> {
         everySuspend { get(Res.string.models_error_no_models_title) } returns "no models title"
         everySuspend { get(Res.string.models_error_no_models_message) } returns "no models message"
@@ -57,10 +59,6 @@ class ChatViewModelTest {
 
     @Test
     fun given_noModels_when_openingChat_then_contentWithNoModels() = runTestOn { viewModel ->
-        // GIVEN
-        everySuspend { modelsRepository.getModels() } returns Result.success(emptyList())
-        every { preferences.lastUsedModel } returns null
-
         // WHEN
         viewModel.onCreate()
         advanceUntilIdle()
@@ -78,13 +76,8 @@ class ChatViewModelTest {
     fun given_someModels_when_openingChat_then_contentWithFirstModelSelected() =
         runTestOn { viewModel ->
             // GIVEN
-            everySuspend { modelsRepository.getModels() } returns Result.success(
-                listOf(
-                    cachedModel1,
-                    cachedModel2
-                )
-            )
-            every { preferences.lastUsedModel } returns null
+            stateModels.value = listOf(cachedModel1, cachedModel2)
+            advanceUntilIdle()
 
             // WHEN
             viewModel.onCreate()
@@ -103,13 +96,9 @@ class ChatViewModelTest {
     @Test
     fun given_someModels_when_openingChat_then_preferenceModelSelected() = runTestOn { viewModel ->
         // GIVEN
-        everySuspend { modelsRepository.getModels() } returns Result.success(
-            listOf(
-                cachedModel1,
-                cachedModel2
-            )
-        )
         every { preferences.lastUsedModel } returns cachedModel2.id
+        stateModels.value = listOf(cachedModel1, cachedModel2)
+        advanceUntilIdle()
 
         // WHEN
         viewModel.onCreate()
@@ -129,7 +118,6 @@ class ChatViewModelTest {
     fun given_ollamaNotAvailable_when_openingChat_then_errorIsShown() = runTestOn { viewModel ->
         // GIVEN
         everySuspend { modelsRepository.getModels() } returns Result.failure(RuntimeException("Error"))
-        every { preferences.lastUsedModel } returns null
 
         // WHEN
         viewModel.onCreate()
@@ -146,10 +134,6 @@ class ChatViewModelTest {
 
     @Test
     fun when_openingChat_then_screenViewIsTracked() = runTestOn { viewModel ->
-        // GIVEN
-        everySuspend { modelsRepository.getModels() } returns Result.success(emptyList())
-        every { preferences.lastUsedModel } returns null
-
         // WHEN
         viewModel.onCreate()
         advanceUntilIdle()
@@ -160,11 +144,6 @@ class ChatViewModelTest {
 
     @Test
     fun when_openingChat_then_textInputIsFocussed() = runTestOn { viewModel ->
-        // GIVEN
-        everySuspend { modelsRepository.getModels() } returns Result.success(emptyList())
-
-        every { preferences.lastUsedModel } returns null
-
         // WHEN
         viewModel.event.test {
             viewModel.onCreate()
@@ -179,12 +158,7 @@ class ChatViewModelTest {
     @Test
     fun when_userSelectsAModel_then_modelIsSelected() = runTestOn { viewModel ->
         // GIVEN
-        everySuspend { modelsRepository.getModels() } returns Result.success(
-            listOf(
-                cachedModel1,
-                cachedModel2
-            )
-        )
+        stateModels.value = listOf(cachedModel1, cachedModel2)
         every { preferences.lastUsedModel } returns cachedModel1.id
 
         // WHEN
@@ -208,7 +182,7 @@ class ChatViewModelTest {
         runTestOn { viewModel ->
             // GIVEN
             val query = "why is the sky blue?"
-            everySuspend { modelsRepository.getModels() } returns Result.success(listOf(cachedModel1))
+            stateModels.value = listOf(cachedModel1)
             every { preferences.lastUsedModel } returns cachedModel1.id
             everySuspend {
                 chatRepository.sendChatMessage(
@@ -296,7 +270,7 @@ class ChatViewModelTest {
     fun given_thereIsAnError_when_generatingMessage_then_sendMessageEventIsReported() = try {
         runTestOn { viewModel ->
             // GIVEN
-            everySuspend { modelsRepository.getModels() } returns Result.success(listOf(cachedModel1))
+            stateModels.value = listOf(cachedModel1)
             every { preferences.lastUsedModel } returns cachedModel1.id
 
             everySuspend {
@@ -342,7 +316,7 @@ class ChatViewModelTest {
     @Test
     fun when_generatingMessage_then_sendMessageEventIsReported() = runTestOn { viewModel ->
         // GIVEN
-        everySuspend { modelsRepository.getModels() } returns Result.success(listOf(cachedModel1))
+        stateModels.value = listOf(cachedModel1)
         every { preferences.lastUsedModel } returns cachedModel1.id
         everySuspend {
             chatRepository.sendChatMessage(
@@ -365,12 +339,7 @@ class ChatViewModelTest {
     @Test
     fun when_changingModel_then_modelIsUpdated() = runTestOn { viewModel ->
         // GIVEN
-        everySuspend { modelsRepository.getModels() } returns Result.success(
-            listOf(
-                cachedModel1,
-                cachedModel2
-            )
-        )
+        stateModels.value = listOf(cachedModel1, cachedModel2)
         every { preferences.lastUsedModel } returns cachedModel1.id
 
         // WHEN
@@ -390,12 +359,12 @@ class ChatViewModelTest {
         val viewModel = ChatViewModel(
             chatRepository = chatRepository,
             modelsRepository = modelsRepository,
-            modelDownloadState = modelDownloadState,
             analytics = analytics,
             preferences = preferences,
             backgroundDispatcher = testDispatcher,
             strings = strings
         )
+        advanceUntilIdle()
         body(viewModel)
     }
 
