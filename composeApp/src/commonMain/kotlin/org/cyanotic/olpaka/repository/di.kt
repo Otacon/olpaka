@@ -9,6 +9,7 @@ val repositoryModule = module {
 
     factoryOf(::GenerateRepository) bind GenerateRepository::class
     factoryOf(::ChatRepositoryDefault) bind ChatRepository::class
+    factoryOf(::ConnectionCheckRepositoryDefault) bind ConnectionCheckRepository::class
     singleOf(::ModelsRepositoryDefault) bind ModelsRepository::class
 
 }

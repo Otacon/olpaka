@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.options
 import io.ktor.client.request.preparePost
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -26,6 +27,15 @@ class OllamaRestClient(
     private val decoder: Json,
     private val endpointProvider: EndpointProvider,
 ) {
+
+    suspend fun checkConnection() : Boolean {
+        return try {
+            client.options(endpointProvider.generateUrl("/"))
+            true
+        } catch (e: Throwable){
+            false
+        }
+    }
 
     fun sendChatMessage(request: ChatMessageRequestDTO) = flow {
         client.preparePost {

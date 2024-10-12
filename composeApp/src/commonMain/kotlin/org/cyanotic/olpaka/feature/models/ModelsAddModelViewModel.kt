@@ -1,19 +1,22 @@
 package org.cyanotic.olpaka.feature.models
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.models_dialog_download_model_error_already_added
-import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
 
 class ModelsAddModelViewModel(
     private val repository: ModelsRepository,
+    private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddModelState())
@@ -24,13 +27,11 @@ class ModelsAddModelViewModel(
 
     private var models: List<String> = emptyList()
 
-    fun onCreate() = inBackground {
-        models = repository.getModels()
-            .getOrDefault(emptyList())
-            .map { it.id }
+    fun onCreate() = viewModelScope.launch(dispatcher) {
+        models = repository.models.value.map { it.id }
     }
 
-    fun onModelNameChanged(text: String) = inBackground {
+    fun onModelNameChanged(text: String) = viewModelScope.launch(dispatcher) {
         val alreadyDownloaded = models.any { it == text.trim() }
         val isAddEnabled = text.isNotBlank() && !alreadyDownloaded
         val error = if (alreadyDownloaded) {

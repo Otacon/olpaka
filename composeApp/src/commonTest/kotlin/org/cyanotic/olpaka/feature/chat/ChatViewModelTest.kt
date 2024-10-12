@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.io.IOException
@@ -32,8 +33,8 @@ import org.cyanotic.olpaka.network.ChatMessageDTO
 import org.cyanotic.olpaka.network.ChatResponseDTO
 import org.cyanotic.olpaka.network.Role
 import org.cyanotic.olpaka.repository.ChatRepository
+import org.cyanotic.olpaka.repository.ConnectionCheckRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -42,9 +43,11 @@ class ChatViewModelTest {
 
     private val stateModels = MutableStateFlow<List<Model>>(emptyList())
     private val chatRepository = mock<ChatRepository>()
-    private val modelsRepository = mock<ModelsRepository> {
+    private val modelsRepository = mock<ModelsRepository>(mode = MockMode.autoUnit) {
         every { models } returns stateModels.asStateFlow()
-        everySuspend { getModels() } returns Result.success(emptyList())
+    }
+    private val connectionRepository = mock<ConnectionCheckRepository> {
+        everySuspend { checkConnection() } returns true
     }
     private val analytics = mock<Analytics>(mode = MockMode.autoUnit)
     private val preferences = mock<Preferences>(mode = MockMode.autoUnit) {
@@ -117,7 +120,7 @@ class ChatViewModelTest {
     @Test
     fun given_ollamaNotAvailable_when_openingChat_then_errorIsShown() = runTestOn { viewModel ->
         // GIVEN
-        everySuspend { modelsRepository.getModels() } returns Result.failure(RuntimeException("Error"))
+        everySuspend { connectionRepository.checkConnection() } returns false
 
         // WHEN
         viewModel.onCreate()
@@ -266,8 +269,7 @@ class ChatViewModelTest {
         }
 
     @Test
-    @Ignore
-    fun given_thereIsAnError_when_generatingMessage_then_sendMessageEventIsReported() = try {
+    fun given_thereIsAnError_when_generatingMessage_then_errorIsReported() =
         runTestOn { viewModel ->
             // GIVEN
             stateModels.value = listOf(cachedModel1)
@@ -299,7 +301,6 @@ class ChatViewModelTest {
             viewModel.onSubmit("")
             advanceUntilIdle()
 
-
             // THEN
             val lastMessage = (viewModel.state.value as ChatState.Content).messages.last()
             val assistantMessage = lastMessage as ChatMessageUI.Assistant
@@ -310,8 +311,6 @@ class ChatViewModelTest {
             )
             assertEquals(expectedMessage, assistantMessage)
         }
-    } catch (_: Throwable) {
-    }
 
     @Test
     fun when_generatingMessage_then_sendMessageEventIsReported() = runTestOn { viewModel ->
@@ -324,11 +323,14 @@ class ChatViewModelTest {
                 message = "",
                 history = emptyList()
             )
-        } returns flowOf()
+        } returns flow {
+            emit(ChatResponseDTO("model", ChatMessageDTO(Role.ASSISTANT, "content")))
+        }
 
         // WHEN
         viewModel.onCreate()
         advanceUntilIdle()
+
         viewModel.onSubmit("")
         advanceUntilIdle()
 
@@ -359,13 +361,18 @@ class ChatViewModelTest {
         val viewModel = ChatViewModel(
             chatRepository = chatRepository,
             modelsRepository = modelsRepository,
+            connectionRepository = connectionRepository,
             analytics = analytics,
             preferences = preferences,
             backgroundDispatcher = testDispatcher,
             strings = strings
         )
         advanceUntilIdle()
-        body(viewModel)
+        try {
+            body(viewModel)
+        } finally {
+            Dispatchers.resetMain()
+        }
     }
 
     companion object {

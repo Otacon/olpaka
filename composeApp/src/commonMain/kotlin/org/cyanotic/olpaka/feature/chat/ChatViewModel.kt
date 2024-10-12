@@ -3,12 +3,12 @@ package org.cyanotic.olpaka.feature.chat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
@@ -16,6 +16,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.error_missing_ollama_message
+import olpaka.composeapp.generated.resources.error_missing_ollama_title
 import olpaka.composeapp.generated.resources.models_error_no_models_message
 import olpaka.composeapp.generated.resources.models_error_no_models_title
 import org.cyanotic.olpaka.core.Analytics
@@ -24,9 +26,11 @@ import org.cyanotic.olpaka.core.StringResources
 import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.repository.ChatMessage
 import org.cyanotic.olpaka.repository.ChatRepository
+import org.cyanotic.olpaka.repository.ConnectionCheckRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
 
 class ChatViewModel(
+    private val connectionRepository: ConnectionCheckRepository,
     private val chatRepository: ChatRepository,
     private val modelsRepository: ModelsRepository,
     private val analytics: Analytics,
@@ -49,7 +53,7 @@ class ChatViewModel(
     private var selectedModel: Model.Cached? = null
 
     init {
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(backgroundDispatcher) {
             modelsRepository.models
                 .map { it.filterIsInstance<Model.Cached>() }
                 .collect { cachedModels ->
@@ -63,12 +67,28 @@ class ChatViewModel(
 
     fun onCreate() = viewModelScope.launch(backgroundDispatcher) {
         analytics.screenView("chat")
-        modelsRepository.getModels()
-        focusOnTextInput()
+        if(connectionRepository.checkConnection()){
+            modelsRepository.refreshModels()
+            focusOnTextInput()
+        } else {
+            _state.value = ChatState.Error(
+                title = strings.get(Res.string.error_missing_ollama_title),
+                message = strings.get(Res.string.error_missing_ollama_message),
+                showTryAgain = true
+            )
+        }
     }
 
     fun onRefresh() = viewModelScope.launch(backgroundDispatcher) {
-        modelsRepository.getModels()
+        if(connectionRepository.checkConnection()) {
+            modelsRepository.refreshModels()
+        } else {
+            _state.value = ChatState.Error(
+                title = strings.get(Res.string.error_missing_ollama_title),
+                message = strings.get(Res.string.error_missing_ollama_message),
+                showTryAgain = true
+            )
+        }
     }
 
     private suspend fun calculateState() {
@@ -111,11 +131,13 @@ class ChatViewModel(
         val userMessage = ChatMessage.User(message)
         var assistantMessage =
             ChatMessage.Assistant(message = "", isError = false, isGenerating = true)
+        var throwable: Throwable? = null
         chatRepository.sendChatMessage(
             model = currentSelectedModel.id,
             message = message,
             history = messages
         )
+            .catch { e -> throwable = e }
             .onStart {
                 analytics.event("send_message", mapOf("model" to currentSelectedModel.id))
                 stateMutex.withLock {
@@ -130,7 +152,7 @@ class ChatViewModel(
                     )
                 }
             }
-            .onCompletion { throwable ->
+            .onCompletion {
                 stateMutex.withLock {
                     messages = messages + userMessage + assistantMessage.copy(
                         isError = throwable != null,

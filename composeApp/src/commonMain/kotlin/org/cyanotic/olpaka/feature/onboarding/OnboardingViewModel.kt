@@ -1,21 +1,25 @@
 package org.cyanotic.olpaka.feature.onboarding
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.onboarding_cta_finish
 import olpaka.composeapp.generated.resources.onboarding_cta_next
 import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.inBackground
-import org.cyanotic.olpaka.repository.ModelsRepository
+import org.cyanotic.olpaka.repository.ConnectionCheckRepository
 import org.jetbrains.compose.resources.getString
 
 class OnboardingViewModel(
-    private val repository: ModelsRepository,
+    private val connectionRepository: ConnectionCheckRepository,
     private val analytics: FirebaseAnalytics,
+    private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardingState())
@@ -33,30 +37,30 @@ class OnboardingViewModel(
         )
     }
 
-    fun onNextPressed() = inBackground {
+    fun onNextPressed() = viewModelScope.launch(dispatcher) {
         val currentStep = _state.value.currentStep
         analytics.event("next_pressed", properties = mapOf("current_step" to currentStep))
         updateStateForStep(currentStep + 1)
     }
 
-    fun onPreviousPressed() = inBackground {
+    fun onPreviousPressed() = viewModelScope.launch(dispatcher) {
         val currentStep = _state.value.currentStep
         analytics.event("prev_pressed", properties = mapOf("current_step" to currentStep))
         updateStateForStep(currentStep - 1)
     }
 
-    fun onDownloadOllamaClicked() = inBackground {
+    fun onDownloadOllamaClicked() = viewModelScope.launch(dispatcher) {
         analytics.event("download_ollama_pressed")
         _events.emit(OnboardingEvent.OpenBrowser("https://ollama.com/download"))
     }
 
-    fun onSetupCorsClicked() = inBackground {
+    fun onSetupCorsClicked() = viewModelScope.launch(dispatcher) {
         analytics.event("setup_cors_pressed")
         _events.emit(OnboardingEvent.OpenBrowser("https://github.com/Otacon/olpaka/blob/main/docs/setup_cors.md"))
     }
 
-    fun onCheckConnectionClicked() = inBackground {
-        val success = repository.getModels().isSuccess
+    fun onCheckConnectionClicked() = viewModelScope.launch(dispatcher) {
+        val success = connectionRepository.checkConnection()
         val connectionState = if (success) ConnectionCheckState.SUCCESS else ConnectionCheckState.FAILURE
         analytics.event("check_connection_pressed", properties = mapOf("success" to success))
         _state.value = _state.value.copy(connectionState = connectionState)

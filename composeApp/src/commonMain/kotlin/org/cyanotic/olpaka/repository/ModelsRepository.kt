@@ -22,7 +22,7 @@ interface ModelsRepository {
 
     val models: StateFlow<List<Model>>
 
-    suspend fun getModels(): Result<List<Model.Cached>>
+    suspend fun refreshModels()
 
     suspend fun removeModel(tag: String): Result<Unit>
 
@@ -43,14 +43,13 @@ class ModelsRepositoryDefault(
 
     private val mutex = Mutex()
 
-    override suspend fun getModels(): Result<List<Model.Cached>> = mutex.withLock {
-        refreshModels()
-        return Result.success(_models.value.filterIsInstance<Model.Cached>())
+    override suspend fun refreshModels() = mutex.withLock {
+        updateModels()
     }
 
     override suspend fun removeModel(tag: String): Result<Unit> = mutex.withLock {
         val result = restClient.removeModel(RemoveModelRequestDTO(tag))
-        refreshModels()
+        updateModels()
         return result
     }
 
@@ -104,7 +103,7 @@ class ModelsRepositoryDefault(
                     }
                     val updatedModels = _models.value.replaceById(tag) { updatedModel }
                     _models.value = updatedModels
-                    refreshModels()
+                    updateModels()
                 }
             }
             .collect { chunk ->
@@ -159,7 +158,7 @@ class ModelsRepositoryDefault(
         cancelDownload = true
     }
 
-    private suspend fun refreshModels() {
+    private suspend fun updateModels() {
         val result = restClient.listModels()
         if (result.isSuccess) {
             val value = result.getOrThrow()

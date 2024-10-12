@@ -8,13 +8,19 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.error_missing_ollama_message
+import olpaka.composeapp.generated.resources.error_missing_ollama_title
 import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.core.toHumanReadableByteCount
+import org.cyanotic.olpaka.repository.ConnectionCheckRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
+import org.jetbrains.compose.resources.getString
 
 class ModelsViewModel(
     private val repository: ModelsRepository,
+    private val connectionRepository: ConnectionCheckRepository,
     private val analytics: FirebaseAnalytics,
     private val statsFormatter: DownloadStatsFormatter,
 ) : ViewModel() {
@@ -76,7 +82,14 @@ class ModelsViewModel(
     }
 
     private suspend fun refreshModels() {
-        repository.getModels()
+        if (connectionRepository.checkConnection()) {
+            repository.refreshModels()
+        } else {
+            _state.value = ModelsState.Error(
+                title = getString(Res.string.error_missing_ollama_title),
+                message = getString(Res.string.error_missing_ollama_message),
+            )
+        }
     }
 
     private fun Model.toModelUI(): ModelUI {
@@ -100,7 +113,8 @@ class ModelsViewModel(
                 if (sizeBytes > 0) {
                     progress = downloadedBytes / sizeBytes.toFloat()
                     val speedFormatted = statsFormatter.formatDownloadSpeed(this.speedBytesSecond)
-                    val downloadedSizeFormatted = statsFormatter.formatSizeInBytes(this.downloadedBytes)
+                    val downloadedSizeFormatted =
+                        statsFormatter.formatSizeInBytes(this.downloadedBytes)
                     val totalSizeFormatted = statsFormatter.formatSizeInBytes(this.sizeBytes)
                     val timeLeftFormatted = statsFormatter.formatRemainingTime(this.timeLeftSeconds)
                     subtitle =
