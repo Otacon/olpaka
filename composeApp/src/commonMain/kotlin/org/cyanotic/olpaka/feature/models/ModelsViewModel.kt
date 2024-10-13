@@ -13,14 +13,11 @@ import olpaka.composeapp.generated.resources.error_missing_ollama_message
 import olpaka.composeapp.generated.resources.error_missing_ollama_title
 import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.domain.Model
-import org.cyanotic.olpaka.core.toHumanReadableByteCount
-import org.cyanotic.olpaka.repository.ConnectionCheckRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
 
 class ModelsViewModel(
     private val repository: ModelsRepository,
-    private val connectionRepository: ConnectionCheckRepository,
     private val analytics: FirebaseAnalytics,
     private val statsFormatter: DownloadStatsFormatter,
 ) : ViewModel() {
@@ -82,9 +79,8 @@ class ModelsViewModel(
     }
 
     private suspend fun refreshModels() {
-        if (connectionRepository.checkConnection()) {
-            repository.refreshModels()
-        } else {
+        val result = repository.refreshModels()
+        if (result.isFailure) {
             _state.value = ModelsState.Error(
                 title = getString(Res.string.error_missing_ollama_title),
                 message = getString(Res.string.error_missing_ollama_message),
@@ -96,7 +92,7 @@ class ModelsViewModel(
         return when (this) {
             is Model.Cached -> {
                 val subtitle = listOfNotNull(
-                    size.toHumanReadableByteCount(),
+                    statsFormatter.formatSizeInBytes(size),
                     quantization,
                     parameters
                 ).joinToString(" • ")

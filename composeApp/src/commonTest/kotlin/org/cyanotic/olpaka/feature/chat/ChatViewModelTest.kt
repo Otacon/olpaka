@@ -1,30 +1,17 @@
 package org.cyanotic.olpaka.feature.chat
 
 import app.cash.turbine.test
-import dev.mokkery.MockMode
+import dev.mokkery.*
 import dev.mokkery.answering.returns
-import dev.mokkery.every
-import dev.mokkery.everySuspend
-import dev.mokkery.mock
-import dev.mokkery.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.*
 import kotlinx.io.IOException
-import olpaka.composeapp.generated.resources.Res
-import olpaka.composeapp.generated.resources.error_missing_ollama_message
-import olpaka.composeapp.generated.resources.error_missing_ollama_title
-import olpaka.composeapp.generated.resources.models_error_no_models_message
-import olpaka.composeapp.generated.resources.models_error_no_models_title
+import olpaka.composeapp.generated.resources.*
 import org.cyanotic.olpaka.core.Analytics
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.StringResources
@@ -33,7 +20,6 @@ import org.cyanotic.olpaka.network.ChatMessageDTO
 import org.cyanotic.olpaka.network.ChatResponseDTO
 import org.cyanotic.olpaka.network.Role
 import org.cyanotic.olpaka.repository.ChatRepository
-import org.cyanotic.olpaka.repository.ConnectionCheckRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -45,9 +31,7 @@ class ChatViewModelTest {
     private val chatRepository = mock<ChatRepository>()
     private val modelsRepository = mock<ModelsRepository>(mode = MockMode.autoUnit) {
         every { models } returns stateModels.asStateFlow()
-    }
-    private val connectionRepository = mock<ConnectionCheckRepository> {
-        everySuspend { checkConnection() } returns true
+        everySuspend { refreshModels() } returns Result.success(emptyList())
     }
     private val analytics = mock<Analytics>(mode = MockMode.autoUnit)
     private val preferences = mock<Preferences>(mode = MockMode.autoUnit) {
@@ -120,7 +104,7 @@ class ChatViewModelTest {
     @Test
     fun given_ollamaNotAvailable_when_openingChat_then_errorIsShown() = runTestOn { viewModel ->
         // GIVEN
-        everySuspend { connectionRepository.checkConnection() } returns false
+        everySuspend { modelsRepository.refreshModels() } returns Result.failure(RuntimeException("Error"))
 
         // WHEN
         viewModel.onCreate()
@@ -361,7 +345,6 @@ class ChatViewModelTest {
         val viewModel = ChatViewModel(
             chatRepository = chatRepository,
             modelsRepository = modelsRepository,
-            connectionRepository = connectionRepository,
             analytics = analytics,
             preferences = preferences,
             backgroundDispatcher = testDispatcher,

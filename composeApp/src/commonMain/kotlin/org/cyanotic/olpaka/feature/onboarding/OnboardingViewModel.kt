@@ -12,7 +12,6 @@ import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.onboarding_cta_finish
 import olpaka.composeapp.generated.resources.onboarding_cta_next
 import org.cyanotic.olpaka.core.FirebaseAnalytics
-import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.repository.ConnectionCheckRepository
 import org.jetbrains.compose.resources.getString
 
@@ -28,7 +27,7 @@ class OnboardingViewModel(
     private val _events = MutableSharedFlow<OnboardingEvent>()
     val event = _events.asSharedFlow()
 
-    fun onCreate() = inBackground {
+    fun onCreate() = viewModelScope.launch(dispatcher) {
         analytics.screenView("getting_started")
         _state.value = OnboardingState(
             currentStep = 0,

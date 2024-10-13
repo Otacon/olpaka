@@ -22,7 +22,7 @@ interface ModelsRepository {
 
     val models: StateFlow<List<Model>>
 
-    suspend fun refreshModels()
+    suspend fun refreshModels() : Result<List<Model>>
 
     suspend fun removeModel(tag: String): Result<Unit>
 
@@ -158,13 +158,18 @@ class ModelsRepositoryDefault(
         cancelDownload = true
     }
 
-    private suspend fun updateModels() {
+    private suspend fun updateModels() : Result<List<Model>> {
         val currentModels = _models.value
-        _models.value = emptyList()
         val result = restClient.listModels()
-        val updatedModels = result.getOrDefault(emptyList())
+        val newModels = result.getOrDefault(emptyList())
         val nonCachedModels = currentModels - currentModels.filterIsInstance<Model.Cached>().toSet()
-        _models.value = updatedModels + nonCachedModels
+        val updatedModels = newModels + nonCachedModels
+        _models.value =  updatedModels
+        return if(result.isSuccess){
+            Result.success(updatedModels)
+        } else {
+            Result.failure(result.exceptionOrNull() ?: RuntimeException("Listing models failed"))
+        }
     }
 }
 

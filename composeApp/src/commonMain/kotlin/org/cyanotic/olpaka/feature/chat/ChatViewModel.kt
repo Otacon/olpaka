@@ -26,11 +26,9 @@ import org.cyanotic.olpaka.core.StringResources
 import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.repository.ChatMessage
 import org.cyanotic.olpaka.repository.ChatRepository
-import org.cyanotic.olpaka.repository.ConnectionCheckRepository
 import org.cyanotic.olpaka.repository.ModelsRepository
 
 class ChatViewModel(
-    private val connectionRepository: ConnectionCheckRepository,
     private val chatRepository: ChatRepository,
     private val modelsRepository: ModelsRepository,
     private val analytics: Analytics,
@@ -67,22 +65,18 @@ class ChatViewModel(
 
     fun onCreate() = viewModelScope.launch(backgroundDispatcher) {
         analytics.screenView("chat")
-        if(connectionRepository.checkConnection()){
-            modelsRepository.refreshModels()
-            focusOnTextInput()
-        } else {
-            _state.value = ChatState.Error(
-                title = strings.get(Res.string.error_missing_ollama_title),
-                message = strings.get(Res.string.error_missing_ollama_message),
-                showTryAgain = true
-            )
-        }
+        refreshModels()
+        focusOnTextInput()
     }
 
     fun onRefresh() = viewModelScope.launch(backgroundDispatcher) {
-        if(connectionRepository.checkConnection()) {
-            modelsRepository.refreshModels()
-        } else {
+        _state.value = ChatState.Loading
+        refreshModels()
+    }
+
+    private suspend fun refreshModels() {
+        val result = modelsRepository.refreshModels()
+        if(result.isFailure) {
             _state.value = ChatState.Error(
                 title = strings.get(Res.string.error_missing_ollama_title),
                 message = strings.get(Res.string.error_missing_ollama_message),
@@ -92,18 +86,7 @@ class ChatViewModel(
     }
 
     private suspend fun calculateState() {
-        if (_state.value is ChatState.Error) {
-            _state.value = ChatState.Loading
-        } else {
-            _state.value = ChatState.Content(
-                models = models.toChatModelUI(),
-                messages = (messages + newMessage).filterNotNull().toMessageUI(),
-                selectedModel = selectedModel?.toChatModelUI(),
-                controlsEnabled = false
-            )
-        }
-
-        val currentModels = this.models
+        val currentModels = models
         if (currentModels.isEmpty()) {
             selectedModel = null
             _state.value = ChatState.Error(

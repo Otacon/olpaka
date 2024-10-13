@@ -3,6 +3,7 @@ package org.cyanotic.olpaka.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.ktor.http.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
@@ -10,7 +11,6 @@ import olpaka.composeapp.generated.resources.settings_connection_url_error
 import org.cyanotic.olpaka.core.FirebaseAnalytics
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.ThemeState
-import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.network.EndpointProvider
 import org.cyanotic.olpaka.ui.theme.OlpakaColor
 import org.cyanotic.olpaka.ui.theme.OlpakaTheme
@@ -21,6 +21,7 @@ class SettingsViewModel(
     private val preferences: Preferences,
     private val endpointProvider: EndpointProvider,
     private val analytics: FirebaseAnalytics,
+    private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -40,7 +41,7 @@ class SettingsViewModel(
         }
     }
 
-    fun onColorChanged(color: OlpakaColor) = inBackground {
+    fun onColorChanged(color: OlpakaColor) = viewModelScope.launch(dispatcher) {
         val analyticsName = when (color) {
             OlpakaColor.OLPAKA -> "olpaka"
             OlpakaColor.RED -> "red"
@@ -58,7 +59,7 @@ class SettingsViewModel(
         }
     }
 
-    fun onThemeChanged(theme: OlpakaTheme) = inBackground {
+    fun onThemeChanged(theme: OlpakaTheme) = viewModelScope.launch(dispatcher) {
         val analyticsName = when (theme) {
             OlpakaTheme.AUTO -> "auto"
             OlpakaTheme.DARK -> "dark"
@@ -72,11 +73,11 @@ class SettingsViewModel(
         }
     }
 
-    fun onConnectionUrlChanged(newHost: String) = viewModelScope.launch {
+    fun onConnectionUrlChanged(newHost: String) = viewModelScope.launch(dispatcher) {
         setBaseUrl(newHost)
     }
 
-    fun revertDefaultConnectionUrl() = inBackground {
+    fun revertDefaultConnectionUrl() = viewModelScope.launch(dispatcher) {
         setBaseUrl(EndpointProvider.DEFAULT_OLLAMA_API_URL)
     }
 
@@ -94,11 +95,11 @@ class SettingsViewModel(
         }
     }
 
-    fun onAboutClicked() = inBackground {
+    fun onAboutClicked() = viewModelScope.launch(dispatcher) {
         _events.emit(SettingsEvents.OpenAbout)
     }
 
-    fun onOnboardingClicked() = inBackground {
+    fun onOnboardingClicked() = viewModelScope.launch(dispatcher) {
         _events.emit(SettingsEvents.OpenOnboarding)
     }
 
