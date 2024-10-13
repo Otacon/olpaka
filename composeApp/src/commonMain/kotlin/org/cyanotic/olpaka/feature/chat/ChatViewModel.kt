@@ -2,7 +2,6 @@ package org.cyanotic.olpaka.feature.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -59,7 +58,6 @@ class ChatViewModel(
                 .map { it.filterIsInstance<Model.Cached>() }
                 .collect { cachedModels ->
                     stateMutex.withLock {
-                        Napier.d(tag = "Chat", message = "Received ${cachedModels.size} models")
                         models = cachedModels
                         calculateState()
                     }
@@ -83,10 +81,8 @@ class ChatViewModel(
 
     fun onRefresh() = viewModelScope.launch(backgroundDispatcher) {
         if(connectionRepository.checkConnection()) {
-            Napier.d(tag = "Chat", message = "Refreshing models...")
             modelsRepository.refreshModels()
         } else {
-            Napier.d(tag = "Chat", message = "Error")
             _state.value = ChatState.Error(
                 title = strings.get(Res.string.error_missing_ollama_title),
                 message = strings.get(Res.string.error_missing_ollama_message),
@@ -97,10 +93,8 @@ class ChatViewModel(
 
     private suspend fun calculateState() {
         if (_state.value is ChatState.Error) {
-            Napier.d(tag = "Chat", message = "calculateState: current: Error")
             _state.value = ChatState.Loading
         } else {
-            Napier.d(tag = "Chat", message = "calculateState: current: Content")
             _state.value = ChatState.Content(
                 models = models.toChatModelUI(),
                 messages = (messages + newMessage).filterNotNull().toMessageUI(),
@@ -111,7 +105,6 @@ class ChatViewModel(
 
         val currentModels = this.models
         if (currentModels.isEmpty()) {
-            Napier.d(tag = "Chat", message = "No models")
             selectedModel = null
             _state.value = ChatState.Error(
                 title = strings.get(Res.string.models_error_no_models_title),
@@ -125,8 +118,6 @@ class ChatViewModel(
             selectedModel = currentModels.firstOrNull { it.id == preferences.lastUsedModel }
                 ?: currentModels.first()
         }
-        Napier.d(tag = "Chat", message = "Selected model $selectedModel")
-        Napier.d(tag = "Chat", message = "Showing content")
         _state.value = ChatState.Content(
             messages = (messages + newMessage).filterNotNull().toMessageUI(),
             models = currentModels.toChatModelUI(),
