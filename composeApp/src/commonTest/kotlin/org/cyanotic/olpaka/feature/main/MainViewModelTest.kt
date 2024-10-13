@@ -202,6 +202,10 @@ class MainViewModelTest {
             backgroundDispatcher = testDispatcher,
         )
         advanceUntilIdle()
-        body(viewModel)
+        try {
+            body(viewModel)
+        } finally {
+            Dispatchers.resetMain()
+        }
     }
 }

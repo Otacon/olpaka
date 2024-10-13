@@ -38,8 +38,8 @@ class ChatViewModelTest {
         every { lastUsedModel } returns null
     }
     private val strings = mock<StringResources> {
-        everySuspend { get(Res.string.models_error_no_models_title) } returns "no models title"
-        everySuspend { get(Res.string.models_error_no_models_message) } returns "no models message"
+        everySuspend { get(Res.string.chat_missing_model_error_title) } returns "no models title"
+        everySuspend { get(Res.string.chat_missing_model_error_message) } returns "no models message"
         everySuspend { get(Res.string.error_missing_ollama_title) } returns "missing ollama title"
         everySuspend { get(Res.string.error_missing_ollama_message) } returns "missing ollama message"
     }

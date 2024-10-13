@@ -15,11 +15,10 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import olpaka.composeapp.generated.resources.*
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.error_missing_ollama_message
 import olpaka.composeapp.generated.resources.error_missing_ollama_title
-import olpaka.composeapp.generated.resources.models_error_no_models_message
-import olpaka.composeapp.generated.resources.models_error_no_models_title
 import org.cyanotic.olpaka.core.Analytics
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.StringResources
@@ -90,8 +89,8 @@ class ChatViewModel(
         if (currentModels.isEmpty()) {
             selectedModel = null
             _state.value = ChatState.Error(
-                title = strings.get(Res.string.models_error_no_models_title),
-                message = strings.get(Res.string.models_error_no_models_message),
+                title = strings.get(Res.string.chat_missing_model_error_title),
+                message = strings.get(Res.string.chat_missing_model_error_message),
                 showTryAgain = true,
             )
             return

@@ -2,7 +2,7 @@ package org.cyanotic.olpaka.feature.models
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -11,15 +11,17 @@ import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.error_missing_ollama_message
 import olpaka.composeapp.generated.resources.error_missing_ollama_title
-import org.cyanotic.olpaka.core.FirebaseAnalytics
+import org.cyanotic.olpaka.core.Analytics
+import org.cyanotic.olpaka.core.StringResources
 import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.repository.ModelsRepository
-import org.jetbrains.compose.resources.getString
 
 class ModelsViewModel(
     private val repository: ModelsRepository,
-    private val analytics: FirebaseAnalytics,
+    private val analytics: Analytics,
     private val statsFormatter: DownloadStatsFormatter,
+    private val dispatcher: CoroutineDispatcher,
+    private val strings: StringResources,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ModelsState>(ModelsState.Loading)
@@ -29,7 +31,7 @@ class ModelsViewModel(
     val event = _events.asSharedFlow()
 
     init {
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(dispatcher) {
             repository.models.collect { models ->
                 val isDownloadingModel = models.filterIsInstance<Model.Downloading>().isNotEmpty()
                 _state.value = ModelsState.Content(
@@ -41,21 +43,26 @@ class ModelsViewModel(
     }
 
 
-    fun onCreate() = viewModelScope.launch(Dispatchers.Default) {
+    fun onCreate() = viewModelScope.launch(dispatcher) {
         analytics.screenView("models")
         refreshModels()
     }
 
-    fun onRefreshClicked() = viewModelScope.launch(Dispatchers.Default) {
+    fun onRefreshClicked() = viewModelScope.launch(dispatcher) {
+        _state.value = when (_state.value) {
+            is ModelsState.Content -> _state.value
+            is ModelsState.Error,
+            ModelsState.Loading -> ModelsState.Loading
+        }
         analytics.event("refresh_models")
         refreshModels()
     }
 
-    fun onAddModelClicked() = viewModelScope.launch(Dispatchers.Default) {
+    fun onAddModelClicked() = viewModelScope.launch(dispatcher) {
         _events.emit(ModelsEvent.OpenAddModelDialog)
     }
 
-    fun onAddModel(tag: String) = viewModelScope.launch(Dispatchers.Default) {
+    fun onAddModel(tag: String) = viewModelScope.launch(dispatcher) {
         repository.downloadModel(tag)
     }
 
@@ -63,12 +70,11 @@ class ModelsViewModel(
         repository.cancelDownload()
     }
 
-    fun onRemoveModelClicked(model: ModelUI.Available) =
-        viewModelScope.launch(Dispatchers.Default) {
-            _events.emit(ModelsEvent.OpenRemoveModelDialog(model.key))
-        }
+    fun onRemoveModelClicked(model: ModelUI.Available) = viewModelScope.launch(dispatcher) {
+        _events.emit(ModelsEvent.OpenRemoveModelDialog(model.key))
+    }
 
-    fun onConfirmRemoveModel(modelKey: String) = viewModelScope.launch(Dispatchers.Default) {
+    fun onConfirmRemoveModel(modelKey: String) = viewModelScope.launch(dispatcher) {
         _state.value = ModelsState.Content(
             models = repository.models.value.map { it.toModelUI() },
             controlsEnabled = false
@@ -82,8 +88,8 @@ class ModelsViewModel(
         val result = repository.refreshModels()
         if (result.isFailure) {
             _state.value = ModelsState.Error(
-                title = getString(Res.string.error_missing_ollama_title),
-                message = getString(Res.string.error_missing_ollama_message),
+                title = strings.get(Res.string.error_missing_ollama_title),
+                message = strings.get(Res.string.error_missing_ollama_message),
             )
         }
     }
