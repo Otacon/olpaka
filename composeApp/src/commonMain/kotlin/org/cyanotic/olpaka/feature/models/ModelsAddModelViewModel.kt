@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.models_dialog_download_model_error_already_added
-import org.cyanotic.olpaka.core.inBackground
 import org.cyanotic.olpaka.repository.ModelsRepository
 import org.jetbrains.compose.resources.getString
 
@@ -25,13 +24,8 @@ class ModelsAddModelViewModel(
     private val _events = MutableSharedFlow<AddModelEvent>()
     val event = _events.asSharedFlow()
 
-    private var models: List<String> = emptyList()
-
-    fun onCreate() = viewModelScope.launch(dispatcher) {
-        models = repository.models.value.map { it.id }
-    }
-
     fun onModelNameChanged(text: String) = viewModelScope.launch(dispatcher) {
+        val models = repository.models.value.map { it.id }
         val alreadyDownloaded = models.any { it == text.trim() }
         val isAddEnabled = text.isNotBlank() && !alreadyDownloaded
         val error = if (alreadyDownloaded) {
@@ -46,11 +40,11 @@ class ModelsAddModelViewModel(
         )
     }
 
-    fun onCancelClicked() = inBackground {
+    fun onCancelClicked() = viewModelScope.launch(dispatcher) {
         _events.emit(AddModelEvent.Cancel)
     }
 
-    fun onOkClicked() = inBackground {
+    fun onOkClicked() = viewModelScope.launch(dispatcher) {
         _events.emit(AddModelEvent.Confirm(_state.value.modelToAdd))
     }
 

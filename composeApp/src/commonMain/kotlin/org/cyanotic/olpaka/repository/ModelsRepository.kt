@@ -159,15 +159,12 @@ class ModelsRepositoryDefault(
     }
 
     private suspend fun updateModels() {
+        val currentModels = _models.value
+        _models.value = emptyList()
         val result = restClient.listModels()
-        if (result.isSuccess) {
-            val value = result.getOrThrow()
-            _models.getAndUpdate { currentModels ->
-                val cachedModels = currentModels.filterIsInstance<Model.Cached>().toSet()
-                val nonCachedModels = currentModels - cachedModels
-                value + nonCachedModels
-            }
-        }
+        val updatedModels = result.getOrDefault(emptyList())
+        val nonCachedModels = currentModels - currentModels.filterIsInstance<Model.Cached>().toSet()
+        _models.value = updatedModels + nonCachedModels
     }
 }
 
