@@ -8,21 +8,18 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import olpaka.composeapp.generated.resources.*
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.error_missing_ollama_message
 import olpaka.composeapp.generated.resources.error_missing_ollama_title
-import olpaka.composeapp.generated.resources.models_error_no_models_message
-import olpaka.composeapp.generated.resources.models_error_no_models_title
 import org.cyanotic.olpaka.core.Analytics
-import org.cyanotic.olpaka.core.DownloadState.COMPLETED
-import org.cyanotic.olpaka.core.DownloadState.DOWNLOADING
-import org.cyanotic.olpaka.core.DownloadState.INACTIVE
-import org.cyanotic.olpaka.core.ModelDownloadState
 import org.cyanotic.olpaka.core.Preferences
 import org.cyanotic.olpaka.core.StringResources
 import org.cyanotic.olpaka.core.domain.Model
@@ -33,7 +30,6 @@ import org.cyanotic.olpaka.repository.ModelsRepository
 class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val modelsRepository: ModelsRepository,
-    private val modelDownloadState: ModelDownloadState,
     private val analytics: Analytics,
     private val preferences: Preferences,
     private val backgroundDispatcher: CoroutineDispatcher,
@@ -53,78 +49,79 @@ class ChatViewModel(
     private var newMessage: ChatMessage.Assistant? = null
     private var selectedModel: Model.Cached? = null
 
+    init {
+        viewModelScope.launch(backgroundDispatcher) {
+            modelsRepository.models
+                .map { it.filterIsInstance<Model.Cached>() }
+                .collect { cachedModels ->
+                    stateMutex.withLock {
+                        models = cachedModels
+                        calculateState(cachedModels)
+                    }
+                }
+        }
+    }
+
     fun onCreate() = viewModelScope.launch(backgroundDispatcher) {
         analytics.screenView("chat")
-        launch {
-            modelDownloadState.currentDownloadState.collect {
-                when (it) {
-                    DOWNLOADING -> Unit
-                    COMPLETED,
-                    INACTIVE -> refreshModels()
-                }
-            }
-        }
         refreshModels()
         focusOnTextInput()
     }
 
     fun onRefresh() = viewModelScope.launch(backgroundDispatcher) {
+        _state.value = ChatState.Loading
         refreshModels()
     }
 
-    private suspend fun refreshModels() = stateMutex.withLock {
-        if (_state.value is ChatState.Error) {
-            _state.value = ChatState.Loading
-        } else {
-            _state.value = ChatState.Content(
-                models = models.toChatModelUI(),
-                messages = (messages + newMessage).filterNotNull().toMessageUI(),
-                selectedModel = selectedModel?.toChatModelUI(),
-                controlsEnabled = false
-            )
-        }
-        val result = modelsRepository.getModels()
-        if (result.isSuccess) {
-            val newModels = result.getOrThrow().filterIsInstance<Model.Cached>()
-            this.models = newModels
-            if (newModels.isEmpty()) {
-                selectedModel = null
-                _state.value = ChatState.Error(
-                    title = strings.get(Res.string.models_error_no_models_title),
-                    message = strings.get(Res.string.models_error_no_models_message),
-                    showTryAgain = true,
-                )
-            } else {
-                if (selectedModel == null || !newModels.contains(selectedModel)) {
-                    selectedModel = newModels.firstOrNull { it.id == preferences.lastUsedModel }
-                        ?: newModels.first()
-                }
-                _state.value = ChatState.Content(
-                    messages = (messages + newMessage).filterNotNull().toMessageUI(),
-                    models = newModels.toChatModelUI(),
-                    selectedModel = selectedModel?.toChatModelUI(),
-                    controlsEnabled = true
-                )
-            }
-        } else {
+    private suspend fun refreshModels() {
+        val result = modelsRepository.refreshModels()
+        if(result.isFailure) {
             _state.value = ChatState.Error(
                 title = strings.get(Res.string.error_missing_ollama_title),
                 message = strings.get(Res.string.error_missing_ollama_message),
                 showTryAgain = true
             )
+        } else {
+            val models = result.getOrNull()!!.filterIsInstance<Model.Cached>()
+            calculateState(models)
         }
     }
 
+    private suspend fun calculateState(models: List<Model.Cached>) {
+        if (models.isEmpty()) {
+            selectedModel = null
+            _state.value = ChatState.Error(
+                title = strings.get(Res.string.chat_missing_model_error_title),
+                message = strings.get(Res.string.chat_missing_model_error_message),
+                showTryAgain = true,
+            )
+            return
+        }
+
+        if (selectedModel == null || !models.contains(selectedModel)) {
+            selectedModel = models.firstOrNull { it.id == preferences.lastUsedModel }
+                ?: models.first()
+        }
+        _state.value = ChatState.Content(
+            messages = (messages + newMessage).filterNotNull().toMessageUI(),
+            models = models.toChatModelUI(),
+            selectedModel = selectedModel?.toChatModelUI(),
+            controlsEnabled = true
+        )
+    }
+
     fun onSubmit(message: String) = viewModelScope.launch(backgroundDispatcher) {
-        val currentSelectedModel = selectedModel ?: return@launch
+        val currentSelectedModel = stateMutex.withLock { selectedModel } ?: return@launch
         val userMessage = ChatMessage.User(message)
         var assistantMessage =
             ChatMessage.Assistant(message = "", isError = false, isGenerating = true)
+        var throwable: Throwable? = null
         chatRepository.sendChatMessage(
             model = currentSelectedModel.id,
             message = message,
             history = messages
         )
+            .catch { e -> throwable = e }
             .onStart {
                 analytics.event("send_message", mapOf("model" to currentSelectedModel.id))
                 stateMutex.withLock {
@@ -139,7 +136,7 @@ class ChatViewModel(
                     )
                 }
             }
-            .onCompletion { throwable ->
+            .onCompletion {
                 stateMutex.withLock {
                     messages = messages + userMessage + assistantMessage.copy(
                         isError = throwable != null,

@@ -5,8 +5,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.cyanotic.olpaka.BuildKonfig
 import io.github.aakira.napier.LogLevel
-import io.ktor.http.*
-import org.cyanotic.olpaka.core.*
+import io.github.aakira.napier.Napier
+import io.ktor.http.parseUrl
+import org.cyanotic.olpaka.core.FirebaseAnalytics
+import org.cyanotic.olpaka.core.OlpakaAntilog
+import org.cyanotic.olpaka.core.Preferences
+import org.cyanotic.olpaka.core.ThemeState
 import org.cyanotic.olpaka.feature.main.MainScreen
 import org.cyanotic.olpaka.network.EndpointProvider
 import org.cyanotic.olpaka.ui.theme.AppTheme
@@ -21,7 +25,7 @@ fun App() {
     KoinApplication({ modules(koinModules) }) {
         val koin = getKoin()
         val themeState = koin.get<ThemeState>()
-        LaunchedEffect(Unit){
+        LaunchedEffect(Unit) {
             val analytics = koin.get<FirebaseAnalytics>()
             analytics.init()
 
@@ -56,10 +60,9 @@ private fun initLogging() {
             null
         }
     }
-    logLevel?.let {
-//        Napier.base(DebugAntilog())
-//        Napier.isEnable(it, null)
-    }
+    val antilog = OlpakaAntilog()
+    logLevel?.let { antilog.currentLevel = it }
+    Napier.base(antilog)
 }
 
 private fun initTheme(preferences: Preferences, themeState: ThemeState) {
