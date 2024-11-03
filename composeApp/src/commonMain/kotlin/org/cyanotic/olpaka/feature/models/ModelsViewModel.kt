@@ -91,6 +91,12 @@ class ModelsViewModel(
                 title = strings.get(Res.string.error_missing_ollama_title),
                 message = strings.get(Res.string.error_missing_ollama_message),
             )
+        } else {
+            val models = result.getOrNull()!!
+            _state.value = ModelsState.Content(
+                models = models.map { it.toModelUI() },
+                controlsEnabled = models.filterIsInstance<Model.Downloading>().isEmpty()
+            )
         }
     }
 

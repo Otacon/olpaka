@@ -56,7 +56,7 @@ class ChatViewModel(
                 .collect { cachedModels ->
                     stateMutex.withLock {
                         models = cachedModels
-                        calculateState()
+                        calculateState(cachedModels)
                     }
                 }
         }
@@ -81,12 +81,14 @@ class ChatViewModel(
                 message = strings.get(Res.string.error_missing_ollama_message),
                 showTryAgain = true
             )
+        } else {
+            val models = result.getOrNull()!!.filterIsInstance<Model.Cached>()
+            calculateState(models)
         }
     }
 
-    private suspend fun calculateState() {
-        val currentModels = models
-        if (currentModels.isEmpty()) {
+    private suspend fun calculateState(models: List<Model.Cached>) {
+        if (models.isEmpty()) {
             selectedModel = null
             _state.value = ChatState.Error(
                 title = strings.get(Res.string.chat_missing_model_error_title),
@@ -96,13 +98,13 @@ class ChatViewModel(
             return
         }
 
-        if (selectedModel == null || !currentModels.contains(selectedModel)) {
-            selectedModel = currentModels.firstOrNull { it.id == preferences.lastUsedModel }
-                ?: currentModels.first()
+        if (selectedModel == null || !models.contains(selectedModel)) {
+            selectedModel = models.firstOrNull { it.id == preferences.lastUsedModel }
+                ?: models.first()
         }
         _state.value = ChatState.Content(
             messages = (messages + newMessage).filterNotNull().toMessageUI(),
-            models = currentModels.toChatModelUI(),
+            models = models.toChatModelUI(),
             selectedModel = selectedModel?.toChatModelUI(),
             controlsEnabled = true
         )
