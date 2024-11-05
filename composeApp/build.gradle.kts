@@ -17,6 +17,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.buildKonfig)
     alias(libs.plugins.mokkery)
+    alias(libs.plugins.sqldelight)
 }
 
 buildkonfig {
@@ -124,6 +125,7 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
 
             implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.sqldelight.driver.android)
         }
 
         commonMain.dependencies {
@@ -167,14 +169,22 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
 
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.sqldelight.driver.desktop)
         }
 
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.sqldelight.driver.native)
         }
 
         wasmJsMain.dependencies {
             implementation(devNpm("firebase", "10.13.2"))
+        }
+
+        jsMain.dependencies {
+            implementation(libs.sqldelight.driver.js)
+            implementation(npm("sql.js", "1.8.0"))
+            implementation(devNpm("copy-webpack-plugin", "9.1.0"))
         }
 
         commonTest.dependencies {
@@ -227,6 +237,15 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "org.cyanotic.olpaka"
             packageVersion = "1.0.0"
+        }
+    }
+}
+
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set("org.cyanotic.olpaka")
+            generateAsync.set(true)
         }
     }
 }

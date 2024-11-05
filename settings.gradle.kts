@@ -12,6 +12,8 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        // SQDelight Snapshot
+        maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
     }
 }
 
@@ -25,6 +27,8 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        // SQDelight Snapshot
+        maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
     }
 }
 

@@ -19,6 +19,7 @@ mokkery = "2.3.0"
 napier = "2.7.1"
 serialization-json = "1.7.3"
 settings = "1.2.0"
+sqldelight = "2.1.0-SNAPSHOT"
 turbine = "1.1.0"
 
 [libraries]
@@ -52,6 +53,11 @@ markdownRenderer-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m
 materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
 napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 
+sqldelight-driver-android = { group = "app.cash.sqldelight", name = "android-driver", version.ref = "sqldelight" }
+sqldelight-driver-desktop = { group = "app.cash.sqldelight", name = "sqlite-driver", version.ref = "sqldelight" }
+sqldelight-driver-js = { group = "app.cash.sqldelight", name = "sqljs-driver", version.ref = "sqldelight" }
+sqldelight-driver-native = { group = "app.cash.sqldelight", name = "native-driver", version.ref = "sqldelight" }
+
 settings = { group = "com.russhwolf", name = "multiplatform-settings-no-arg", version.ref = "settings" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
@@ -64,3 +70,4 @@ jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
