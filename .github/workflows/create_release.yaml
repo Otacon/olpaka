@@ -52,6 +52,10 @@ jobs:
           ./gradlew desktopJar
 
       - name: Run Conveyor
+        env:
+          FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
+          VERSION_NAME: ${{ vars.OLPAKA_VERSION }}
+          BASE_HREF: ${{ vars.BASE_HREF }}
         uses: hydraulic-software/conveyor/actions/build@v15.1
         with:
           signing_key: ${{ secrets.SIGNING_KEY }}
