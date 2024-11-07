@@ -17,7 +17,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.buildKonfig)
     alias(libs.plugins.mokkery)
+    alias(libs.plugins.conveyor)
 }
+
+version = "1.0"
 
 buildkonfig {
     packageName = "com.cyanotic.olpaka"
@@ -102,6 +105,7 @@ kotlin {
     }
 
     jvm("desktop")
+    jvmToolchain(17)
 
     listOf(
         iosX64(),
@@ -167,6 +171,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
 
             implementation(libs.ktor.client.okhttp)
+
+            implementation(libs.conveyor)
         }
 
         iosMain.dependencies {

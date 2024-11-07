@@ -8,4 +8,5 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.buildKonfig) apply false
     alias(libs.plugins.mokkery) apply false
+    alias(libs.plugins.conveyor) apply false
 }

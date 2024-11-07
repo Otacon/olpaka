@@ -47,6 +47,20 @@ jobs:
           mkdir build/web/
           cp -r composeApp/build/dist/wasmJs/productionExecutable/* build/web/
 
+      - name: Create Desktop jar
+        run: |
+          ./gradlew desktopJar
+          mv ./composeApp/build/libs/composeApp-desktop.jar ./composeApp/build/libs/composeApp-desktop-1.0.jar
+
+      - name: Run Conveyor
+        uses: hydraulic-software/conveyor/actions/build@v15.1
+        with:
+          command: make site
+
+      - name: Copy conveyor artifacts to output folder
+        run: |
+          cp -r output/* build/web/
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@8575951200e472d5f2d95c625da0c7bec8217c42 # v1.161.0
         with:
