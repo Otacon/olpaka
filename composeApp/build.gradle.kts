@@ -236,16 +236,6 @@ compose.desktop {
     }
 }
 
-dependencies {
-    // Use the configurations created by the Conveyor plugin to tell Gradle/Conveyor where to find the artifacts for each platform.
-    linuxAmd64(compose.desktop.linux_x64)
-
-    windowsAmd64(compose.desktop.windows_x64)
-
-    macAmd64(compose.desktop.macos_x64)
-    macAarch64(compose.desktop.macos_arm64)
-}
-
 tasks.register("replaceBaseHref") {
     doLast {
         val buildDirectory = layout.buildDirectory.get()
@@ -266,3 +256,22 @@ tasks.register("replaceBaseHref") {
 tasks.named("wasmJsBrowserDistribution") {
     finalizedBy("replaceBaseHref")
 }
+
+// region Conveyor fixes
+dependencies {
+    // Use the configurations created by the Conveyor plugin to tell Gradle/Conveyor where to find the artifacts for each platform.
+    linuxAmd64(compose.desktop.linux_x64)
+
+    windowsAmd64(compose.desktop.windows_x64)
+
+    macAmd64(compose.desktop.macos_x64)
+    macAarch64(compose.desktop.macos_arm64)
+}
+
+configurations.all {
+    attributes {
+        // https://github.com/JetBrains/compose-jb/issues/1404#issuecomment-1146894731
+        attribute(Attribute.of("ui", String::class.java), "awt")
+    }
+}
+// endregion
