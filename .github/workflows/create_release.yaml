@@ -55,6 +55,7 @@ jobs:
         uses: hydraulic-software/conveyor/actions/build@v15.1
         with:
           command: make site
+          agree_to_license: 1
 
       - name: Copy conveyor artifacts to output folder
         run: |

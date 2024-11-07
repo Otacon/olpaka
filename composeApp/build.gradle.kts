@@ -20,12 +20,11 @@ plugins {
     alias(libs.plugins.conveyor)
 }
 
-version = "1.0"
+version = System.getenv("VERSION_NAME") ?: "local"
 
 buildkonfig {
     packageName = "com.cyanotic.olpaka"
 
-    val versionName = System.getenv("VERSION_NAME") ?: "local"
     val analyticsMeasurementId = System.getenv("ANALYTICS_MEASUREMENT_ID") ?: ""
     val analyticsApiSecret = System.getenv("ANALYTICS_API_SECRET") ?: ""
     val firebaseWebConfig = System.getenv("FIREBASE_WEB_CONFIG_JSON") ?: ""
@@ -34,7 +33,7 @@ buildkonfig {
 
     defaultConfigs {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")
-        buildConfigField(STRING, "appVersion", versionName)
+        buildConfigField(STRING, "appVersion", version as String)
         buildConfigField(STRING, "appVariant", "release")
         buildConfigField(STRING, "loggingLevel", "warning")
         buildConfigField(STRING, "analyticsMeasurementId", analyticsMeasurementId)
