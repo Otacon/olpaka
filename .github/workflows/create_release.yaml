@@ -54,6 +54,7 @@ jobs:
       - name: Run Conveyor
         uses: hydraulic-software/conveyor/actions/build@v15.1
         with:
+          signing_key: ${{ secrets.SIGNING_KEY }}
           command: make site
           agree_to_license: 1
 
