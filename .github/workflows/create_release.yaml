@@ -50,7 +50,6 @@ jobs:
       - name: Create Desktop jar
         run: |
           ./gradlew desktopJar
-          mv ./composeApp/build/libs/composeApp-desktop.jar ./composeApp/build/libs/composeApp-desktop-1.0.jar
 
       - name: Run Conveyor
         uses: hydraulic-software/conveyor/actions/build@v15.1
