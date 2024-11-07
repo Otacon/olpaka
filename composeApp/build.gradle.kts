@@ -20,7 +20,7 @@ plugins {
     alias(libs.plugins.conveyor)
 }
 
-version = System.getenv("VERSION_NAME") ?: "local"
+version = System.getenv("VERSION_NAME") ?: "1.0+local"
 
 buildkonfig {
     packageName = "com.cyanotic.olpaka"
