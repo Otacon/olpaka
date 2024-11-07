@@ -42,12 +42,11 @@ jobs:
         run: |
           ./gradlew :composeApp:wasmJsBrowserDistribution --quiet -Pbuildkonfig.flavor=release
 
-      - name: Copy Web App to the output folder
-        run: |
-          mkdir build/web/
-          cp -r composeApp/build/dist/wasmJs/productionExecutable/* build/web/
-
       - name: Create Desktop jar
+        env:
+          FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
+          VERSION_NAME: ${{ vars.OLPAKA_VERSION }}
+          BASE_HREF: ${{ vars.BASE_HREF }}
         run: |
           ./gradlew desktopJar
 
@@ -61,6 +60,11 @@ jobs:
           signing_key: ${{ secrets.SIGNING_KEY }}
           command: make site
           agree_to_license: 1
+
+      - name: Copy Web App to the output folder
+        run: |
+          mkdir build/web/
+          cp -r composeApp/build/dist/wasmJs/productionExecutable/* build/web/
 
       - name: Copy conveyor artifacts to output folder
         run: |
