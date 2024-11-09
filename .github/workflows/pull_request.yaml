@@ -43,26 +43,6 @@ jobs:
           reporter: java-junit
           list-tests: 'failed'
 
-      - name: Upload android debug test report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
-        with:
-          name: Android debug test report
-          only-summary: 'true'
-          path: 'composeApp/build/test-results/testDebugUnitTest/*.xml'
-          reporter: java-junit
-          list-tests: 'failed'
-
-      - name: Upload android release test report
-        uses: dorny/test-reporter@v1
-        if: success() || failure()
-        with:
-          name: Android release test report
-          only-summary: 'true'
-          path: 'composeApp/build/test-results/testReleaseUnitTest/*.xml'
-          reporter: java-junit
-          list-tests: 'failed'
-
       - name: Upload web test report
         uses: dorny/test-reporter@v1
         if: success() || failure()
@@ -81,8 +61,22 @@ jobs:
         run: |
           ./gradlew :composeApp:wasmJsBrowserDistribution -Pbuildkonfig.flavor=release
 
+      - name: Build Desktop app
+        env:
+          FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
+          VERSION_NAME: development
+          BASE_HREF: ${{ vars.BASE_HREF }}
+        run: |
+          ./gradlew desktopJar -Pbuildkonfig.flavor=release
+
       - name: Upload web artifacts
         uses: actions/upload-artifact@v4
         with:
           name: OlpakaWeb
           path: composeApp/build/dist/wasmJs/productionExecutable/*
+
+      - name: Upload desktop artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OlpakaDesktop
+          path: composeApp/build/libs/*.jar
