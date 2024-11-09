@@ -1,12 +1,18 @@
 package org.cyanotic.olpaka.feature.main
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.*
-import org.cyanotic.olpaka.core.*
+import kotlinx.coroutines.launch
+import org.cyanotic.olpaka.core.Preferences
+import org.cyanotic.olpaka.core.domain.Model
+import org.cyanotic.olpaka.repository.ModelsRepository
 
 class MainViewModel(
     private val preferences: Preferences,
-    private val modelDownloadState: ModelDownloadState,
+    private val modelsRepository: ModelsRepository,
+    private val backgroundDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainState())
@@ -15,56 +21,73 @@ class MainViewModel(
     private val _events = MutableSharedFlow<MainEvent>()
     val event = _events.asSharedFlow()
 
-    fun onCreate() = inBackground {
-        if (!preferences.hasSeenOnboarding) {
-            _events.emit(MainEvent.OpenOnboarding)
-            preferences.hasSeenOnboarding = true
-        }
-        inBackground {
-            modelDownloadState.currentDownloadState.collect { newState ->
-                val selectedTab = state.value.selectedTabIndex
-                if (selectedTab != 1) {
-                    _state.value = _state.value.copy(activityBadge = newState.toBadge())
-                } else if(newState == DownloadState.COMPLETED){
-                    modelDownloadState.setInactive()
+    init {
+        viewModelScope.launch(backgroundDispatcher) {
+            modelsRepository.models.collect { models ->
+                _state.getAndUpdate { current ->
+                    val activityBadge = calculateBadgeState(
+                        models = models,
+                        tabIndex = current.selectedTabIndex,
+                        currentBadge = current.activityBadge
+                    )
+                    current.copy(activityBadge = activityBadge)
                 }
             }
         }
     }
 
-    fun onTabChanged(index: Int) = inBackground {
+    fun onCreate() = viewModelScope.launch(backgroundDispatcher) {
+        if (!preferences.hasSeenOnboarding) {
+            _events.emit(MainEvent.OpenOnboarding)
+            preferences.hasSeenOnboarding = true
+        }
+    }
+
+    fun onTabChanged(index: Int) = viewModelScope.launch(backgroundDispatcher) {
         _state.getAndUpdate { current ->
-            val navigationEvent = when (index) {
+            val adjustedIndex = when {
+                index <= 0 -> 0
+                index >= 2 -> 2
+                else -> index
+            }
+
+            val navigationEvent = when (adjustedIndex) {
                 1 -> MainEvent.OpenModels
                 2 -> MainEvent.OpenSettings
                 else -> MainEvent.OpenChat
             }
-            val currentState = modelDownloadState.currentDownloadState.value
-            val badge = when {
-                index != 1 -> currentState.toBadge()
-                currentState == DownloadState.COMPLETED -> {
-                    modelDownloadState.setInactive()
-                    Badge.NONE
-                }
-
-                else -> Badge.NONE
-            }
             _events.emit(navigationEvent)
+
+            val badge = calculateBadgeState(
+                models = modelsRepository.models.value,
+                tabIndex = adjustedIndex,
+                currentBadge = current.activityBadge
+            )
             current.copy(
-                selectedTabIndex = index,
+                selectedTabIndex = adjustedIndex,
                 activityBadge = badge
             )
         }
     }
 
-}
+    private fun calculateBadgeState(models: List<Model>, tabIndex: Int, currentBadge: Badge): Badge {
+        if (tabIndex == 1) {
+            return Badge.NONE
+        }
 
-private fun DownloadState.toBadge(): Badge {
-    return when (this) {
-        DownloadState.DOWNLOADING -> Badge.DOWNLOADING
-        DownloadState.COMPLETED -> Badge.COMPLETED
-        DownloadState.INACTIVE -> Badge.NONE
+        val isDownloading = models.filterIsInstance<Model.Downloading>().isNotEmpty()
+        if (isDownloading) {
+            return Badge.DOWNLOADING
+        }
+
+        return when (currentBadge) {
+            Badge.DOWNLOADING,
+            Badge.COMPLETED -> Badge.COMPLETED
+
+            Badge.NONE -> Badge.NONE
+        }
     }
+
 }
 
 data class MainState(

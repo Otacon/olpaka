@@ -63,6 +63,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.mikepenz.markdown.m3.Markdown
+import io.github.aakira.napier.Napier
 import olpaka.composeapp.generated.resources.Res
 import olpaka.composeapp.generated.resources.app_name
 import olpaka.composeapp.generated.resources.chat_assistant_name
@@ -103,6 +104,7 @@ fun ChatScreen() {
     }
 
     val currentState = state
+    Napier.d(tag = "Chat Screen", message = "Showing $currentState")
     if (currentState is ChatState.Content) {
         LaunchedEffect(currentState) {
             chatListState.animateScrollToItem(chatListState.layoutInfo.totalItemsCount)
