@@ -113,8 +113,11 @@ class ChatViewModel(
     fun onSubmit(message: String) = viewModelScope.launch(backgroundDispatcher) {
         val currentSelectedModel = stateMutex.withLock { selectedModel } ?: return@launch
         val userMessage = ChatMessage.User(message)
-        var assistantMessage =
-            ChatMessage.Assistant(message = "", isError = false, isGenerating = true)
+        var assistantMessage = ChatMessage.Assistant(
+            message = "",
+            isError = false,
+            isGenerating = true,
+        )
         var throwable: Throwable? = null
         chatRepository.sendChatMessage(
             model = currentSelectedModel.id,

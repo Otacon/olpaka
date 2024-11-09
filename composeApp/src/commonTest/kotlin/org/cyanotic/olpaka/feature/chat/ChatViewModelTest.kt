@@ -63,8 +63,10 @@ class ChatViewModelTest {
     fun given_someModels_when_openingChat_then_contentWithFirstModelSelected() =
         runTestOn { viewModel ->
             // GIVEN
-            stateModels.value = listOf(cachedModel1, cachedModel2)
+            val models = listOf(cachedModel1, cachedModel2)
+            stateModels.value = models
             advanceUntilIdle()
+            everySuspend { modelsRepository.refreshModels() } returns Result.success(models)
 
             // WHEN
             viewModel.onCreate()
@@ -84,8 +86,10 @@ class ChatViewModelTest {
     fun given_someModels_when_openingChat_then_preferenceModelSelected() = runTestOn { viewModel ->
         // GIVEN
         every { preferences.lastUsedModel } returns cachedModel2.id
-        stateModels.value = listOf(cachedModel1, cachedModel2)
+        val models = listOf(cachedModel1, cachedModel2)
+        stateModels.value = models
         advanceUntilIdle()
+        everySuspend { modelsRepository.refreshModels() } returns Result.success(models)
 
         // WHEN
         viewModel.onCreate()
@@ -205,7 +209,6 @@ class ChatViewModelTest {
             )
 
             // WHEN
-            viewModel.onCreate()
             advanceUntilIdle()
             viewModel.state.test {
                 viewModel.onSubmit(query)
@@ -279,9 +282,6 @@ class ChatViewModelTest {
             }
 
             // WHEN
-            viewModel.onCreate()
-            advanceUntilIdle()
-
             viewModel.onSubmit("")
             advanceUntilIdle()
 
@@ -312,9 +312,6 @@ class ChatViewModelTest {
         }
 
         // WHEN
-        viewModel.onCreate()
-        advanceUntilIdle()
-
         viewModel.onSubmit("")
         advanceUntilIdle()
 
