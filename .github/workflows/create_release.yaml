@@ -48,7 +48,7 @@ jobs:
           VERSION_NAME: ${{ vars.OLPAKA_VERSION }}
           BASE_HREF: ${{ vars.BASE_HREF }}
         run: |
-          ./gradlew desktopJar
+          ./gradlew desktopJar --quiet -Pbuildkonfig.flavor=release
 
       - name: Run Conveyor
         env:
