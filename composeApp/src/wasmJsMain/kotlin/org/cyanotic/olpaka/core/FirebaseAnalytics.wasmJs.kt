@@ -27,9 +27,9 @@ actual class FirebaseAnalytics : Analytics {
             )
             val app = initializeApp(configuration)
             analytics = getAnalytics(app)
-        } catch (e: Exception){
+        } catch (e: Exception) {
             Napier.w("Exception while configuring analytics")
-        } catch (e: Error){
+        } catch (e: Error) {
             Napier.w("Error while configuring analytics")
         }
 
@@ -37,12 +37,17 @@ actual class FirebaseAnalytics : Analytics {
     }
 
     actual override fun screenView(screenName: String) {
-        analytics?.let { logEvent(it, screenName) }
-
+        event("screen_view", mapOf("screen_name" to screenName))
     }
 
     actual override fun event(eventName: String, properties: Map<String, Any?>) {
-        analytics?.let { logEvent(it, eventName, properties.toJsAny()) }
+        analytics?.let {
+            logEvent(
+                analytics = it,
+                eventName = eventName,
+                properties = properties.toJsAny()
+            )
+        }
     }
 
 }
