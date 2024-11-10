@@ -28,9 +28,20 @@ jobs:
       BASE_HREF: ${{ vars.BASE_HREF }}
       BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
       FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
-      VERSION_NAME: ${{ vars.OLPAKA_VERSION }}
 
     steps:
+      - id: get_version
+        name: Get version from tag
+        uses: JanneMattila/get-version-from-tag@v4
+
+      - name: Set version to GitHub environment
+        run: |
+          echo "VERSION_NAME=${{ steps.get_version.outputs.version }}" >> $GITHUB_ENV
+
+      - name: Debug version
+        run: |
+          echo "$VERSION_NAME"
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
