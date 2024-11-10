@@ -9,13 +9,14 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import java.util.Base64
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.androidApplication)
     alias(libs.plugins.buildKonfig)
-    alias(libs.plugins.mokkery)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.conveyor)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.mokkery)
 }
 
 version = System.getenv("VERSION_NAME") ?: "local"
@@ -195,6 +196,13 @@ tasks.named("wasmJsBrowserDistribution") {
 }
 
 // region Conveyor fixes
+// By not applying the Android Gradle plugin and the below configuration, gradle is unable to find
+// a matching AWT for WasmJS.
+android {
+    namespace = "org.cyanotic.olpaka"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+}
+
 dependencies {
     // Use the configurations created by the Conveyor plugin to tell Gradle/Conveyor where to find the artifacts for each platform.
     linuxAmd64(compose.desktop.linux_x64)
