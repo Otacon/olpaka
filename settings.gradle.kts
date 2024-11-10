@@ -25,6 +25,8 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        // Used to retrieve all the platform-dependent native libraries to build Conveyor
+        // See composeApp/build.gradle.kts region Conveyour fixes
         maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
     }
 }
