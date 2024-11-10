@@ -8,10 +8,13 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val coreModule = module {
+
     singleOf(::ThemeState)
-    singleOf(::ModelDownloadStateDefault) bind ModelDownloadState::class
     singleOf(::FirebaseAnalytics) bind Analytics::class
+
     factoryOf(::PreferencesDefault) bind Preferences::class
     factoryOf(::StringResourcesDefault) bind StringResources::class
+    factoryOf(::DownloadStatsCalculatorDefault) bind DownloadStatsCalculator::class
     factory<CoroutineDispatcher> { Dispatchers.Default }
+
 }

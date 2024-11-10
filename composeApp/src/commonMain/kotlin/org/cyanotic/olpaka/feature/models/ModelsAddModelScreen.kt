@@ -28,7 +28,6 @@ fun ModelsAddModelScreen(navController: NavController) {
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
-        viewModel.onCreate()
         focusRequester.requestFocus()
         viewModel.event.collect { event ->
             when (event) {

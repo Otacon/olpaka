@@ -2,23 +2,26 @@ package org.cyanotic.olpaka.feature.models
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import org.cyanotic.olpaka.core.FirebaseAnalytics
-import org.cyanotic.olpaka.core.ModelDownloadState
+import olpaka.composeapp.generated.resources.Res
+import olpaka.composeapp.generated.resources.error_missing_ollama_message
+import olpaka.composeapp.generated.resources.error_missing_ollama_title
+import org.cyanotic.olpaka.core.Analytics
+import org.cyanotic.olpaka.core.StringResources
 import org.cyanotic.olpaka.core.domain.Model
-import org.cyanotic.olpaka.core.inBackground
-import org.cyanotic.olpaka.core.toHumanReadableByteCount
-import org.cyanotic.olpaka.repository.DownloadModelProgress
 import org.cyanotic.olpaka.repository.ModelsRepository
 
 class ModelsViewModel(
     private val repository: ModelsRepository,
-    private val modelDownloadState: ModelDownloadState,
-    private val analytics: FirebaseAnalytics,
+    private val analytics: Analytics,
+    private val statsFormatter: DownloadStatsFormatter,
+    private val dispatcher: CoroutineDispatcher,
+    private val strings: StringResources,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ModelsState>(ModelsState.Loading)
@@ -27,112 +30,53 @@ class ModelsViewModel(
     private val _events = MutableSharedFlow<ModelsEvent>()
     val event = _events.asSharedFlow()
 
-    private val stateMutex = Mutex()
+    init {
+        viewModelScope.launch(dispatcher) {
+            repository.models.collect { models ->
+                val isDownloadingModel = models.filterIsInstance<Model.Downloading>().isNotEmpty()
+                _state.value = ModelsState.Content(
+                    models = models.map { it.toModelUI() },
+                    controlsEnabled = !isDownloadingModel
+                )
+            }
+        }
+    }
 
-    private var cachedModels = listOf<Model.Cached>()
-    private var downloadingModel: ModelUI? = null
-    private var downloadProcess: Job? = null
 
-    fun onCreate() = inBackground {
+    fun onCreate() = viewModelScope.launch(dispatcher) {
         analytics.screenView("models")
         refreshModels()
     }
 
-    fun onRefreshClicked() = inBackground {
+    fun onRefreshClicked() = viewModelScope.launch(dispatcher) {
+        _state.value = when (_state.value) {
+            is ModelsState.Content -> _state.value
+            is ModelsState.Error,
+            ModelsState.Loading -> ModelsState.Loading
+        }
         analytics.event("refresh_models")
         refreshModels()
     }
 
-    fun onAddModelClicked() = inBackground {
+    fun onAddModelClicked() = viewModelScope.launch(dispatcher) {
         _events.emit(ModelsEvent.OpenAddModelDialog)
     }
 
-    fun onAddModel(tag: String) {
-        _state.value = ModelsState.Content(
-            models = cachedModels.toModelUI(),
-            controlsEnabled = false
-        )
-
-        downloadProcess = viewModelScope.launch {
-            repository.downloadModel(tag)
-                .cancellable()
-                .onStart {
-                    stateMutex.withLock {
-                        val newModel = ModelUI.Downloading(
-                            key = tag,
-                            title = tag,
-                            subtitle = "Downloading...",
-                            progress = null
-                        )
-                        val newModels = cachedModels.mapNotNull {
-                            if (it.id == tag) {
-                                null
-                            } else {
-                                it
-                            }
-                        }
-                        downloadingModel = newModel
-                        val modelsUi = (newModels).toModelUI() + newModel
-                        _state.value = ModelsState.Content(
-                            models = modelsUi,
-                            controlsEnabled = false
-                        )
-                        modelDownloadState.setDownloading()
-                    }
-                }
-                .onCompletion { throwable ->
-                    val newDownloadingModel = if (throwable != null) {
-                        ModelUI.Error(key = tag, title = "Unable to download $tag", subtitle = "Try again")
-                    } else {
-                        null
-                    }
-                    downloadingModel = newDownloadingModel
-                    analytics.event(eventName = "download_model", properties = mapOf("model" to tag))
-                    viewModelScope.launch {
-                        refreshModels()
-                        modelDownloadState.setCompleted()
-                    }
-                }
-                .collect { chunk ->
-                    val newModel = when (chunk) {
-                        is DownloadModelProgress.Downloading -> {
-                            Model.Downloading(
-                                id = tag,
-                                name = tag,
-                                downloaded = chunk.completed,
-                                size = chunk.total
-                            )
-                        }
-
-                        is DownloadModelProgress.Processing -> {
-                            //TODO handle status
-                            val status = chunk.status.replaceFirstChar { it.uppercaseChar() }
-                            Model.Downloading(
-                                id = tag,
-                                name = tag,
-                                downloaded = null,
-                                size = null
-                            )
-                        }
-                    }
-                    downloadingModel = newModel.toModelUI()
-                    val newModels = (cachedModels + newModel).toModelUI()
-                    _state.value = ModelsState.Content(models = newModels, controlsEnabled = false)
-                }
-        }
+    fun onAddModel(tag: String) = viewModelScope.launch(dispatcher) {
+        repository.downloadModel(tag)
     }
 
     fun onCancelDownload() {
-        downloadProcess?.cancel()
+        repository.cancelDownload()
     }
 
-    fun onRemoveModelClicked(model: ModelUI.Available) = inBackground {
+    fun onRemoveModelClicked(model: ModelUI.Available) = viewModelScope.launch(dispatcher) {
         _events.emit(ModelsEvent.OpenRemoveModelDialog(model.key))
     }
 
-    fun onConfirmRemoveModel(modelKey: String) = inBackground {
+    fun onConfirmRemoveModel(modelKey: String) = viewModelScope.launch(dispatcher) {
         _state.value = ModelsState.Content(
-            models = cachedModels.toModelUI(),
+            models = repository.models.value.map { it.toModelUI() },
             controlsEnabled = false
         )
         repository.removeModel(tag = modelKey)
@@ -141,79 +85,67 @@ class ModelsViewModel(
     }
 
     private suspend fun refreshModels() {
-        _state.value = if (cachedModels.isEmpty()) {
-            ModelsState.Loading
+        val result = repository.refreshModels()
+        if (result.isFailure) {
+            _state.value = ModelsState.Error(
+                title = strings.get(Res.string.error_missing_ollama_title),
+                message = strings.get(Res.string.error_missing_ollama_message),
+            )
         } else {
-            ModelsState.Content(
-                models = cachedModels.toModelUI() + downloadingModel,
-                controlsEnabled = false,
+            val models = result.getOrNull()!!
+            _state.value = ModelsState.Content(
+                models = models.map { it.toModelUI() },
+                controlsEnabled = models.filterIsInstance<Model.Downloading>().isEmpty()
             )
         }
-        stateMutex.withLock {
-            val result = repository.getModels()
-            if (result.isSuccess) {
-                val models = result.getOrThrow().filterIsInstance<Model.Cached>()
-                cachedModels = models
+    }
 
-                val newModelsUI = models.toModelUI() + downloadingModel
-                _state.value = ModelsState.Content(
-                    models = newModelsUI,
-                    controlsEnabled = true
+    private fun Model.toModelUI(): ModelUI {
+        return when (this) {
+            is Model.Cached -> {
+                val subtitle = listOfNotNull(
+                    statsFormatter.formatSizeInBytes(size),
+                    quantization,
+                    parameters
+                ).joinToString(" • ")
+                ModelUI.Available(
+                    key = id,
+                    title = name,
+                    subtitle = subtitle
                 )
-            } else {
-                cachedModels = emptyList()
-                _state.value = ModelsState.Error(
-                    title = "errorTitle",
-                    message = "error message"
+            }
+
+            is Model.Downloading -> {
+                var progress: Float? = null
+                var subtitle = "Downloading..."
+                if (sizeBytes > 0) {
+                    progress = downloadedBytes / sizeBytes.toFloat()
+                    val speedFormatted = statsFormatter.formatDownloadSpeed(this.speedBytesSecond)
+                    val downloadedSizeFormatted =
+                        statsFormatter.formatSizeInBytes(this.downloadedBytes)
+                    val totalSizeFormatted = statsFormatter.formatSizeInBytes(this.sizeBytes)
+                    val timeLeftFormatted = statsFormatter.formatRemainingTime(this.timeLeftSeconds)
+                    subtitle =
+                        "$speedFormatted - $downloadedSizeFormatted of $totalSizeFormatted, $timeLeftFormatted left"
+                }
+                ModelUI.Downloading(
+                    key = id,
+                    title = name,
+                    subtitle = subtitle,
+                    progress = progress
+                )
+            }
+
+            is Model.Error -> {
+                ModelUI.Error(
+                    key = id,
+                    title = name,
+                    subtitle = this.message,
                 )
             }
         }
+
     }
-
-}
-
-private operator fun List<ModelUI>.plus(otherModel: ModelUI?) : List<ModelUI> {
-    return if (otherModel == null) {
-        this
-    } else {
-        this.toMutableList().also { it.add(otherModel) }
-    }
-}
-
-private fun List<Model>.toModelUI(): List<ModelUI> {
-    return this.map { it.toModelUI() }
-}
-
-private fun Model.toModelUI(): ModelUI {
-    return when (this) {
-        is Model.Cached -> {
-            val subtitle = listOfNotNull(
-                size.toHumanReadableByteCount(),
-                quantization,
-                parameters
-            ).joinToString(" • ")
-            ModelUI.Available(
-                key = id,
-                title = "$name ($id)",
-                subtitle = subtitle
-            )
-        }
-
-        is Model.Downloading -> {
-            val progress = if (size != null && size > 0 && downloaded != null && downloaded > 0) {
-                downloaded / size.toFloat()
-            } else {
-                null
-            }
-            ModelUI.Downloading(
-                key = id,
-                title = name,
-                subtitle = "Downloading",
-                progress = progress
-            )
-        }
-    }
-
 }
 
 sealed interface ModelsEvent {
