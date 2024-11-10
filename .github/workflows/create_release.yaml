@@ -3,9 +3,9 @@ run-name: Create release
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - v*
+  release:
+    types:
+      - released
 
 permissions:
   contents: read
