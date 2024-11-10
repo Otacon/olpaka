@@ -23,18 +23,20 @@ buildkonfig {
     val versionName = System.getenv("VERSION_NAME") ?: "local"
     val analyticsMeasurementId = System.getenv("ANALYTICS_MEASUREMENT_ID") ?: ""
     val analyticsApiSecret = System.getenv("ANALYTICS_API_SECRET") ?: ""
+    val bugsnagApiKey = System.getenv("BUGSNAG_API_KEY") ?: ""
     val firebaseWebConfig = System.getenv("FIREBASE_WEB_CONFIG_JSON") ?: ""
 
     val decodedWebConfig = Base64.getDecoder().decode(firebaseWebConfig).decodeToString()
 
     defaultConfigs {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")
+        buildConfigField(STRING, "analyticsApiSecret", analyticsApiSecret)
+        buildConfigField(STRING, "analyticsMeasurementId", analyticsMeasurementId)
         buildConfigField(STRING, "appVersion", versionName)
         buildConfigField(STRING, "appVariant", "release")
-        buildConfigField(STRING, "loggingLevel", "warning")
-        buildConfigField(STRING, "analyticsMeasurementId", analyticsMeasurementId)
-        buildConfigField(STRING, "analyticsApiSecret", analyticsApiSecret)
+        buildConfigField(STRING, "bugsnagApiKey", bugsnagApiKey)
         buildConfigField(STRING, "firebaseWebConfigJson", decodedWebConfig)
+        buildConfigField(STRING, "loggingLevel", "warning")
     }
     defaultConfigs("debug") {
         buildConfigField(STRING, "appVariant", "debug")
@@ -134,6 +136,8 @@ kotlin {
 
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
+
+            implementation(libs.bugsnag)
 
             implementation(libs.kotlinx.coroutines.swing)
 
