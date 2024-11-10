@@ -1,6 +1,7 @@
 [versions]
 androidx-lifecycle = "2.8.2"
 androidx-navigation = "2.8.0-alpha10"
+bugsnag = "3.+"
 buildKonfig = "0.15.2"
 compose-plugin = "1.7.0-beta02"
 coroutines = "1.9.0"
@@ -20,6 +21,8 @@ turbine = "1.1.0"
 androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "androidx-navigation" }
+
+bugsnag = { group = "com.bugsnag", name="bugsnag", version.ref="bugsnag"}
 
 koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koin-compose" }
 koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin-compose" }

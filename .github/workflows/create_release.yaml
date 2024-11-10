@@ -36,9 +36,10 @@ jobs:
 
       - name: Build Web app
         env:
+          BASE_HREF: ${{ vars.BASE_HREF }}
+          BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
           FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
           VERSION_NAME: ${{ vars.OLPAKA_VERSION }}
-          BASE_HREF: ${{ vars.BASE_HREF }}
         run: |
           ./gradlew :composeApp:wasmJsBrowserDistribution --quiet -Pbuildkonfig.flavor=release
 
