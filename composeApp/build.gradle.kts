@@ -9,18 +9,21 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import java.util.Base64
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.androidApplication)
     alias(libs.plugins.buildKonfig)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.conveyor)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.mokkery)
 }
+
+version = System.getenv("VERSION_NAME") ?: "local"
 
 buildkonfig {
     packageName = "com.cyanotic.olpaka"
 
-    val versionName = System.getenv("VERSION_NAME") ?: "local"
     val analyticsMeasurementId = System.getenv("ANALYTICS_MEASUREMENT_ID") ?: ""
     val analyticsApiSecret = System.getenv("ANALYTICS_API_SECRET") ?: ""
     val bugsnagApiKey = System.getenv("BUGSNAG_API_KEY") ?: ""
@@ -32,7 +35,7 @@ buildkonfig {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")
         buildConfigField(STRING, "analyticsApiSecret", analyticsApiSecret)
         buildConfigField(STRING, "analyticsMeasurementId", analyticsMeasurementId)
-        buildConfigField(STRING, "appVersion", versionName)
+        buildConfigField(STRING, "appVersion", version as String)
         buildConfigField(STRING, "appVariant", "release")
         buildConfigField(STRING, "bugsnagApiKey", bugsnagApiKey)
         buildConfigField(STRING, "firebaseWebConfigJson", decodedWebConfig)
@@ -95,6 +98,7 @@ kotlin {
     }
 
     jvm("desktop")
+    jvmToolchain(17)
 
     sourceSets {
         val desktopMain by getting
@@ -142,6 +146,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
 
             implementation(libs.ktor.client.okhttp)
+
+            implementation(libs.conveyor)
         }
 
         wasmJsMain.dependencies {
@@ -188,3 +194,29 @@ tasks.register("replaceBaseHref") {
 tasks.named("wasmJsBrowserDistribution") {
     finalizedBy("replaceBaseHref")
 }
+
+// region Conveyor fixes
+// By not applying the Android Gradle plugin and the below configuration, gradle is unable to find
+// a matching AWT for WasmJS.
+android {
+    namespace = "org.cyanotic.olpaka"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+}
+
+dependencies {
+    // Use the configurations created by the Conveyor plugin to tell Gradle/Conveyor where to find the artifacts for each platform.
+    linuxAmd64(compose.desktop.linux_x64)
+
+    windowsAmd64(compose.desktop.windows_x64)
+
+    macAmd64(compose.desktop.macos_x64)
+    macAarch64(compose.desktop.macos_arm64)
+}
+
+configurations.all {
+    attributes {
+        // https://github.com/JetBrains/compose-jb/issues/1404#issuecomment-1146894731
+        attribute(Attribute.of("ui", String::class.java), "awt")
+    }
+}
+// endregion
