@@ -1,6 +1,4 @@
 [versions]
-agp = "8.12.3"
-android-compileSdk = "36"
 androidx-lifecycle = "2.9.6"
 androidx-navigation = "2.9.1"
 bugsnag = "3.+"
@@ -56,7 +54,6 @@ settings = { group = "com.russhwolf", name = "multiplatform-settings-no-arg", ve
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
 buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildKonfig" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 conveyor = { id = "dev.hydraulic.conveyor", version.ref = "conveyor-plugin" }

@@ -27,7 +27,7 @@ class DownloadStatsCalculatorDefault : DownloadStatsCalculator {
         previousBytesDownloaded: Long,
         previousUpdateTime: Long
     ): Long? {
-        val timeElapsed = kotlin.time.Clock.System.now().toEpochMilliseconds() - previousUpdateTime
+        val timeElapsed = Clock.System.now().toEpochMilliseconds() - previousUpdateTime
         if (timeElapsed == 0L || downloadedBytes == previousBytesDownloaded) {
             return null
         }
