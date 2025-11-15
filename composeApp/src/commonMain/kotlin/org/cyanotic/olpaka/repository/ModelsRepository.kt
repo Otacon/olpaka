@@ -6,18 +6,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import org.cyanotic.olpaka.core.DownloadStatsCalculator
 import org.cyanotic.olpaka.core.domain.Model
 import org.cyanotic.olpaka.network.DownloadModelRequestDTO
 import org.cyanotic.olpaka.network.OllamaRestClient
 import org.cyanotic.olpaka.network.RemoveModelRequestDTO
+import kotlin.time.ExperimentalTime
 
 interface ModelsRepository {
 
@@ -54,6 +54,7 @@ class ModelsRepositoryDefault(
         return result
     }
 
+    @OptIn(ExperimentalTime::class)
     override suspend fun downloadModel(tag: String) {
         val request = DownloadModelRequestDTO(tag)
         var previousBytesDownloaded = 0L

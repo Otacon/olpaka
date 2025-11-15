@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -18,6 +18,7 @@ import kotlinx.serialization.json.put
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.ExperimentalTime
 
 
 actual class FirebaseAnalytics : CoroutineScope, KoinComponent, Analytics {
@@ -32,7 +33,9 @@ actual class FirebaseAnalytics : CoroutineScope, KoinComponent, Analytics {
     private var measurementId: String? = null
     private var apiSecret: String? = null
 
+    @OptIn(ExperimentalTime::class)
     private var session: String = Clock.System.now().toEpochMilliseconds().toString()
+    @OptIn(ExperimentalTime::class)
     private var startTime: Long = Clock.System.now().toEpochMilliseconds()
 
     actual override fun init() {
@@ -52,6 +55,7 @@ actual class FirebaseAnalytics : CoroutineScope, KoinComponent, Analytics {
         track(eventName, properties)
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun track(eventName: String, params: Map<String, Any?>) {
         Napier.d(tag = "Analytics", message = "Sending \"$eventName\" with params: $params")
         val clientId = this.clientId

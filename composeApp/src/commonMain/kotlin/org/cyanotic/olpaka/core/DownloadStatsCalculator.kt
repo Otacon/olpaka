@@ -1,6 +1,7 @@
 package org.cyanotic.olpaka.core
 
-import kotlinx.datetime.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Clock
 
 interface DownloadStatsCalculator {
 
@@ -20,6 +21,7 @@ interface DownloadStatsCalculator {
 
 class DownloadStatsCalculatorDefault : DownloadStatsCalculator {
 
+    @OptIn(ExperimentalTime::class)
     override fun calculateDownloadSpeed(
         downloadedBytes: Long,
         previousBytesDownloaded: Long,
@@ -34,6 +36,7 @@ class DownloadStatsCalculatorDefault : DownloadStatsCalculator {
         return speedBytesPerMillisecond * 1000
     }
 
+    @OptIn(ExperimentalTime::class)
     override fun calculateRemainingTime(
         totalBytes: Long,
         downloadedBytes: Long,

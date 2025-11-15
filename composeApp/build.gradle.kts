@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import java.util.Base64
 
 plugins {
-    alias(libs.plugins.androidApplication)
     alias(libs.plugins.buildKonfig)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.conveyor)
@@ -81,7 +80,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "composeApp"
+        outputModuleName = "composeApp"
         browser {
             val projectDirPath = project.projectDir.path
             commonWebpackConfig {
@@ -194,29 +193,3 @@ tasks.register("replaceBaseHref") {
 tasks.named("wasmJsBrowserDistribution") {
     finalizedBy("replaceBaseHref")
 }
-
-// region Conveyor fixes
-// By not applying the Android Gradle plugin and the below configuration, gradle is unable to find
-// a matching AWT for WasmJS.
-android {
-    namespace = "org.cyanotic.olpaka"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-}
-
-dependencies {
-    // Use the configurations created by the Conveyor plugin to tell Gradle/Conveyor where to find the artifacts for each platform.
-    linuxAmd64(compose.desktop.linux_x64)
-
-    windowsAmd64(compose.desktop.windows_x64)
-
-    macAmd64(compose.desktop.macos_x64)
-    macAarch64(compose.desktop.macos_arm64)
-}
-
-configurations.all {
-    attributes {
-        // https://github.com/JetBrains/compose-jb/issues/1404#issuecomment-1146894731
-        attribute(Attribute.of("ui", String::class.java), "awt")
-    }
-}
-// endregion

@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
+import androidx.navigation.navArgument
 import org.cyanotic.olpaka.feature.about.AboutScreen
 import org.cyanotic.olpaka.feature.chat.ChatScreen
 import org.cyanotic.olpaka.feature.models.ModelsAddModelScreen
@@ -25,7 +27,7 @@ object Routes {
     const val ONBOARDING = "onboarding/"
 }
 
-object Results{
+object Results {
     const val RESULT_REMOVE_MODEL_KEY = "removeModel"
     const val RESULT_ADD_MODEL_KEY = "addModel"
 }
@@ -39,9 +41,12 @@ fun OlpakaNavHost(navController: NavHostController) {
     ) {
         composable(Routes.CHAT) { ChatScreen() }
         composable(Routes.MODELS) { ModelsScreen(navController) }
-        dialog(Routes.MODELS_REMOVE_MODEL_DIALOG + "{modelKey}") { backStackEntry ->
-            val modelName = backStackEntry.arguments?.getString("modelKey")
-            ModelsRemoveModelScreen(navController, modelName = modelName!!)
+        dialog(
+            route = Routes.MODELS_REMOVE_MODEL_DIALOG + "{modelKey}",
+            arguments = listOf(navArgument("modelKey") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val modelName = backStackEntry.savedStateHandle.get<String>("modelKey") ?: error("modelKey missing")
+            ModelsRemoveModelScreen(navController, modelName = modelName)
         }
         dialog(Routes.MODELS_ADD_MODEL_DIALOG) {
             ModelsAddModelScreen(navController)
