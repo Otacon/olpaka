@@ -166,12 +166,18 @@ compose.desktop {
         mainClass = "org.cyanotic.olpaka.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.Deb)
             packageName = "Olpaka"
             packageVersion = version
             linux {
                 iconFile = rootProject.file("assets/appIcon.png")
                 menuGroup = "Utilities"
+            }
+            windows {
+                iconFile = rootProject.file("assets/appIcon.ico")
+                menuGroup = "Utilities"
+                console = false
+                perUserInstall = true
             }
         }
         buildTypes.release {
