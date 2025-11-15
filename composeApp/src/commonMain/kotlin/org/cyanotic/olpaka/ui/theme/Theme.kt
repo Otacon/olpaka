@@ -1,12 +1,11 @@
 package org.cyanotic.olpaka.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.materialkolor.DynamicMaterialTheme
 import com.materialkolor.PaletteStyle
-import com.materialkolor.rememberDynamicColorScheme
-
+import com.materialkolor.rememberDynamicMaterialThemeState
 
 @Composable
 fun AppTheme(
@@ -14,25 +13,30 @@ fun AppTheme(
     theme: OlpakaTheme = OlpakaTheme.DARK,
     content: @Composable () -> Unit
 ) {
-    val seedColor = when(color){
+    val seedColor = when (color) {
         OlpakaColor.OLPAKA -> olpakaColorOlpaka
-        OlpakaColor.RED ->    olpakaColorRed
+        OlpakaColor.RED -> olpakaColorRed
         OlpakaColor.PURPLE -> olpakaColorPurple
-        OlpakaColor.BLUE ->   olpakaColorBlue
+        OlpakaColor.BLUE -> olpakaColorBlue
         OlpakaColor.ORANGE -> olpakaColorOrange
-        OlpakaColor.GREEN ->  olpakaColorGreen
-        OlpakaColor.GREY ->   olpakaColorGrey
+        OlpakaColor.GREEN -> olpakaColorGreen
+        OlpakaColor.GREY -> olpakaColorGrey
     }
-    val isDarkMode = when(theme){
+    val isDarkMode = when (theme) {
         OlpakaTheme.AUTO -> isSystemInDarkTheme()
         OlpakaTheme.LIGHT -> false
         OlpakaTheme.DARK -> true
     }
-    val colorScheme = rememberDynamicColorScheme(seedColor, isDarkMode, style = PaletteStyle.TonalSpot)
+    val themeState = rememberDynamicMaterialThemeState(
+        isDark = isDarkMode,
+        style = PaletteStyle.Vibrant,
+        seedColor = seedColor,
+    )
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content
+    DynamicMaterialTheme(
+        state = themeState,
+        animate = true,
+        content = content,
     )
 }
 

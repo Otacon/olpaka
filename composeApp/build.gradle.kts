@@ -81,7 +81,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "composeApp"
+        outputModuleName = "composeApp"
         browser {
             val projectDirPath = project.projectDir.path
             commonWebpackConfig {
@@ -99,6 +99,8 @@ kotlin {
 
     jvm("desktop")
     jvmToolchain(17)
+    // TODO why do I need this?
+    androidTarget()
 
     sourceSets {
         val desktopMain by getting
