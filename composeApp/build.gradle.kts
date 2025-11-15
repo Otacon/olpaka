@@ -18,7 +18,7 @@ plugins {
     alias(libs.plugins.mokkery)
 }
 
-version = System.getenv("VERSION_NAME") ?: "local"
+val version = System.getenv("VERSION_NAME") ?: "1.5.4"
 
 buildkonfig {
     packageName = "com.cyanotic.olpaka"
@@ -34,7 +34,7 @@ buildkonfig {
         buildConfigField(BOOLEAN, "allowClearPreferences", "false")
         buildConfigField(STRING, "analyticsApiSecret", analyticsApiSecret)
         buildConfigField(STRING, "analyticsMeasurementId", analyticsMeasurementId)
-        buildConfigField(STRING, "appVersion", version as String)
+        buildConfigField(STRING, "appVersion", version)
         buildConfigField(STRING, "appVariant", "release")
         buildConfigField(STRING, "bugsnagApiKey", bugsnagApiKey)
         buildConfigField(STRING, "firebaseWebConfigJson", decodedWebConfig)
@@ -167,8 +167,17 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.cyanotic.olpaka"
-            packageVersion = "1.0.0"
+            packageName = "Olpaka"
+            packageVersion = version
+            linux {
+                iconFile = rootProject.file("assets/appIcon.png")
+                menuGroup = "Utilities"
+            }
+        }
+        buildTypes.release {
+            proguard {
+                isEnabled = false
+            }
         }
     }
 }
